@@ -19,7 +19,7 @@ import lombok.EqualsAndHashCode;
 public class Product extends PanacheEntityBase {
 
 	@Id
-	@GeneratedValue(generator = "native", strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@EqualsAndHashCode.Include
 	private Long id;
 

@@ -33,7 +33,7 @@ InterSystems Java technologies are not available on Maven Central, so you need t
 
 In order to build this project, go to the `Backend` root folder and type:
 
-```
+```bash
 mvn install:install-file -Dfile=${PWD}/src/main/resources/lib/intersystems-jdbc-3.7.1.jar -DgroupId=com.intersystems -DartifactId=intersystems-jdbc -Dversion=3.7.1 -Dpackaging=jar
 ```
 

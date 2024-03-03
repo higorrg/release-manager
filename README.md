@@ -115,6 +115,7 @@ This project uses Quarkus, the Supersonic Subatomic Java Framework. A Kubernetes
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 
+To know more details on running this project, go to [backend](./backend/README.md).
 ## Configuration
 
 Before start the Java backend, you need to inform what is your IRIS password to it.
