@@ -1,17 +1,12 @@
 package br.com.releasemanger.product_version_deployment.model.entity;
 
-import java.time.Duration;
-import java.time.Instant;
-
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.math.BigInteger;
+import java.time.Instant;
 
 @Entity
 @Table(name = "PRODUCT_VERSION_DEPLOYMENT")
@@ -40,7 +35,7 @@ public class ProductVersionDeployment extends PanacheEntityBase {
 	private Instant downloadEnd;
 
 	@Column(name = "download_time")
-	private Duration downloadTime;
+	private Long downloadTime;
 
 	@Column(name = "deployment_start")
 	private Instant deploymentStart;
@@ -49,7 +44,7 @@ public class ProductVersionDeployment extends PanacheEntityBase {
 	private Instant deploymentEnd;
 
 	@Column(name = "deployment_time")
-	private Duration deploymentTime;
+	private Long deploymentTime;
 
 	@Column(name = "deployment_status")
 	private Long deploymentStatus = 1L;
