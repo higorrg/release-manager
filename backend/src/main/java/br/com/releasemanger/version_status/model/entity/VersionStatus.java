@@ -11,7 +11,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(schema = "RELEASE_MANAGER", name = "VERSION_STATUS")
+@Table(name = "VERSION_STATUS")
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class VersionStatus extends PanacheEntityBase {

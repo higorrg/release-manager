@@ -14,7 +14,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(schema = "RELEASE_MANAGER", name = "PRODUCT_VERSION_DEPLOYMENT")
+@Table(name = "PRODUCT_VERSION_DEPLOYMENT")
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class ProductVersionDeployment extends PanacheEntityBase {

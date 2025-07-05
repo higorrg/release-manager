@@ -1,14 +1,5 @@
 # Release Manager
 
-Submitted to InterSystems Java Contest 2023
-
-## Team
-
-The team of this project is:
-
-- [Cesar Cruz](https://github.com/cesarbcruz)
-- [Higor Granzoto](https://github.com/higorrg)
-
 ## Context
 
 Release Manager is a tool to manage software release to the market using Canary Release methodology.
@@ -73,54 +64,35 @@ For external system involved with this solution we have the SCM Git repository, 
 
 Hence, the Release Manager solution is a delivery system.
 
-### Software Containers for Java and InterSystems Technology
+## Docker Network
 
-![release-manager-Containers.drawio.png](./docs/release-manager-Containers.drawio.png)
-
-As we can see in the diagram above, where we present the containers as per the C4 modeling notation, we’re relying on [InterSystems IRIS Data Platform](https://www.intersystems.com/data-platform/), specifically on the [Interoperability](https://www.intersystems.com/data-platform/interoperability/) capabilities, to give the flexibility and easiness of a no-code approach for integration with cloud storage vendors, and also InterSystems ZPM/IPM repository. Because, by the other way, we would need to interact with all other cloud vendors SDK and create a bigger and complex architecture.
-
-The complexity would increase with:
-
-- More tables in the database
-- More classes
-- More abstractions
-- More configuration files
-- More security concerns
-- More observability capabilities
-- More resilience implementations
-
-## Running the InterSystems IRIS Data Platform
-
-InterSystems [IRIS](https://www.intersystems.com/data-platform/) is a high-performance database that powers transaction processing applications around the world.
+Create the docker network.
 
 ```bash
 docker network create release-manager-net
-docker run --rm --name release-manager-iris \
-	--network=release-manager-net \
-	-p 1972:1972 \
-	-p 52773:52773 \
-	intersystemsdc/iris-community:2023.2-zpm
 ```
 
-Open http://localhost:52773/csp/sys/UtilHome.csp to change the password.
+## Postgres Database and pgAdmin
+
+Spin up the database by running the docker-compose file.
 
 ```bash
-Username: SuperUser
-Change password from SYS to admin
+docker compose up -d
 ```
 
-# The Java Backend
+# Java Backend
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework. A Kubernetes Native Java stack tailored for OpenJDK HotSpot and GraalVM, crafted from the best of breed Java libraries and standards.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 
 To know more details on running this project, go to [backend](./backend/README.md).
+
 ## Configuration
 
-Before start the Java backend, you need to inform what is your IRIS password to it.
+Before start the Java backend, you need to inform what is your database password to it.
 
-You can provide it on the property `quarkus.datasource.password` in the `application.properties` file located at `src/main/resources`, or the environment variable `QUARKUS_DATASOURCE_PASSWORD` if you use the docker image.
+You can provide it on the property `quarkus.datasource.password` in the `application.properties` file located at `src/main/resources`, or the environment variable `QUARKUS_DATASOURCE_PASSWORD` if you use the docker image.
 
 ## Running the Backend in Dev Mode
 
@@ -139,16 +111,6 @@ sdk install quarkus
 quarkus dev
 ```
 
-This project already contains InterSystems jar files needed at `src/main/resources/lib`.
-
-InterSystems Java technologies are not available on Maven Central, so you need to get JDBC connectors and other jar files from https://intersystems-community.github.io/iris-driver-distribution/.
-
-In order to build this project, go to the `Backend` root folder and type:
-
-```
-mvn install:install-file -Dfile=${PWD}/src/main/resources/lib/intersystems-jdbc-3.7.1.jar -DgroupId=com.intersystems -DartifactId=intersystems-jdbc -Dversion=3.7.1 -Dpackaging=jar
-```
-
 You can run the application in dev mode using Quarkus CLI:
 
 ```bash
@@ -161,21 +123,35 @@ You can run the application in dev mode using Maven:
 ./mvnw compile quarkus:dev
 ```
 
-Quarkus ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/. There, you can explore all extensions and configurations of the application.
+Quarkus ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/. There, you can explore all extensions and configurations of the application.
+
+If you're more a curl person, run:
+
+```bash
+curl http://localhost:8080/q/health
+```
+
+If you're more a [HTTPie](https://httpie.io/cli) person, run:
+
+```bash
+http :8080/q/health
+```
 
 ## Packaging the application in container
 
 The application can be packaged for containers using:
 
-`./mvnw package -Dquarkus.container-image.build=true`
+```bash
+./mvnw package -Dquarkus.container-image.build=true
+```
 
 ```bash
 docker run --rm --name release-manager-backend \
   --network=release-manager-net \
   -p 8080:8080 \
-  --env QUARKUS_DATASOURCE_JDBC_URL=jdbc:IRIS://release-manager-iris:1972/USER \
-  --env QUARKUS_DATASOURCE_PASSWORD=yourPassword \
-  releasemanager/backend:latest
+  --env QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://release-manager-db:5432/release_manager \
+  --env QUARKUS_DATASOURCE_PASSWORD=password \
+  release-manager/backend:latest
 ```
 
 ## Playing with the application

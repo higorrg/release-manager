@@ -59,16 +59,6 @@
       <artifactId>quarkus-container-image-docker</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.intersystems</groupId>
-      <artifactId>intersystems-jdbc</artifactId>
-      <version>3.7.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.caretdev</groupId>
-      <artifactId>liquibase-iris</artifactId>
-      <version>${liquibase-iris.version}</version>
-    </dependency>
-    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-hibernate-orm-panache</artifactId>
     </dependency>
@@ -121,11 +111,6 @@
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>iris-hibernate-dialect</artifactId>
-      <version>1.0.0</version>
     </dependency>
   </dependencies>
   <build>

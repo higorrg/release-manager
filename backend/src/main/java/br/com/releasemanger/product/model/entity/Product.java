@@ -13,7 +13,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(schema = "RELEASE_MANAGER", name = "PRODUCT")
+@Table(name = "PRODUCT")
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Product extends PanacheEntityBase {

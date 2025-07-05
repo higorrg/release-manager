@@ -18,7 +18,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(schema = "RELEASE_MANAGER", name = "PRODUCT_VERSION_DELIVERY")
+@Table(name = "PRODUCT_VERSION_DELIVERY")
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Builder

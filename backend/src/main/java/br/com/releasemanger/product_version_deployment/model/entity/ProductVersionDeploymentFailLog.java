@@ -11,7 +11,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(schema = "RELEASE_MANAGER", name = "PRODUCT_VERSION_DEPLOYMENT_FAIL_LOG")
+@Table(name = "PRODUCT_VERSION_DEPLOYMENT_FAIL_LOG")
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class ProductVersionDeploymentFailLog extends PanacheEntityBase {

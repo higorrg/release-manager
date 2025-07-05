@@ -19,7 +19,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(schema = "RELEASE_MANAGER", name = "STAKEHOLDER")
+@Table(name = "STAKEHOLDER")
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Stakeholder extends PanacheEntityBase {
@@ -39,6 +39,6 @@ public class Stakeholder extends PanacheEntityBase {
 	private String email;
 
 	@ManyToMany
-	@JoinTable(schema = "RELEASE_MANAGER", name = "STAKEHOLDER_STATUSVERSION", joinColumns = @JoinColumn(name = "stakeholder_id"), inverseJoinColumns = @JoinColumn(name = "status_version_id"))
+	@JoinTable(name = "STAKEHOLDER_STATUSVERSION", joinColumns = @JoinColumn(name = "stakeholder_id"), inverseJoinColumns = @JoinColumn(name = "status_version_id"))
 	private List<VersionStatus> versionStatuses;
 }
