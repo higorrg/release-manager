@@ -64,20 +64,20 @@ For external system involved with this solution we have the SCM Git repository, 
 
 Hence, the Release Manager solution is a delivery system.
 
-## Docker Network
+## podman Network
 
-Create the docker network.
+Create the podman network.
 
 ```bash
-docker network create release-manager-net
+podman network create release-manager-net
 ```
 
 ## Postgres Database and pgAdmin
 
-Spin up the database by running the docker-compose file.
+Spin up the database by running the podman-compose file.
 
 ```bash
-docker compose up -d
+podman compose up -d
 ```
 
 # Java Backend
@@ -92,7 +92,7 @@ To know more details on running this project, go to [backend](./backend/README.m
 
 Before start the Java backend, you need to inform what is your database password to it.
 
-You can provide it on the property `quarkus.datasource.password` in the `application.properties` file located at `src/main/resources`, or the environment variable `QUARKUS_DATASOURCE_PASSWORD` if you use the docker image.
+You can provide it on the property `quarkus.datasource.password` in the `application.properties` file located at `src/main/resources`, or the environment variable `QUARKUS_DATASOURCE_PASSWORD` if you use the podman image.
 
 ## Running the Backend in Dev Mode
 
@@ -142,11 +142,11 @@ http :8080/q/health
 The application can be packaged for containers using:
 
 ```bash
-./mvnw package -Dquarkus.container-image.build=true
+mvn package -Dquarkus.container-image.build=true
 ```
 
 ```bash
-docker run --rm --name release-manager-backend \
+podman run --rm --name release-manager-backend \
   --network=release-manager-net \
   -p 8080:8080 \
   --env QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://release-manager-db:5432/release_manager \
@@ -168,13 +168,13 @@ This is an example of interoperability that performs file transfers to a [cloud 
 This application receive a http multipart request with a file and saves to Azure Blob 
 
 ### Prerequisites
-1. Make sure you have [Docker](https://www.docker.com) installed.
+1. Make sure you have [podman](https://www.podman.com) installed.
 
 2. It will also be necessary to have a cloud storage account compatible with IRIS Interoperability, such as Amazon Web Services (AWS), Azure Blob Storage (Azure), or Google Cloud Platform (GCP).
 
 <img src="./interoperability/docs/assets/azure_blob_conf.png" alt="azure">
 
-### Installation: Docker
+### Installation: podman
 
 1. First, modify the file [cloudstoragecredential](./interoperability/cloudstoragecredential) with the credentials of the cloud storage service, for example using Azure Blob:
 ```

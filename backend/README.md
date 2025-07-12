@@ -31,11 +31,11 @@ The application can be packaged for containers using:
 `./mvnw package -Dquarkus.native.container-build=true`
 
 ```bash
-docker run --rm --name release-manager-backend \
+podman run --rm --name release-manager-backend \
   --network=release-manager-net \
   -p 8080:8080 \
-  --env QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://localhost:5432/release_manager \
-  releasemanager/backend:latest
+  --env QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://release-manager-db:5432/release_manager \
+  localhost/release-manager/backend:latest
 ```
 
 ## Playing with the application
