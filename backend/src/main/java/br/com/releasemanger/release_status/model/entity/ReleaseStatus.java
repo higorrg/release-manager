@@ -1,4 +1,4 @@
-package br.com.releasemanger.customer.model.entity;
+package br.com.releasemanger.release_status.model.entity;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
@@ -11,20 +11,17 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Entity representing a customer.
+ * Entity representing the release status.
  */
 @Entity
-@Table(name = "CUSTOMER")
+@Table(name = "RELEASE_STATUS")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class Customer extends PanacheEntity {
+public class ReleaseStatus extends PanacheEntity {
 
-    @Column(name = "name", nullable = false, length = 80)
+    @Column(name = "name", nullable = false, length = 60)
     private String name;
-    
-    @Column(name = "custom_customer_id", length = 20)
-    private String customCustomerId;
 }

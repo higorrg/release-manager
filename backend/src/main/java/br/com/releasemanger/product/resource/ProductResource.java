@@ -4,7 +4,10 @@ import br.com.releasemanger.product.model.entity.Product;
 import io.quarkus.hibernate.orm.rest.data.panache.PanacheEntityResource;
 import io.quarkus.rest.data.panache.ResourceProperties;
 
+/**
+ * Resource for managing products.
+ */
 @ResourceProperties(path = "products")
 public interface ProductResource extends PanacheEntityResource<Product, Long> {
-
+    // PanacheEntityResource provides all the CRUD operations automatically
 }
