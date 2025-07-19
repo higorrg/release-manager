@@ -191,6 +191,14 @@ src/main/java/com/empresa/app/feature-x/
 
 * Evite `package com.empresa.app.service`, use `com.empresa.app.agendamento.application.service`
 * Facilita coesão, testes, e localização de código
+* Nunca use nested classes, sempre crie um arquivo para cada classe.
+* Sempre utiliza princípios e práticas de Clean Code.
+* Sempre utiliza SOLID:
+  * [Single Responsibility Principle](https://stackify.com/solid-design-principles/): A class should have one, and only one, reason to change.
+  * [Open/Closed Principle](https://stackify.com/solid-design-open-closed-principle/): Software entities (classes, modules, functions, etc.) should be open for extension, but closed for modification.
+  * [Liskov Substitution Principle](https://stackify.com/solid-design-liskov-substitution-principle/): Objects of a superclass shall be replaceable with objects of its subclasses without breaking the application.
+  * [Interface Segregation Principle](https://stackify.com/interface-segregation-principle/): Clients should not be forced to depend upon interfaces that they do not use.
+  * [Dependency Inversion](https://stackify.com/dependency-inversion-principle/): High-level modules, which provide complex logic, should be easily reusable and unaffected by changes in low-level modules, which provide utility features.
 
 ### ✍️ Código
 
