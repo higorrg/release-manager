@@ -98,13 +98,13 @@ You can provide it on the property `quarkus.datasource.password` in the `applica
 
 ### Prepare dependencies
 
-This application was built using [Apache Maven 3.9.5](https://maven.apache.org/download.cgi) and [Java 17](https://javaalmanac.io/jdk/17/).
+This application was built using [Apache Maven 3.9.5](https://maven.apache.org/download.cgi) and [Java 21](https://javaalmanac.io/jdk/21/).
 
 We recommend using [SDK Man](https://sdkman.io/). After installing SDK Man, you can install a Java 17 distribution, Maven and Quarkus CLI.
 
 ```bash
 sdk install maven
-sdk install java 17.0.8-sem
+sdk install java 21.0.7-amzn
 sdk install quarkus
 
 #From the backend directory run:
