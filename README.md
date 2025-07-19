@@ -4,18 +4,17 @@
 
 Release Manager is a tool to manage software release to the market using Canary Release methodology.
 
-In this solution, we’re relying on [InterSystems IRIS Data Platform](https://www.intersystems.com/data-platform/), specifically on the [Interoperability](https://www.intersystems.com/data-platform/interoperability/) capabilities, to give the flexibility and easiness of a no-code approach for integration with cloud storage vendors.
-
 We understand Canary Release as defined in [Martin Fowler’s](https://martinfowler.com/) blog from ThoughtWorks called [“Canary Release” by Danilo Sato.](https://martinfowler.com/bliki/CanaryRelease.html)
 
-> **Canary release** is a technique to reduce the risk of introducing a new software version in production by slowly rolling out the change to a small subset of users before rolling it out to the entire infrastructure and making it available to everybody.
-> 
+> **Canary release** is a technique to reduce the risk of introducing a new software version in production by slowly 
+> rolling out the change to a small subset of users before rolling it out to the entire infrastructure and making it 
+> available to everybody. 
 
-Although we have cloud based customers, we also have on premises too, so we need to be expanded the word “infrastructure” from the definition above, to fit in our solution.
+Although we have cloud-based customers, we also have on premises too, so we need to be expanded the word “infrastructure” from the definition above, to fit in our solution.
 
 ## Business Problem
 
-Given that a software development team want to release features to the market, in a Canary Release way, we have come up with the Event Storming below.
+Given that a software development team wants to release features to the market, in a Canary Release way, we have come up with the Event Storming below.
 
 ![release-manager-Event Storming.drawio.png](./docs/release-manager-Event%20Storming.drawio.png)
 
@@ -31,13 +30,13 @@ There are five status that a product version can be promoted by the release mana
 
 ### Version Status
 
-1. Internal: The development team are asking to go to market
+1. Internal: The development team is asking to go to market
 2. Canary: The release manager role is promoting that version to a subset of customers
 3. GA - General Availability: The release manager role is promoting a version to all customers
 4. Revoked: The release manager role found problems on a given version and will not promote it to the market
 5. Deprecated: The release manager role is removing a given product version from the market as it reached its end of life phase, and there is a new major version available to the market.
 
-For that, we want register metrics like:
+For that, we want to register metrics like:
 
 - Frequency of delivery.
 - Frequency of Internal versions that are not promoted to Canary.
@@ -90,7 +89,7 @@ To know more details on running this project, go to [backend](./backend/README.m
 
 ## Configuration
 
-Before start the Java backend, you need to inform what is your database password to it.
+Before starting the Java backend, you need to inform what it is your database password to it.
 
 You can provide it on the property `quarkus.datasource.password` in the `application.properties` file located at `src/main/resources`, or the environment variable `QUARKUS_DATASOURCE_PASSWORD` if you use the podman image.
 
@@ -106,32 +105,32 @@ We recommend using [SDK Man](https://sdkman.io/). After installing SDK Man, you 
 sdk install maven
 sdk install java 21.0.7-amzn
 sdk install quarkus
-
-#From the backend directory run:
-quarkus dev
 ```
 
 You can run the application in dev mode using Quarkus CLI:
 
 ```bash
+cd backend
 quarkus dev
 ```
 
 You can run the application in dev mode using Maven:
 
 ```bash
+cd backend
 ./mvnw compile quarkus:dev
 ```
 
-Quarkus ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/. There, you can explore all extensions and configurations of the application.
+Quarkus ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/. There, you can 
+explore all extensions and configurations of the application.
 
-If you're more a curl person, run:
+If you're more of a curl person, then run:
 
 ```bash
 curl http://localhost:8080/q/health
 ```
 
-If you're more a [HTTPie](https://httpie.io/cli) person, run:
+If you're more of a [HTTPie](https://httpie.io/cli) person, then run:
 
 ```bash
 http :8080/q/health
@@ -156,52 +155,8 @@ podman run --rm --name release-manager-backend \
 
 ## Playing with the application
 
-Nether way, by running in dev mode or running the container image, now you can play around with the application by accessing the main page at http://localhost:8080/
+Nether way, by running in dev mode or running the container image, now you can play around with the application by 
+accessing the main page at http://localhost:8080/
 
-There, you will find the notification panel, and a link to the [Swagger-UI](http://localhost:8080/q/swagger-ui/), where you can send HTTP requests and observe the notification panel react using [SSE - Serven-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events).
-
-## InterSystems IRIS Interoperability (Cloud Storage)
-This is an example of interoperability that performs file transfers to a [cloud storage service](https://docs.intersystems.com/healthconnectlatest/csp/docbook/DocBook.UI.Page.cls?KEY=ECLOUD).
-
-### What this example does
-
-This application receive a http multipart request with a file and saves to Azure Blob 
-
-### Prerequisites
-1. Make sure you have [podman](https://www.podman.com) installed.
-
-2. It will also be necessary to have a cloud storage account compatible with IRIS Interoperability, such as Amazon Web Services (AWS), Azure Blob Storage (Azure), or Google Cloud Platform (GCP).
-
-<img src="./interoperability/docs/assets/azure_blob_conf.png" alt="azure">
-
-### Installation: podman
-
-1. First, modify the file [cloudstoragecredential](./interoperability/cloudstoragecredential) with the credentials of the cloud storage service, for example using Azure Blob:
-```
-DefaultEndpointsProtocol=https
-AccountName=YOUR_ACCOUNT_NAME
-AccountKey=YOUR_ACCOUNT_KEY
-EndpointSuffix=core.windows.net
-```
-<img src="./interoperability/docs/assets/key_access_azure_blob.png" alt="key_access_azure_blob">
-
-2. Make sure you did run steps on [Running the InterSystems IRIS Data Platform](#Running-the-InterSystems-IRIS-Data-Platform) above in this document.
-
-### How to Run the Sample
-
-1. Open the [production](http://localhost:52773/csp/user/EnsPortal.ProductionConfig.zen) in the IRIS Administration Portal.
-<img src="./interoperability/docs/assets/login_iris.png" alt="login_iris">
- 
-2. Start the production.
-<img src="./interoperability/docs/assets/production_start.png" alt="production_start">
-<img src="./interoperability/docs/assets/Interoperability.png" alt="Interoperability">
-
-3. Check the cloud storage configuration in the business operation and ensure that the credentials file is properly selected.
-<img src="./interoperability/docs/assets/cloud_storage_conf.png" alt="cloud storage conf">
-
-
-4. Now Open Postman and create a multipart request into a form-data pointing to localhost:9980/ using verb POST. See sample:
-<img src="./interoperability/docs/assets/postman_request.png" alt="postman">
-
-5. After executing the request, verify if the file has been correctly sent to the previously registered Azure Blob.
-<img src="./interoperability/docs/assets/azure_blob.png" alt="azure">
+There, you will find the notification panel, and a link to the [Swagger-UI](http://localhost:8080/q/swagger-ui/), where you can send HTTP requests 
+and observe the notification panel react using [SSE - Serven-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events).
