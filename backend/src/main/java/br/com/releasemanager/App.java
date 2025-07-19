@@ -1,4 +1,4 @@
-package br.com.releasemanger;
+package br.com.releasemanager;
 
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.annotations.QuarkusMain;

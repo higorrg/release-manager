@@ -1,4 +1,4 @@
-package br.com.releasemanger.business_exception;
+package br.com.releasemanager.business_exception;
 
 import io.vertx.core.json.JsonObject;
 import jakarta.ws.rs.core.Response;
