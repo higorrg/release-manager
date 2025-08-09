@@ -145,6 +145,8 @@ para **que o cliente possa realizar a atualização do produto com todos os comp
 - O sistema deve disponibilizar o pacote da versão (ex: `.zip`, `.tar.gz`) para download.
 - O pacote deve conter o produto completo e seus componentes.
     
+---
+
 ## Backend
 
 ### Java Best Practices
@@ -246,6 +248,8 @@ src/main/java/com/empresa/app/feature-x/
 * [Java 21 Features](https://openjdk.org/projects/jdk/21/)
 * [Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/)
 * [Ports and Adapters com Quarkus](https://quarkus.io/blog/ports-and-adapters/)
+
+---
 
 ## Frontend
 
