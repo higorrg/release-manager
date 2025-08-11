@@ -1,0 +1,20 @@
+{
+  "name": "release-manager-frontend",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "ng serve",
+    "test": "ng test"
+  },
+  "dependencies": {
+    "@angular/core": "^20.0.0",
+    "@angular/common": "^20.0.0",
+    "@angular/platform-browser": "^20.0.0",
+    "@angular/router": "^20.0.0",
+    "rxjs": "^7.8.0",
+    "keycloak-js": "^23.0.0"
+  },
+  "devDependencies": {
+    "@angular/cli": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}
