@@ -66,7 +66,7 @@ para **termos rastreabilidade**.
 
 **Critérios de Aceitação:**
 
-- Deve ser criada uma tabela ou mecanismo de armazenamento conforme definido em ADR.
+- Deve ser criada uma tabela ou mecanismo de armazenamento.
 - Um novo registro deve ser incluído sempre que ocorrer uma alteração de status da release.
 - Não devem existir operações de alteração ou exclusão dos registros, apenas inserções.
 - Não será desenvolvida interface de consulta neste momento; a verificação será feita diretamente no banco de dados.
@@ -127,6 +127,7 @@ para **garantir visibilidade sobre as versões que podem ser aplicadas, promoven
 
 - A listagem deve apresentar as versões disponíveis para atualização para cada cliente, separadas por ambiente (homologação e produção).
 - A resposta da API deve conter, para cada versão: número da versão, release notes, pré-requisitos e a URL de download.
+- Release notes e pré-requisitos serão cadastrados manualmente.
 
 ### US-07 - Fornecer Pacote
 
@@ -142,12 +143,32 @@ para **que o cliente possa realizar a atualização do produto com todos os comp
 
 **Critérios de Aceitação:**
 
-- O sistema deve disponibilizar o pacote da versão (ex: `.zip`, `.tar.gz`) para download.
-- O pacote deve conter o produto completo e seus componentes.
+* O sistema deve disponibilizar o pacote da versão (ex: `.zip`, `.tar.gz`) para download.
+* O pacote deve conter o produto completo e seus componentes.
+* Os pacotes deverão ser armazenados no blob storage da Azure.
     
-## Backend
+## Banco de Dados
 
-### Java Best Practices
+* O banco de dados (SGBD) deve ser o Postgres versão 17.
+
+## Autenticação
+
+* A autenticação deverá ser realizada por Keycloak.
+* Criar todos os artefatos necessários para configurar o Keycloak.
+* A URL do AzureAD para o keycloak é: https://example.com
+
+## Ambiente de Execução
+
+### Desenvolvimento
+
+* Apenas o banco de dados será em container na versão alpine.
+
+### Produção
+
+* Todos os componentes deverão ser executados em containers, banco de dados, backend e frontend.
+* Criar um docker-compose com todos devidamente configurados.
+
+## Backend
 
 ### Persona
 
@@ -219,11 +240,13 @@ src/main/java/com/empresa/app/feature-x/
 
 ### Boas Práticas com Quarkus
 
-* Use `@RestPath` e `@RestQuery` para endpoints REST
-* Prefira o `PanacheRepository` apenas em adapters
-* Use `@Transactional` apenas nos adapters (não em use cases)
-* Use configuração via `application.properties`
-* Para agendamento, use `@Scheduled`
+* Use `@RestPath` e `@RestQuery` para endpoints REST.
+* Prefira o `PanacheRepository` apenas em adapters.
+* Use `@Transactional` apenas nos adapters (não em use cases).
+* Use configuração via `application.properties`.
+* Para agendamento, use `@Scheduled`.
+* Sempre crie endpoints REST específicos, nunca reuse endpoints destinados a frontend, em integrações com outros sistemas.
+* Versione as APIs por URL.
 
 ---
 
