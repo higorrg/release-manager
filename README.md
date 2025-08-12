@@ -1,162 +1,209 @@
 # Release Manager
 
-## Context
+Sistema de gerenciamento de releases desenvolvido com **Quarkus** (backend) e **Angular 20** (frontend), utilizando autenticação via **Keycloak** integrado ao **Azure AD**.
 
-Release Manager is a tool to manage software release to the market using Canary Release methodology.
+## 🏗️ Arquitetura
 
-We understand Canary Release as defined in [Martin Fowler’s](https://martinfowler.com/) blog from ThoughtWorks called [“Canary Release” by Danilo Sato.](https://martinfowler.com/bliki/CanaryRelease.html)
+### Backend (Quarkus + Java 21)
+- **Arquitetura Hexagonal** com package-by-feature
+- **PostgreSQL 17** como banco de dados
+- **Keycloak** para autenticação e autorização
+- **Azure Blob Storage** para armazenamento de pacotes
+- **Flyway** para versionamento do banco de dados
 
-> **Canary release** is a technique to reduce the risk of introducing a new software version in production by slowly 
-> rolling out the change to a small subset of users before rolling it out to the entire infrastructure and making it 
-> available to everybody. 
+### Frontend (Angular 20)
+- **Standalone Components**
+- **Signals** para gerenciamento de estado
+- **Reactive Forms**
+- **Keycloak-js** para integração com autenticação
 
-Although we have cloud-based customers, we also have on premises too, so we need to be expanded the word “infrastructure” from the definition above, to fit in our solution.
+## 🚀 Funcionalidades
 
-## Business Problem
+### ✅ Implementadas
 
-Given that a software development team wants to release features to the market, in a Canary Release way, we have come up with the Event Storming below.
+- **US-01**: Autenticação via SSO (Keycloak + Azure AD)
+- **US-02**: Controle de status das etapas de release
+- **US-03**: Registro de histórico de mudanças de status
+- **US-05**: Criação automática de releases via pipeline
 
-![release-manager-Event Storming.drawio.png](./docs/release-manager-Event%20Storming.drawio.png)
+### 🚧 Em Desenvolvimento
 
-## Business Solution
+- **US-04**: Relacionamento de releases com clientes e ambientes
+- **US-06**: API para listar versões disponíveis
+- **US-07**: Download de pacotes instaláveis
 
-Facing a DevOps challenge, that pinpoint key stages of the process, we selected only those one that can help provide metrics of improvement, as the DevOps mindset is all about Agile development methodology, and there are maturity models like [DORA](https://dora.dev/research/), that can be used.
+## 🛠️ Tecnologias
 
-Mostly we want to help measure and improve one of the [Four Key Metrics](https://cloud.google.com/blog/products/devops-sre/using-the-four-keys-to-measure-your-devops-performance), the **Deployment frequency**, which stands for: How often does your organization deploy code to production or release it to end users?
+| Componente | Tecnologia | Versão |
+|------------|------------|--------|
+| **Backend** | Java | 21 |
+| | Quarkus | 3.9.4 |
+| | PostgreSQL | 17 |
+| **Frontend** | Angular | 20 |
+| | TypeScript | 5.6 |
+| | Node.js | 20+ |
+| **Autenticação** | Keycloak | 24.0 |
+| **Containers** | Docker | Latest |
+| **Storage** | Azure Blob | Latest |
 
-The key thing about these metric that we wanna to state is that, we have to measure delivery failures to be able to improve, not just how often we delivery, but how often we deliver with quality, focusing on the reduction of the number of times a version doesn’t go up to the promotion of general availability.
+## 📋 Pré-requisitos
 
-There are five status that a product version can be promoted by the release manager role, a person with this specific authority.
+- **Docker** e **Docker Compose**
+- **Java 21** (para desenvolvimento)
+- **Node.js 20+** (para desenvolvimento)
+- **Maven 3.9+** (para build do backend)
 
-### Version Status
+## 🚀 Como Executar
 
-1. Internal: The development team is asking to go to market
-2. Canary: The release manager role is promoting that version to a subset of customers
-3. GA - General Availability: The release manager role is promoting a version to all customers
-4. Revoked: The release manager role found problems on a given version and will not promote it to the market
-5. Deprecated: The release manager role is removing a given product version from the market as it reached its end of life phase, and there is a new major version available to the market.
+### Ambiente de Desenvolvimento
 
-For that, we want to register metrics like:
-
-- Frequency of delivery.
-- Frequency of Internal versions that are not promoted to Canary.
-- Frequency of Canary versions that are not promoted to General Availability.
-- Successful Deployment by Product
-- Deployments In Progress
-- Median Download Time Interval by Customers
-- Median Deployment Time Interval by Customers
-- Etc.
-
-## Architectural Solution
-
-### System Context
-
-![release-manager-System Context.drawio.png](./docs/release-manager-Containers.drawio.png)
-
-The diagram above, shows the system context using the C4 modeling notation. Here we present the high level context for the solution landscape.
-
-There are five basic roles involved, starting with the developer and ending with the user that needs its software to be upgraded.
-
-Along the way, there are the Release Manager role, in which have the authority to promote the version status as described in [Version Status section](#Version%20Status). There are, also, any stakeholder interested in been notified about version status promotion. And finally a system administrator who have the authority to change the system configuration.
-
-For external system involved with this solution we have the SCM Git repository, or any other form of SCM - Software Configuration Management, CI/CD tools, that perform the delivery to this system.
-
-Hence, the Release Manager solution is a delivery system.
-
-## podman Network
-
-Create the podman network.
-
+1. **Clone o repositório**
 ```bash
-podman network create release-manager-net
+git clone <repository-url>
+cd release-manager
 ```
 
-## Postgres Database and pgAdmin
-
-Spin up the database by running the podman-compose file.
-
+2. **Inicie os serviços de infraestrutura**
 ```bash
-podman compose up -d
+docker-compose up -d postgres keycloak
 ```
 
-# Java Backend
+3. **Configure o Keycloak**
+   - Acesse: http://localhost:8080
+   - Login: admin/admin123
+   - O realm será importado automaticamente
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework. A Kubernetes Native Java stack tailored for OpenJDK HotSpot and GraalVM, crafted from the best of breed Java libraries and standards.
-
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
-
-To know more details on running this project, go to [backend](./backend/README.md).
-
-## Configuration
-
-Before starting the Java backend, you need to inform what it is your database password to it.
-
-You can provide it on the property `quarkus.datasource.password` in the `application.properties` file located at `src/main/resources`, or the environment variable `QUARKUS_DATASOURCE_PASSWORD` if you use the podman image.
-
-## Running the Backend in Dev Mode
-
-### Prepare dependencies
-
-This application was built using [Apache Maven 3.9.5](https://maven.apache.org/download.cgi) and [Java 21](https://javaalmanac.io/jdk/21/).
-
-We recommend using [SDK Man](https://sdkman.io/). After installing SDK Man, you can install a Java 17 distribution, Maven and Quarkus CLI.
-
-```bash
-sdk install maven
-sdk install java 21.0.7-amzn
-sdk install quarkus
-```
-
-You can run the application in dev mode using Quarkus CLI:
-
-```bash
-cd backend
-quarkus dev
-```
-
-You can run the application in dev mode using Maven:
-
+4. **Execute o Backend**
 ```bash
 cd backend
 ./mvnw compile quarkus:dev
 ```
 
-Quarkus ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/. There, you can 
-explore all extensions and configurations of the application.
-
-If you're more of a curl person, then run:
-
+5. **Execute o Frontend**
 ```bash
-curl http://localhost:8080/q/health
+cd frontend
+npm install
+npm start
 ```
 
-If you're more of a [HTTPie](https://httpie.io/cli) person, then run:
+6. **Acesse a aplicação**
+   - Frontend: http://localhost:4200
+   - Backend API: http://localhost:8081
+   - Keycloak: http://localhost:8080
+
+### Ambiente de Produção
 
 ```bash
-http :8080/q/health
+# Configure as variáveis de ambiente
+cp .env.example .env
+# Edite o arquivo .env com suas configurações
+
+# Execute todos os serviços
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-## Packaging the application in container
+## 🔧 Configuração
 
-The application can be packaged for containers using:
+### Variáveis de Ambiente
 
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `DB_USER` | Usuário do PostgreSQL | admin |
+| `DB_PASSWORD` | Senha do PostgreSQL | admin123 |
+| `KEYCLOAK_ADMIN_PASSWORD` | Senha do admin Keycloak | admin123 |
+| `OIDC_CLIENT_SECRET` | Secret do cliente backend | backend-client-secret |
+| `AZURE_STORAGE_CONNECTION_STRING` | String de conexão Azure Storage | - |
+| `API_BASE_URL` | URL base da API | http://backend:8080 |
+
+### Configuração do Azure AD
+
+1. **No Azure Portal**, crie uma aplicação
+2. **Configure as URLs de redirect** no Keycloak
+3. **Atualize o arquivo** `keycloak/realm-export.json` com:
+   - `clientId`: ID da aplicação Azure
+   - `clientSecret`: Secret da aplicação Azure
+   - `issuer`: Tenant do Azure AD
+
+## 📁 Estrutura do Projeto
+
+```
+release-manager/
+├── backend/                    # API Quarkus
+│   ├── src/main/java/com/empresa/app/
+│   │   └── release/           # Feature de releases
+│   │       ├── domain/        # Modelos de domínio
+│   │       ├── application/   # Casos de uso e ports
+│   │       └── adapter/       # Adaptadores (REST, JPA)
+│   └── src/main/resources/
+│       ├── application.properties
+│       └── db/migration/      # Scripts Flyway
+├── frontend/                  # Aplicação Angular
+│   ├── src/app/
+│   │   ├── core/             # Serviços e guards
+│   │   └── features/         # Componentes por feature
+│   └── nginx.conf
+├── keycloak/                 # Configuração Keycloak
+│   └── realm-export.json
+├── database/                 # Scripts de banco
+│   └── init.sql
+├── docker-compose.yml        # Desenvolvimento
+└── docker-compose.prod.yml   # Produção
+```
+
+## 🧪 Testes
+
+### Backend
 ```bash
-mvn package -Dquarkus.container-image.build=true
+cd backend
+./mvnw test
 ```
 
+### Frontend
 ```bash
-podman run --rm --name release-manager-backend \
-  --network=release-manager-net \
-  -p 8080:8080 \
-  --env QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://release-manager-db:5432/release_manager \
-  --env QUARKUS_DATASOURCE_PASSWORD=password \
-  release-manager/backend:latest
+cd frontend
+npm test
 ```
 
-## Playing with the application
+## 📊 Status das User Stories
 
-Nether way, by running in dev mode or running the container image, now you can play around with the application by 
-accessing the main page at http://localhost:8080/
+| US | Título | Status | Progresso |
+|----|--------|--------|-----------|
+| US-01 | Autenticação SSO | ✅ | 100% |
+| US-02 | Controle de Status | ✅ | 100% |
+| US-03 | Histórico de Status | ✅ | 100% |
+| US-04 | Clientes e Ambientes | 🚧 | 60% |
+| US-05 | Pipeline Integration | ✅ | 100% |
+| US-06 | API de Versões | 🚧 | 40% |
+| US-07 | Download de Pacotes | 🚧 | 20% |
 
-There, you will find the notification panel, and a link to the [Swagger-UI](http://localhost:8080/q/swagger-ui/), where you can send HTTP requests 
-and observe the notification panel react using [SSE - Serven-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events).
+## 🔗 API Endpoints
+
+### Releases
+- `POST /api/v1/releases/pipeline` - Criar release via pipeline
+- `PUT /api/v1/releases/{id}/status` - Atualizar status
+- `PUT /api/v1/releases/{id}/release-notes` - Atualizar release notes
+- `PUT /api/v1/releases/{id}/prerequisites` - Atualizar pré-requisitos
+- `GET /api/v1/releases/{id}` - Buscar release por ID
+- `GET /api/v1/releases/{id}/history` - Histórico de mudanças
+
+### Documentação Completa
+- Swagger UI: http://localhost:8081/q/swagger-ui
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📝 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 📞 Suporte
+
+Para questões e suporte:
+- 📧 Email: suporte@empresa.com
+- 📋 Issues: [GitHub Issues](https://github.com/empresa/release-manager/issues)
+- 📖 Wiki: [Documentação Técnica](https://github.com/empresa/release-manager/wiki)
