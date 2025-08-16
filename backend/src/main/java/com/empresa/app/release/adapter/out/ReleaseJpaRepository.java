@@ -65,7 +65,7 @@ public class ReleaseJpaRepository implements ReleaseRepository {
 
     @Override
     public List<Release> findAll() {
-        return ReleaseEntity.<ReleaseEntity>findAll()
+        return ReleaseEntity.<ReleaseEntity>find("order by createdAt desc")
                 .stream()
                 .map(ReleaseEntity::toDomain)
                 .toList();

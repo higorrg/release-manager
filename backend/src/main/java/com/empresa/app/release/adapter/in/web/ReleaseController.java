@@ -9,6 +9,8 @@ import com.empresa.app.release.adapter.in.dto.UpdatePrerequisitesRequest;
 import com.empresa.app.release.adapter.in.dto.UpdateReleaseNotesRequest;
 import com.empresa.app.release.adapter.in.dto.UpdateStatusRequest;
 import com.empresa.app.release.application.port.in.ReleaseManagementUseCase;
+import com.empresa.app.release.application.port.out.ProductRepository;
+import com.empresa.app.release.domain.model.Product;
 import com.empresa.app.release.domain.model.Release;
 import com.empresa.app.release.domain.model.ReleaseStatus;
 import com.empresa.app.release.domain.model.ReleaseStatusHistory;
@@ -31,6 +33,9 @@ public class ReleaseController {
 
     @Inject
     ReleaseManagementUseCase releaseManagementUseCase;
+
+    @Inject
+    ProductRepository productRepository;
 
     @POST
     @Path("/pipeline")
@@ -62,9 +67,7 @@ public class ReleaseController {
             if (productId != null && !productId.isEmpty()) {
                 releases = releaseManagementUseCase.findReleasesByProduct(UUID.fromString(productId));
             } else {
-                // Para o momento, vamos retornar uma lista vazia se não especificar produto
-                // Em uma implementação real, poderia ter um método para listar todas
-                releases = List.of();
+                releases = releaseManagementUseCase.findAllReleases();
             }
             
             List<ReleaseResponse> response = releases.stream()
@@ -183,7 +186,8 @@ public class ReleaseController {
     }
 
     private ReleaseResponse mapToResponse(Release release) {
-        return ReleaseResponse.from(release);
+        Product product = productRepository.findById(release.getProductId()).orElse(null);
+        return ReleaseResponse.from(release, product);
     }
 
     @POST

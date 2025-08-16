@@ -1,5 +1,6 @@
 package com.empresa.app.release.adapter.in.dto;
 
+import com.empresa.app.release.domain.model.Product;
 import com.empresa.app.release.domain.model.Release;
 import com.empresa.app.release.domain.model.ReleaseStatus;
 import com.empresa.app.release.domain.model.ReleaseStatusHistory;
@@ -9,6 +10,7 @@ import java.util.UUID;
 public record ReleaseResponse(
         UUID id,
         UUID productId,
+        String product,
         String version,
         Integer majorVersion,
         Integer minorVersion,
@@ -22,10 +24,11 @@ public record ReleaseResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static ReleaseResponse from(Release release) {
+    public static ReleaseResponse from(Release release, Product product) {
         return new ReleaseResponse(
                 release.getId(),
                 release.getProductId(),
+                product != null ? product.getName() : "Unknown Product",
                 release.getVersion(),
                 release.getMajorVersion(),
                 release.getMinorVersion(),
@@ -39,5 +42,9 @@ public record ReleaseResponse(
                 release.getCreatedAt(),
                 release.getUpdatedAt()
         );
+    }
+
+    public static ReleaseResponse from(Release release) {
+        return from(release, null);
     }
 }

@@ -130,6 +130,11 @@ public class ReleaseManagementService implements ReleaseManagementUseCase {
     }
 
     @Override
+    public List<Release> findAllReleases() {
+        return releaseRepository.findAll();
+    }
+
+    @Override
     public List<Release> findReleasesByProduct(UUID productId) {
         if (Objects.isNull(productId)) {
             throw new IllegalArgumentException("Product ID cannot be null");

@@ -383,12 +383,17 @@ export class ReleaseListComponent {
     this.loading.set(true);
     this.error.set(null);
     
-    // Simulating API call since we don't have a list endpoint yet
-    // In real implementation, this would call releaseService.getAllReleases()
-    setTimeout(() => {
-      this.releases.set([]);
-      this.loading.set(false);
-    }, 1000);
+    this.releaseService.getAllReleases().subscribe({
+      next: (releases) => {
+        this.releases.set(releases);
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading releases:', error);
+        this.error.set('Erro ao carregar releases. Tente novamente.');
+        this.loading.set(false);
+      }
+    });
   }
 
   toggleCreateForm() {
@@ -408,10 +413,11 @@ export class ReleaseListComponent {
 
       this.releaseService.createReleaseFromPipeline(request).subscribe({
         next: (release) => {
-          this.releases.update(releases => [release, ...releases]);
           this.createForm.reset();
           this.showCreateForm.set(false);
           this.creating.set(false);
+          // Reload the list to ensure we have fresh data
+          this.loadReleases();
         },
         error: (error) => {
           this.error.set('Erro ao criar release: ' + (error.error?.message || error.message));

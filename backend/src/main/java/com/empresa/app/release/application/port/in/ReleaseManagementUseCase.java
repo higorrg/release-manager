@@ -35,6 +35,11 @@ public interface ReleaseManagementUseCase {
     Optional<Release> findReleaseById(UUID releaseId);
     
     /**
+     * Lista todas as releases
+     */
+    List<Release> findAllReleases();
+    
+    /**
      * Lista todas as releases de um produto
      */
     List<Release> findReleasesByProduct(UUID productId);

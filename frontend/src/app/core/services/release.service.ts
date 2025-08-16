@@ -96,6 +96,18 @@ export class ReleaseService {
         });
     }
 
+    getAllReleases(): Observable<Release[]> {
+        return this.http.get<Release[]>(this.apiUrl, {
+            headers: this.getHeaders()
+        });
+    }
+
+    getReleasesByProduct(productId: string): Observable<Release[]> {
+        return this.http.get<Release[]>(`${this.apiUrl}?productId=${productId}`, {
+            headers: this.getHeaders()
+        });
+    }
+
     updateReleaseStatus(releaseId: string, status: ReleaseStatus, notes?: string): Observable<Release> {
         const request: UpdateStatusRequest = { status, comments: notes };
         return this.http.put<Release>(`${this.apiUrl}/${releaseId}/status`, request, {
