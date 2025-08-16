@@ -58,6 +58,7 @@ public class ReleaseManagementService implements ReleaseManagementUseCase {
                 "PIPELINE"
         );
         statusHistoryRepository.save(initialHistory);
+        System.out.println("✅ Status history created for new release: " + savedRelease.getId());
 
         return savedRelease;
     }
@@ -89,6 +90,7 @@ public class ReleaseManagementService implements ReleaseManagementUseCase {
                 command.comments()
         );
         statusHistoryRepository.save(history);
+        System.out.println("✅ Status history updated: " + previousStatus + " → " + command.newStatus() + " by " + command.changedBy());
 
         return updatedRelease;
     }
