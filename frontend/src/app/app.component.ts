@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './core/services/auth.service';
@@ -7,7 +7,12 @@ import { AuthService } from './core/services/auth.service';
   selector: 'app-root',
   standalone: true,
   template: `
-    @if (isAuthenticated()) {
+    @if (isLoading()) {
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Carregando...</p>
+      </div>
+    } @else if (isAuthenticated()) {
       <div class="app-container">
         <header class="app-header">
           <div class="header-content">
@@ -162,20 +167,65 @@ import { AuthService } from './core/services/auth.service';
     .login-btn:hover {
       background: #2980b9;
     }
+
+    .loading-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8f9fa;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e9ecef;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-container p {
+      color: #6c757d;
+      font-size: 1rem;
+      margin: 0;
+    }
   `],
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule]
 })
 export class AppComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
 
+  constructor() {
+    console.log('AppComponent constructor called');
+  }
+
   ngOnInit() {
-    this.authService.init();
+    console.log('AppComponent ngOnInit called');
+    console.log('Initializing auth service...');
+    this.authService.init().catch(err => {
+      console.error('Auth service initialization failed:', err);
+    });
   }
 
   isAuthenticated() {
-    return this.authService.isAuthenticated();
+    const authenticated = this.authService.isAuthenticated();
+    console.log('isAuthenticated():', authenticated);
+    return authenticated;
+  }
+
+  isLoading() {
+    const loading = this.authService.isLoading();
+    console.log('isLoading():', loading);
+    return loading;
   }
 
   getUserName() {

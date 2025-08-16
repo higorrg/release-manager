@@ -9,10 +9,12 @@ export class AuthService {
   private keycloak!: Keycloak;
   private authenticated = signal(false);
   private userProfile = signal<any>(null);
+  private loading = signal(true);
 
   constructor(private router: Router) {}
 
   async init(): Promise<void> {
+    console.log('AuthService init starting...');
     try {
       this.keycloak = new Keycloak({
         url: 'http://localhost:8080',
@@ -20,25 +22,46 @@ export class AuthService {
         clientId: 'release-manager-frontend'
       });
 
+      console.log('Keycloak instance created, initializing...');
       const authenticated = await this.keycloak.init({
         onLoad: 'check-sso',
         silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
-        checkLoginIframe: false
+        checkLoginIframe: false,
+        enableLogging: true
       });
 
+      console.log('Keycloak init completed, authenticated:', authenticated);
       this.authenticated.set(authenticated);
 
       if (authenticated) {
+        console.log('User is authenticated, loading profile...');
         await this.loadUserProfile();
         this.setupTokenRefresh();
+        
+        // Handle redirect after authentication
+        const redirectUrl = sessionStorage.getItem('redirectUrl');
+        if (redirectUrl) {
+          console.log('Redirecting to stored URL:', redirectUrl);
+          sessionStorage.removeItem('redirectUrl');
+          this.router.navigate([redirectUrl]);
+        }
+      } else {
+        console.log('User is not authenticated');
       }
     } catch (error) {
       console.error('Failed to initialize Keycloak:', error);
+    } finally {
+      console.log('AuthService init completed, setting loading to false');
+      this.loading.set(false);
     }
   }
 
   isAuthenticated() {
     return this.authenticated();
+  }
+
+  isLoading() {
+    return this.loading();
   }
 
   getUserName(): string {
@@ -62,6 +85,15 @@ export class AuthService {
 
   async login(): Promise<void> {
     try {
+      console.log('Login called, checking if already in progress...');
+      
+      // Avoid multiple login calls
+      if (this.keycloak && this.keycloak.authenticated) {
+        console.log('User is already authenticated, skipping login');
+        return;
+      }
+      
+      console.log('Starting Keycloak login...');
       await this.keycloak.login({
         redirectUri: window.location.origin
       });

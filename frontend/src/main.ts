@@ -8,10 +8,16 @@ import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { authInterceptor } from './app/core/interceptors/auth.interceptor';
 
+console.log('Starting Angular application...');
+
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     importProvidersFrom(ReactiveFormsModule)
   ]
-}).catch(err => console.error(err));
+}).then(() => {
+  console.log('Angular application started successfully');
+}).catch(err => {
+  console.error('Failed to start Angular application:', err);
+});

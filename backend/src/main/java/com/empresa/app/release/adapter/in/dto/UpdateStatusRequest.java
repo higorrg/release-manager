@@ -4,6 +4,7 @@ import com.empresa.app.release.domain.model.ReleaseStatus;
 import jakarta.validation.constraints.NotNull;
 
 public record UpdateStatusRequest(
-        @NotNull(message = "Status is required") ReleaseStatus status,
+        @NotNull(message = "Status is required") String newStatus,
+        String changedBy,
         String comments
 ) {}
