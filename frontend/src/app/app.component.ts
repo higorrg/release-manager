@@ -217,15 +217,17 @@ export class AppComponent implements OnInit {
   }
 
   isAuthenticated() {
-    const authenticated = this.authService.isAuthenticated();
-    console.log('isAuthenticated():', authenticated);
-    return authenticated;
+    // const authenticated = this.authService.isAuthenticated();
+    // console.log('isAuthenticated():', authenticated);
+    // return authenticated;
+      return this.authService.isAuthenticated();
   }
 
   isLoading() {
-    const loading = this.authService.isLoading();
-    console.log('isLoading():', loading);
-    return loading;
+    // const loading = this.authService.isLoading();
+    // console.log('isLoading():', loading);
+    // return loading;
+      return this.authService.isLoading();
   }
 
   getUserName() {

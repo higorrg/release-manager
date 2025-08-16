@@ -102,7 +102,8 @@
       "webOrigins": [
         "http://localhost:4200",
         "http://localhost",
-        "https://your-domain.com"
+        "https://your-domain.com",
+        "*"
       ],
       "protocol": "openid-connect",
       "attributes": {

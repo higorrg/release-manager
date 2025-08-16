@@ -1,5 +1,6 @@
 package com.empresa.app.release.adapter.in.web;
 
+import com.empresa.app.release.adapter.in.dto.AddControlledClientRequest;
 import com.empresa.app.release.adapter.in.dto.CreateReleaseRequest;
 import com.empresa.app.release.adapter.in.dto.ErrorResponse;
 import com.empresa.app.release.adapter.in.dto.ReleaseResponse;
@@ -22,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Path("/api/releases")
+@Path("/api/v1/releases")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Release Management", description = "Operações de gerenciamento de releases")
@@ -32,6 +33,7 @@ public class ReleaseController {
     ReleaseManagementUseCase releaseManagementUseCase;
 
     @POST
+    @Path("/pipeline")
     @Operation(summary = "Criar uma nova release", description = "Cria uma nova release a partir da pipeline")
     public Response createRelease(CreateReleaseRequest request) {
         try {
@@ -119,7 +121,7 @@ public class ReleaseController {
     }
 
     @PUT
-    @Path("/{releaseId}/notes")
+    @Path("/{releaseId}/release-notes")
     @Operation(summary = "Atualizar release notes", description = "Atualiza as release notes de uma release")
     public Response updateReleaseNotes(@PathParam("releaseId") String releaseId,
                                      UpdateReleaseNotesRequest request) {
@@ -182,6 +184,48 @@ public class ReleaseController {
 
     private ReleaseResponse mapToResponse(Release release) {
         return ReleaseResponse.from(release);
+    }
+
+    @POST
+    @Path("/{releaseId}/controlled-clients")
+    @Operation(summary = "Adicionar cliente controlado", description = "Adiciona um cliente controlado à release")
+    public Response addControlledClient(@PathParam("releaseId") String releaseId,
+                                      AddControlledClientRequest request) {
+        try {
+            // Temporariamente retorna a release sem modificações
+            // TODO: Implementar lógica de clientes controlados
+            UUID id = UUID.fromString(releaseId);
+            return releaseManagementUseCase.findReleaseById(id)
+                .map(release -> Response.ok(mapToResponse(release)).build())
+                .orElse(Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Release não encontrada"))
+                    .build());
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new ErrorResponse("Erro ao adicionar cliente controlado: " + e.getMessage()))
+                .build();
+        }
+    }
+
+    @DELETE
+    @Path("/{releaseId}/controlled-clients/{clientId}")
+    @Operation(summary = "Remover cliente controlado", description = "Remove um cliente controlado da release")
+    public Response removeControlledClient(@PathParam("releaseId") String releaseId,
+                                         @PathParam("clientId") String clientId) {
+        try {
+            // Temporariamente retorna a release sem modificações
+            // TODO: Implementar lógica de clientes controlados
+            UUID id = UUID.fromString(releaseId);
+            return releaseManagementUseCase.findReleaseById(id)
+                .map(release -> Response.ok(mapToResponse(release)).build())
+                .orElse(Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Release não encontrada"))
+                    .build());
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new ErrorResponse("Erro ao remover cliente controlado: " + e.getMessage()))
+                .build();
+        }
     }
 
     private ReleaseStatusHistoryResponse mapToHistoryResponse(ReleaseStatusHistory history) {

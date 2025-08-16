@@ -114,8 +114,19 @@ export class AuthService {
 
   private async loadUserProfile(): Promise<void> {
     try {
-      const profile = await this.keycloak.loadUserProfile();
-      this.userProfile.set(profile);
+      // Use token info instead of making a separate API call to avoid CORS issues
+      if (this.keycloak.tokenParsed) {
+        const tokenInfo = this.keycloak.tokenParsed;
+        const profile = {
+          username: tokenInfo['preferred_username'],
+          email: tokenInfo['email'],
+          firstName: tokenInfo['given_name'],
+          lastName: tokenInfo['family_name'],
+          name: tokenInfo['name']
+        };
+        this.userProfile.set(profile);
+        console.log('User profile loaded from token:', profile);
+      }
     } catch (error) {
       console.error('Failed to load user profile:', error);
     }
