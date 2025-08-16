@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AuthService } from '../../features/releases/auth.service';
+import { AuthService } from './auth.service';
 
 export interface ControlledClient {
     id: string;
@@ -62,7 +62,8 @@ export interface CreateReleaseRequest {
 }
 
 export interface UpdateStatusRequest {
-    status: ReleaseStatus;
+    newStatus: string;
+    changedBy: string;
     comments?: string;
 }
 
@@ -83,7 +84,7 @@ export class ReleaseService {
     private readonly apiUrl = 'http://localhost:8081/api/v1/releases';
 
     private getHeaders(): HttpHeaders {
-        const token = this.authService.getAccessToken();
+        const token = this.authService.getToken();
         return new HttpHeaders({
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -108,11 +109,39 @@ export class ReleaseService {
         });
     }
 
-    updateReleaseStatus(releaseId: string, status: ReleaseStatus, notes?: string): Observable<Release> {
-        const request: UpdateStatusRequest = { status, comments: notes };
+    updateReleaseStatus(releaseId: string, status: ReleaseStatus, comments?: string): Observable<Release> {
+        // Convert display name back to enum value
+        const statusEnum = this.getStatusEnumValue(status);
+        const currentUser = this.authService.getUserName() || 'Unknown User';
+        
+        const request: UpdateStatusRequest = { 
+            newStatus: statusEnum, 
+            changedBy: currentUser,
+            comments: comments 
+        };
         return this.http.put<Release>(`${this.apiUrl}/${releaseId}/status`, request, {
             headers: this.getHeaders()
         });
+    }
+
+    private getStatusEnumValue(displayName: ReleaseStatus): string {
+        const statusMap: Record<ReleaseStatus, string> = {
+            'MR Aprovado': 'MR_APROVADO',
+            'Falha no Build para Teste': 'FALHA_BUILD_TESTE',
+            'Para Teste de Sistema': 'PARA_TESTE_SISTEMA',
+            'Reprovada no teste': 'REPROVADA_TESTE',
+            'Aprovada no teste': 'APROVADA_TESTE',
+            'Falha no Build para Produção': 'FALHA_BUILD_PRODUCAO',
+            'Para Teste Regressivo': 'PARA_TESTE_REGRESSIVO',
+            'Falha na instalação da Estável': 'FALHA_INSTALACAO_ESTAVEL',
+            'Interno': 'INTERNO',
+            'Revogada': 'REVOGADA',
+            'Reprovada no teste regressivo': 'REPROVADA_TESTE_REGRESSIVO',
+            'Aprovada no teste regressivo': 'APROVADA_TESTE_REGRESSIVO',
+            'Controlada': 'CONTROLADA',
+            'Disponível': 'DISPONIVEL'
+        };
+        return statusMap[displayName] || displayName;
     }
 
     updateReleaseNotes(releaseId: string, releaseNotes: string): Observable<Release> {

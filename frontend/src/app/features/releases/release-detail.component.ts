@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, effect, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -433,7 +433,7 @@ import { Release, ReleaseStatus } from '../../core/services/release.service';
     }
   `]
 })
-export class ReleaseDetailComponent {
+export class ReleaseDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private fb = inject(FormBuilder);
@@ -489,10 +489,11 @@ export class ReleaseDetailComponent {
     return 'pending';
   });
 
-  constructor() {
-    effect(() => {
-      const id = this.route.snapshot.params['id'];
+  ngOnInit(): void {
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
       if (id) {
+        console.log('Loading release with ID:', id);
         this.loadRelease(id);
       }
     });

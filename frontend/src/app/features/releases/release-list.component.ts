@@ -430,24 +430,32 @@ export class ReleaseListComponent {
   updateStatus(release: Release, event: Event) {
     const newStatus = (event.target as HTMLSelectElement).value as ReleaseStatus;
     if (newStatus !== release.status) {
-      const request: UpdateStatusRequest = { status: newStatus };
+      // Optional: Show confirmation dialog for status changes
+      const confirmed = confirm(`Confirmar alteração de status de "${release.status}" para "${newStatus}"?`);
       
-      this.releaseService.updateReleaseStatus(release.id, newStatus).subscribe({
-        next: (updatedRelease) => {
-          this.releases.update(releases => 
-            releases.map(r => r.id === release.id ? updatedRelease : r)
-          );
-        },
-        error: (error) => {
-          this.error.set('Erro ao atualizar status: ' + (error.error?.message || error.message));
-          // Reset select to original value
-          (event.target as HTMLSelectElement).value = release.status;
-        }
-      });
+      if (confirmed) {
+        this.releaseService.updateReleaseStatus(release.id, newStatus).subscribe({
+          next: (updatedRelease) => {
+            this.releases.update(releases => 
+              releases.map(r => r.id === release.id ? updatedRelease : r)
+            );
+            console.log('Status updated successfully');
+          },
+          error: (error) => {
+            this.error.set('Erro ao atualizar status: ' + (error.error?.message || error.message));
+            // Reset select to original value
+            (event.target as HTMLSelectElement).value = release.status;
+          }
+        });
+      } else {
+        // Reset select to original value if cancelled
+        (event.target as HTMLSelectElement).value = release.status;
+      }
     }
   }
 
   viewDetails(releaseId: string) {
+    console.log('Navigating to release details:', releaseId);
     this.router.navigate(['/releases', releaseId]);
   }
 

@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { ReleaseStatusHistory, ReleaseService } from '../../core/services/release.service';
 
 @Component({
@@ -300,6 +301,7 @@ import { ReleaseStatusHistory, ReleaseService } from '../../core/services/releas
 export class ReleaseHistoryComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
   private releaseService = inject(ReleaseService);
 
   history = signal<ReleaseStatusHistory[]>([]);
@@ -336,12 +338,10 @@ export class ReleaseHistoryComponent implements OnInit {
   }
 
   goBack() {
-    const id = this.releaseId();
-    if (id) {
-      this.router.navigate(['/releases', id]);
-    } else {
-      this.router.navigate(['/releases']);
-    }
+    // Use the browser's back functionality to return to the previous page
+    // This will automatically go back to either the release list or release details
+    // depending on where the user came from
+    this.location.back();
   }
 
   getStatusClass(status: string): string {
