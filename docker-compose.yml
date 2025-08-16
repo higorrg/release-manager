@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:17-alpine
+    image: docker.io/library/postgres:17-alpine
     container_name: release-manager-db
     environment:
       POSTGRES_DB: releasemanager
@@ -29,18 +29,31 @@ services:
       KC_DB_PASSWORD: admin123
       KC_HOSTNAME: localhost
       KC_HOSTNAME_PORT: 8080
-      KC_HOSTNAME_STRICT: false
-      KC_HOSTNAME_STRICT_HTTPS: false
-      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
     ports:
       - "8080:8080"
     depends_on:
       - postgres
     volumes:
-      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
-    command: ["start-dev", "--import-realm"]
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:Z
+    command:
+      - start-dev
+      - --import-realm
+      - --hostname-strict=false
+      - --hostname-strict-https=false
+      - --http-enabled=true
     networks:
       - release-manager-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
 volumes:
   postgres_data:

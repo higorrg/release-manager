@@ -1,0 +1,1 @@
+{"ast":null,"code":"export const environment = {\n  production: false,\n  apiUrl: 'http://localhost:8081',\n  keycloakUrl: 'http://localhost:8080',\n  keycloakRealm: 'release-manager',\n  keycloakClientId: 'release-manager-app',\n  keycloakRedirectUri: 'http://localhost:4200/callback'\n};","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

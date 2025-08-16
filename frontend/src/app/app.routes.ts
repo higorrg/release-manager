@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from './core/guards/auth.guard';
+import { authGuard } from './features/releases/auth.guard';
 
 export const routes: Routes = [
   {
@@ -9,23 +9,23 @@ export const routes: Routes = [
   },
   {
     path: 'releases',
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     loadComponent: () => import('./features/releases/release-list.component').then(m => m.ReleaseListComponent)
   },
   {
     path: 'releases/:id',
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     loadComponent: () => import('./features/releases/release-detail.component').then(m => m.ReleaseDetailComponent)
   },
   {
     path: 'releases/:id/history',
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     loadComponent: () => import('./features/releases/release-history.component').then(m => m.ReleaseHistoryComponent)
   },
   {
     path: 'clients',
-    canActivate: [AuthGuard],
-    loadComponent: () => import('./features/clients/client-list.component').then(m => m.ClientListComponent)
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/releases/client-list.component').then(m => m.ClientListComponent)
   },
   {
     path: '**',

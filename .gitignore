@@ -33,3 +33,6 @@ target
 
 # Docker
 data
+
+# Frontend
+./frontend/node_modules

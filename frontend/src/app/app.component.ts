@@ -1,10 +1,11 @@
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   template: `
     @if (isAuthenticated()) {
       <div class="app-container">
@@ -162,7 +163,7 @@ import { AuthService } from './core/services/auth.service';
       background: #2980b9;
     }
   `],
-  imports: [RouterOutlet, CommonModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements OnInit {

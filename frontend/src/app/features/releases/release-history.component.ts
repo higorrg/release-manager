@@ -5,6 +5,7 @@ import { ReleaseStatusHistory, ReleaseService } from '../../core/services/releas
 
 @Component({
   selector: 'app-release-history',
+  standalone: true,
   template: `
     <div class="history-container">
       <div class="header">

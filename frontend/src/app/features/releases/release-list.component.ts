@@ -6,6 +6,7 @@ import { Release, ReleaseService, ReleaseStatus, CreateReleaseRequest, UpdateSta
 
 @Component({
   selector: 'app-release-list',
+  standalone: true,
   template: `
     <div class="release-list-container">
       <div class="header">
@@ -373,7 +374,6 @@ export class ReleaseListComponent {
   });
 
   availableStatuses = computed(() => this.releaseService.getAvailableStatuses());
-  statusDisplayNames = computed(() => this.releaseService.getStatusDisplayNames());
 
   ngOnInit() {
     this.loadReleases();
@@ -426,7 +426,7 @@ export class ReleaseListComponent {
     if (newStatus !== release.status) {
       const request: UpdateStatusRequest = { status: newStatus };
       
-      this.releaseService.updateReleaseStatus(release.id, request).subscribe({
+      this.releaseService.updateReleaseStatus(release.id, newStatus).subscribe({
         next: (updatedRelease) => {
           this.releases.update(releases => 
             releases.map(r => r.id === release.id ? updatedRelease : r)
@@ -449,6 +449,10 @@ export class ReleaseListComponent {
     this.router.navigate(['/releases', releaseId, 'history']);
   }
 
+  getStatusDisplayName(status: ReleaseStatus): string {
+    return status; // Since our status is already the display name
+  }
+
   getStatusClass(status: ReleaseStatus): string {
     const statusMap: Record<string, string> = {
       'MR_APROVADO': 'status-mr-aprovado',
@@ -468,9 +472,6 @@ export class ReleaseListComponent {
     return statusMap[status] || 'status-mr-aprovado';
   }
 
-  getStatusDisplayName(status: ReleaseStatus): string {
-    return this.statusDisplayNames()[status];
-  }
 
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleString('pt-BR');
