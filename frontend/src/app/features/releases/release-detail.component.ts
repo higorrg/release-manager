@@ -123,6 +123,46 @@ import { ClientService, ControlledClientDetail, Client, Environment } from '../.
             </form>
           </section>
 
+          <section class="package-info">
+            <h2>Informações de Pacote</h2>
+            <form [formGroup]="packageInfoForm" (ngSubmit)="updatePackageInfo()">
+              <div class="form-group">
+                <label for="downloadUrl">URL de Download:</label>
+                <input 
+                  id="downloadUrl"
+                  type="url" 
+                  formControlName="downloadUrl" 
+                  class="form-control"
+                  placeholder="https://exemplo.com/download/release.zip">
+              </div>
+              <div class="form-group">
+                <label for="packagePath">Caminho do Pacote:</label>
+                <input 
+                  id="packagePath"
+                  type="text" 
+                  formControlName="packagePath" 
+                  class="form-control"
+                  placeholder="/path/to/package/release.zip">
+              </div>
+              <div class="download-actions">
+                <button 
+                  type="submit" 
+                  class="btn btn-secondary"
+                  [disabled]="!packageInfoForm.dirty || updating()">
+                  Salvar Informações
+                </button>
+                @if (release()?.downloadUrl) {
+                  <a 
+                    [href]="release()?.downloadUrl" 
+                    target="_blank"
+                    class="btn btn-download">
+                    Download do Pacote
+                  </a>
+                }
+              </div>
+            </form>
+          </section>
+
           <section class="controlled-clients">
             <h2>Clientes em Controlado</h2>
             <div class="clients-header">
@@ -385,6 +425,25 @@ import { ClientService, ControlledClientDetail, Client, Environment } from '../.
       background: #218838;
     }
 
+    .btn-download {
+      background: #17a2b8;
+      color: white;
+      text-decoration: none;
+      margin-left: 10px;
+    }
+
+    .btn-download:hover {
+      background: #138496;
+      text-decoration: none;
+      color: white;
+    }
+
+    .download-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .btn-sm {
       padding: 4px 8px;
       font-size: 12px;
@@ -488,6 +547,11 @@ export class ReleaseDetailComponent implements OnInit {
     environment: ['', Validators.required]
   });
 
+  packageInfoForm = this.fb.group({
+    downloadUrl: [''],
+    packagePath: ['']
+  });
+
   statusClass = computed(() => {
     const status = this.release()?.statusDisplayName;
     if (!status) return '';
@@ -521,6 +585,10 @@ export class ReleaseDetailComponent implements OnInit {
         });
         this.prerequisitesForm.patchValue({
           prerequisites: release.prerequisites || ''
+        });
+        this.packageInfoForm.patchValue({
+          downloadUrl: release.downloadUrl || '',
+          packagePath: release.packagePath || ''
         });
         this.loadControlledClients(id);
         this.loadEnvironments();
@@ -621,6 +689,30 @@ export class ReleaseDetailComponent implements OnInit {
       error: (err) => {
         const errorMessage = err.error?.message || err.message || 'Erro desconhecido';
         this.error.set('Erro ao atualizar pré-requisitos: ' + errorMessage);
+        this.updating.set(false);
+      }
+    });
+  }
+
+  updatePackageInfo(): void {
+    if (!this.packageInfoForm.dirty || !this.release()) return;
+    
+    this.updating.set(true);
+    const { downloadUrl, packagePath } = this.packageInfoForm.value;
+    
+    this.releaseService.updatePackageInfo(
+      this.release()!.id,
+      downloadUrl || undefined,
+      packagePath || undefined
+    ).subscribe({
+      next: (updatedRelease) => {
+        this.release.set(updatedRelease);
+        this.packageInfoForm.markAsPristine();
+        this.updating.set(false);
+      },
+      error: (err) => {
+        const errorMessage = err.error?.message || err.message || 'Erro desconhecido';
+        this.error.set('Erro ao atualizar informações de pacote: ' + errorMessage);
         this.updating.set(false);
       }
     });

@@ -76,6 +76,11 @@ export interface UpdatePrerequisitesRequest {
     prerequisites: string;
 }
 
+export interface UpdatePackageInfoRequest {
+    downloadUrl?: string;
+    packagePath?: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -155,6 +160,13 @@ export class ReleaseService {
     updatePrerequisites(releaseId: string, prerequisites: string): Observable<Release> {
         const request: UpdatePrerequisitesRequest = { prerequisites };
         return this.http.put<Release>(`${this.apiUrl}/${releaseId}/prerequisites`, request, {
+            headers: this.getHeaders()
+        });
+    }
+
+    updatePackageInfo(releaseId: string, downloadUrl?: string, packagePath?: string): Observable<Release> {
+        const request: UpdatePackageInfoRequest = { downloadUrl, packagePath };
+        return this.http.put<Release>(`${this.apiUrl}/${releaseId}/package-info`, request, {
             headers: this.getHeaders()
         });
     }

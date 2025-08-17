@@ -102,6 +102,14 @@ import { Release, ReleaseService, ReleaseStatus, CreateReleaseRequest, UpdateSta
                 <button (click)="viewDetails(release.id)" class="btn btn-outline">
                   Ver Detalhes
                 </button>
+                @if (release.downloadUrl) {
+                  <a 
+                    [href]="release.downloadUrl" 
+                    target="_blank"
+                    class="btn btn-download">
+                    Download
+                  </a>
+                }
                 <button (click)="viewHistory(release.id)" class="btn btn-outline">
                   Histórico
                 </button>
@@ -352,6 +360,18 @@ import { Release, ReleaseService, ReleaseStatus, CreateReleaseRequest, UpdateSta
 
     .empty-state p {
       margin: 8px 0;
+    }
+
+    .btn-download {
+      background: #17a2b8;
+      color: white;
+      text-decoration: none;
+    }
+
+    .btn-download:hover {
+      background: #138496;
+      text-decoration: none;
+      color: white;
     }
   `],
   imports: [CommonModule, FormsModule, ReactiveFormsModule],

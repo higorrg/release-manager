@@ -87,6 +87,11 @@ public interface ReleaseManagementUseCase {
      */
     List<Release> findAvailableVersions(String clientCode, String environment);
     
+    /**
+     * Atualiza informações de pacote da release (URL de download e caminho do pacote)
+     */
+    Release updatePackageInfo(UpdatePackageInfoCommand command);
+    
     record CreateReleaseCommand(String productName, String version) {}
     
     record UpdateReleaseStatusCommand(UUID releaseId, ReleaseStatus newStatus, 
@@ -95,6 +100,8 @@ public interface ReleaseManagementUseCase {
     record UpdateReleaseNotesCommand(UUID releaseId, String releaseNotes) {}
     
     record UpdatePrerequisitesCommand(UUID releaseId, String prerequisites) {}
+    
+    record UpdatePackageInfoCommand(UUID releaseId, String downloadUrl, String packagePath) {}
     
     record AddControlledClientCommand(UUID releaseId, String clientCode, String environmentName) {}
 }

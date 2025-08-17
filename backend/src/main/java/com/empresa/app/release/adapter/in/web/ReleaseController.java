@@ -10,6 +10,7 @@ import com.empresa.app.release.adapter.in.dto.ErrorResponse;
 import com.empresa.app.release.adapter.in.dto.ReleaseClientEnvironmentResponse;
 import com.empresa.app.release.adapter.in.dto.ReleaseResponse;
 import com.empresa.app.release.adapter.in.dto.ReleaseStatusHistoryResponse;
+import com.empresa.app.release.adapter.in.dto.UpdatePackageInfoRequest;
 import com.empresa.app.release.adapter.in.dto.UpdatePrerequisitesRequest;
 import com.empresa.app.release.adapter.in.dto.UpdateReleaseNotesRequest;
 import com.empresa.app.release.adapter.in.dto.UpdateStatusRequest;
@@ -169,6 +170,28 @@ public class ReleaseController {
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new ErrorResponse("Erro ao atualizar pré-requisitos: " + e.getMessage()))
+                .build();
+        }
+    }
+
+    @PUT
+    @Path("/{releaseId}/package-info")
+    @Operation(summary = "Atualizar informações de pacote", description = "Atualiza URL de download e caminho do pacote de uma release")
+    public Response updatePackageInfo(@PathParam("releaseId") String releaseId,
+                                    UpdatePackageInfoRequest request) {
+        try {
+            UUID id = UUID.fromString(releaseId);
+            var command = new ReleaseManagementUseCase.UpdatePackageInfoCommand(
+                id,
+                request.downloadUrl(),
+                request.packagePath()
+            );
+            
+            Release release = releaseManagementUseCase.updatePackageInfo(command);
+            return Response.ok(mapToResponse(release)).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new ErrorResponse("Erro ao atualizar informações de pacote: " + e.getMessage()))
                 .build();
         }
     }

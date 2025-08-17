@@ -139,6 +139,27 @@ public class ReleaseManagementService implements ReleaseManagementUseCase {
     }
 
     @Override
+    @Transactional
+    public Release updatePackageInfo(UpdatePackageInfoCommand command) {
+        if (Objects.isNull(command.releaseId())) {
+            throw new IllegalArgumentException("Release ID cannot be null");
+        }
+
+        var release = releaseRepository.findById(command.releaseId())
+                .orElseThrow(() -> new IllegalArgumentException("Release not found"));
+
+        if (command.downloadUrl() != null) {
+            release.updateDownloadUrl(command.downloadUrl());
+        }
+        
+        if (command.packagePath() != null) {
+            release.updatePackagePath(command.packagePath());
+        }
+        
+        return releaseRepository.save(release);
+    }
+
+    @Override
     public Optional<Release> findReleaseById(UUID releaseId) {
         if (Objects.isNull(releaseId)) {
             throw new IllegalArgumentException("Release ID cannot be null");
