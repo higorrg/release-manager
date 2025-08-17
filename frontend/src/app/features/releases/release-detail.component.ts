@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ReleaseService } from '../../core/services/release.service';
 import { Release, ReleaseStatus } from '../../core/services/release.service';
 import { ClientService, ControlledClientDetail, Client, Environment } from '../../core/services/client.service';
+import { ConfirmationService } from '../../shared/services/confirmation.service';
 
 @Component({
   selector: 'app-release-detail',
@@ -502,6 +503,7 @@ export class ReleaseDetailComponent implements OnInit {
   private fb = inject(FormBuilder);
   private releaseService = inject(ReleaseService);
   private clientService = inject(ClientService);
+  private confirmationService = inject(ConfirmationService);
 
   release = signal<Release | null>(null);
   controlledClients = signal<ControlledClientDetail[]>([]);
@@ -755,8 +757,25 @@ export class ReleaseDetailComponent implements OnInit {
     });
   }
 
-  removeClient(clientId: string, environmentId: string): void {
+  async removeClient(clientId: string, environmentId: string): Promise<void> {
     if (!this.release()) return;
+    
+    // Find the client name for the confirmation dialog
+    const controlledClient = this.controlledClients().find(
+      cc => cc.clientId === clientId && cc.environmentId === environmentId
+    );
+    const clientName = controlledClient?.clientName || 'cliente';
+    const environmentName = controlledClient?.environmentName || 'ambiente';
+    
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Remover Cliente de Controlado',
+      message: `Tem certeza que deseja remover o cliente "${clientName}" do ambiente "${environmentName}" da lista de controlados?\n\nEsta ação não pode ser desfeita.`,
+      confirmText: 'Remover',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    });
+    
+    if (!confirmed) return;
     
     this.updating.set(true);
     this.clientService.removeControlledClient(

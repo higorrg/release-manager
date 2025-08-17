@@ -4,6 +4,7 @@ import { FormControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } 
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ClientService, Client, CreateClientRequest, UpdateClientRequest } from '../../core/services/client.service';
+import { ConfirmationService } from '../../shared/services/confirmation.service';
 
 @Component({
     selector: 'app-client-list',
@@ -524,6 +525,7 @@ export class ClientListComponent implements OnInit {
   private clientService = inject(ClientService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private confirmationService = inject(ConfirmationService);
 
   // State signals
   loading = signal(true);
@@ -732,8 +734,9 @@ export class ClientListComponent implements OnInit {
     }
   }
 
-  confirmDelete(client: Client): void {
-    if (confirm(`Tem certeza que deseja excluir o cliente "${client.name}"?\n\nEsta ação não pode ser desfeita.`)) {
+  async confirmDelete(client: Client): Promise<void> {
+    const confirmed = await this.confirmationService.confirmDelete(client.name, 'cliente');
+    if (confirmed) {
       this.deleteClient(client);
     }
   }

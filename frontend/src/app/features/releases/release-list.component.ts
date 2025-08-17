@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Release, ReleaseService, ReleaseStatus, CreateReleaseRequest, UpdateStatusRequest } from '../../core/services/release.service';
+import { ConfirmationService } from '../../shared/services/confirmation.service';
 
 @Component({
   selector: 'app-release-list',
@@ -381,6 +382,7 @@ export class ReleaseListComponent {
   private releaseService = inject(ReleaseService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private confirmationService = inject(ConfirmationService);
 
   releases = signal<Release[]>([]);
   loading = signal(true);
@@ -447,11 +449,15 @@ export class ReleaseListComponent {
     }
   }
 
-  updateStatus(release: Release, event: Event) {
+  async updateStatus(release: Release, event: Event) {
     const newStatus = (event.target as HTMLSelectElement).value as ReleaseStatus;
     if (newStatus !== release.status) {
-      // Optional: Show confirmation dialog for status changes
-      const confirmed = confirm(`Confirmar alteração de status de "${release.status}" para "${newStatus}"?`);
+      // Show confirmation dialog for status changes
+      const confirmed = await this.confirmationService.confirmAction(
+        'Alterar Status',
+        `Confirmar alteração de status de "${release.status}" para "${newStatus}"?`,
+        'Alterar'
+      );
       
       if (confirmed) {
         this.releaseService.updateReleaseStatus(release.id, newStatus).subscribe({

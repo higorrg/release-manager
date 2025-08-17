@@ -2,6 +2,8 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './core/services/auth.service';
+import { ConfirmationDialogComponent } from './shared/components/confirmation-dialog.component';
+import { ConfirmationService } from './shared/services/confirmation.service';
 
 @Component({
   selector: 'app-root',
@@ -32,6 +34,16 @@ import { AuthService } from './core/services/auth.service';
           <router-outlet />
         </main>
       </div>
+      
+      <!-- Global confirmation dialog -->
+      @if (confirmationService.config()) {
+        <app-confirmation-dialog
+          [config]="confirmationService.config()!"
+          [show]="confirmationService.show()"
+          (confirmed)="confirmationService.onConfirmed()"
+          (cancelled)="confirmationService.onCancelled()">
+        </app-confirmation-dialog>
+      }
     } @else {
       <div class="login-container">
         <div class="login-card">
@@ -198,11 +210,12 @@ import { AuthService } from './core/services/auth.service';
       margin: 0;
     }
   `],
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule]
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, ConfirmationDialogComponent]
 })
 export class AppComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
+  public confirmationService = inject(ConfirmationService);
 
   constructor() {
     console.log('AppComponent constructor called');
