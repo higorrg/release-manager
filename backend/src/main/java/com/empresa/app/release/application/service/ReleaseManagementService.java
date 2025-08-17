@@ -1,11 +1,17 @@
 package com.empresa.app.release.application.service;
 
 import com.empresa.app.release.application.port.in.ReleaseManagementUseCase;
+import com.empresa.app.release.application.port.out.ClientRepository;
+import com.empresa.app.release.application.port.out.EnvironmentRepository;
 import com.empresa.app.release.application.port.out.ProductRepository;
+import com.empresa.app.release.application.port.out.ReleaseClientEnvironmentRepository;
 import com.empresa.app.release.application.port.out.ReleaseRepository;
 import com.empresa.app.release.application.port.out.ReleaseStatusHistoryRepository;
+import com.empresa.app.release.domain.model.Client;
+import com.empresa.app.release.domain.model.Environment;
 import com.empresa.app.release.domain.model.Product;
 import com.empresa.app.release.domain.model.Release;
+import com.empresa.app.release.domain.model.ReleaseClientEnvironment;
 import com.empresa.app.release.domain.model.ReleaseStatus;
 import com.empresa.app.release.domain.model.ReleaseStatusHistory;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -27,6 +33,15 @@ public class ReleaseManagementService implements ReleaseManagementUseCase {
     
     @Inject
     ReleaseStatusHistoryRepository statusHistoryRepository;
+    
+    @Inject
+    ClientRepository clientRepository;
+    
+    @Inject
+    EnvironmentRepository environmentRepository;
+    
+    @Inject
+    ReleaseClientEnvironmentRepository releaseClientEnvironmentRepository;
 
     @Override
     @Transactional
@@ -150,6 +165,83 @@ public class ReleaseManagementService implements ReleaseManagementUseCase {
             throw new IllegalArgumentException("Release ID cannot be null");
         }
         return statusHistoryRepository.findByReleaseIdOrderByChangedAtDesc(releaseId);
+    }
+
+    @Override
+    @Transactional
+    public ReleaseClientEnvironment addControlledClient(AddControlledClientCommand command) {
+        if (Objects.isNull(command.releaseId()) || Objects.isNull(command.clientCode()) || Objects.isNull(command.environmentName())) {
+            throw new IllegalArgumentException("Release ID, client code and environment name cannot be null");
+        }
+
+        // Verify release exists
+        var release = releaseRepository.findById(command.releaseId())
+                .orElseThrow(() -> new IllegalArgumentException("Release not found"));
+
+        // Find or create client
+        var client = findOrCreateClient(command.clientCode());
+
+        // Find environment
+        var environment = environmentRepository.findByName(command.environmentName().toUpperCase())
+                .orElseThrow(() -> new IllegalArgumentException("Environment not found: " + command.environmentName()));
+
+        // Check if association already exists
+        var existing = releaseClientEnvironmentRepository.findByReleaseIdAndClientIdAndEnvironmentId(
+                command.releaseId(), client.getId(), environment.getId());
+        
+        if (existing.isPresent()) {
+            throw new IllegalStateException("Client already associated to this release in this environment");
+        }
+
+        // Create association
+        var association = ReleaseClientEnvironment.create(command.releaseId(), client.getId(), environment.getId());
+        return releaseClientEnvironmentRepository.save(association);
+    }
+
+    @Override
+    @Transactional
+    public void removeControlledClient(UUID releaseId, UUID clientId, UUID environmentId) {
+        if (Objects.isNull(releaseId) || Objects.isNull(clientId) || Objects.isNull(environmentId)) {
+            throw new IllegalArgumentException("Release ID, client ID and environment ID cannot be null");
+        }
+
+        var association = releaseClientEnvironmentRepository.findByReleaseIdAndClientIdAndEnvironmentId(
+                releaseId, clientId, environmentId)
+                .orElseThrow(() -> new IllegalArgumentException("Association not found"));
+
+        releaseClientEnvironmentRepository.deleteById(association.getId());
+    }
+
+    @Override
+    public List<ReleaseClientEnvironment> findControlledClients(UUID releaseId) {
+        if (Objects.isNull(releaseId)) {
+            throw new IllegalArgumentException("Release ID cannot be null");
+        }
+        return releaseClientEnvironmentRepository.findByReleaseId(releaseId);
+    }
+
+    @Override
+    public List<Client> findAllClients() {
+        return clientRepository.findAll();
+    }
+
+    @Override
+    public List<Environment> findAllEnvironments() {
+        return environmentRepository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public Client findOrCreateClient(String clientCode) {
+        if (Objects.isNull(clientCode) || clientCode.trim().isEmpty()) {
+            throw new IllegalArgumentException("Client code cannot be null or empty");
+        }
+
+        return clientRepository.findByClientCode(clientCode)
+                .orElseGet(() -> {
+                    var newClient = Client.create(clientCode, "Cliente " + clientCode);
+                    return clientRepository.save(newClient);
+                });
     }
 
     private Product createProduct(String productName) {

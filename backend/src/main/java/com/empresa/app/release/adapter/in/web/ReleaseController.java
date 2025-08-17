@@ -1,8 +1,11 @@
 package com.empresa.app.release.adapter.in.web;
 
 import com.empresa.app.release.adapter.in.dto.AddControlledClientRequest;
+import com.empresa.app.release.adapter.in.dto.ClientResponse;
 import com.empresa.app.release.adapter.in.dto.CreateReleaseRequest;
+import com.empresa.app.release.adapter.in.dto.EnvironmentResponse;
 import com.empresa.app.release.adapter.in.dto.ErrorResponse;
+import com.empresa.app.release.adapter.in.dto.ReleaseClientEnvironmentResponse;
 import com.empresa.app.release.adapter.in.dto.ReleaseResponse;
 import com.empresa.app.release.adapter.in.dto.ReleaseStatusHistoryResponse;
 import com.empresa.app.release.adapter.in.dto.UpdatePrerequisitesRequest;
@@ -10,8 +13,11 @@ import com.empresa.app.release.adapter.in.dto.UpdateReleaseNotesRequest;
 import com.empresa.app.release.adapter.in.dto.UpdateStatusRequest;
 import com.empresa.app.release.application.port.in.ReleaseManagementUseCase;
 import com.empresa.app.release.application.port.out.ProductRepository;
+import com.empresa.app.release.domain.model.Client;
+import com.empresa.app.release.domain.model.Environment;
 import com.empresa.app.release.domain.model.Product;
 import com.empresa.app.release.domain.model.Release;
+import com.empresa.app.release.domain.model.ReleaseClientEnvironment;
 import com.empresa.app.release.domain.model.ReleaseStatus;
 import com.empresa.app.release.domain.model.ReleaseStatusHistory;
 import jakarta.inject.Inject;
@@ -196,14 +202,17 @@ public class ReleaseController {
     public Response addControlledClient(@PathParam("releaseId") String releaseId,
                                       AddControlledClientRequest request) {
         try {
-            // Temporariamente retorna a release sem modificações
-            // TODO: Implementar lógica de clientes controlados
             UUID id = UUID.fromString(releaseId);
-            return releaseManagementUseCase.findReleaseById(id)
-                .map(release -> Response.ok(mapToResponse(release)).build())
-                .orElse(Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse("Release não encontrada"))
-                    .build());
+            var command = new ReleaseManagementUseCase.AddControlledClientCommand(
+                id,
+                request.clientCode(),
+                request.environment()
+            );
+            
+            ReleaseClientEnvironment association = releaseManagementUseCase.addControlledClient(command);
+            ReleaseClientEnvironmentResponse response = ReleaseClientEnvironmentResponse.from(association);
+            
+            return Response.status(Response.Status.CREATED).entity(response).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new ErrorResponse("Erro ao adicionar cliente controlado: " + e.getMessage()))
@@ -212,22 +221,80 @@ public class ReleaseController {
     }
 
     @DELETE
-    @Path("/{releaseId}/controlled-clients/{clientId}")
+    @Path("/{releaseId}/controlled-clients/{clientId}/environments/{environmentId}")
     @Operation(summary = "Remover cliente controlado", description = "Remove um cliente controlado da release")
     public Response removeControlledClient(@PathParam("releaseId") String releaseId,
-                                         @PathParam("clientId") String clientId) {
+                                         @PathParam("clientId") String clientId,
+                                         @PathParam("environmentId") String environmentId) {
         try {
-            // Temporariamente retorna a release sem modificações
-            // TODO: Implementar lógica de clientes controlados
-            UUID id = UUID.fromString(releaseId);
-            return releaseManagementUseCase.findReleaseById(id)
-                .map(release -> Response.ok(mapToResponse(release)).build())
-                .orElse(Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse("Release não encontrada"))
-                    .build());
+            UUID releaseUuid = UUID.fromString(releaseId);
+            UUID clientUuid = UUID.fromString(clientId);
+            UUID environmentUuid = UUID.fromString(environmentId);
+            
+            releaseManagementUseCase.removeControlledClient(releaseUuid, clientUuid, environmentUuid);
+            
+            return Response.noContent().build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new ErrorResponse("Erro ao remover cliente controlado: " + e.getMessage()))
+                .build();
+        }
+    }
+
+    @GET
+    @Path("/{releaseId}/controlled-clients")
+    @Operation(summary = "Listar clientes controlados", description = "Lista os clientes controlados de uma release")
+    public Response getControlledClients(@PathParam("releaseId") String releaseId) {
+        try {
+            UUID id = UUID.fromString(releaseId);
+            List<ReleaseClientEnvironment> controlledClients = releaseManagementUseCase.findControlledClients(id);
+            
+            List<ReleaseClientEnvironmentResponse> response = controlledClients.stream()
+                .map(ReleaseClientEnvironmentResponse::from)
+                .collect(Collectors.toList());
+                
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new ErrorResponse("Erro ao buscar clientes controlados: " + e.getMessage()))
+                .build();
+        }
+    }
+
+    @GET
+    @Path("/clients")
+    @Operation(summary = "Listar clientes disponíveis", description = "Lista todos os clientes disponíveis")
+    public Response getAllClients() {
+        try {
+            List<Client> clients = releaseManagementUseCase.findAllClients();
+            
+            List<ClientResponse> response = clients.stream()
+                .map(ClientResponse::from)
+                .collect(Collectors.toList());
+                
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new ErrorResponse("Erro ao buscar clientes: " + e.getMessage()))
+                .build();
+        }
+    }
+
+    @GET
+    @Path("/environments")
+    @Operation(summary = "Listar ambientes disponíveis", description = "Lista todos os ambientes disponíveis")
+    public Response getAllEnvironments() {
+        try {
+            List<Environment> environments = releaseManagementUseCase.findAllEnvironments();
+            
+            List<EnvironmentResponse> response = environments.stream()
+                .map(EnvironmentResponse::from)
+                .collect(Collectors.toList());
+                
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new ErrorResponse("Erro ao buscar ambientes: " + e.getMessage()))
                 .build();
         }
     }

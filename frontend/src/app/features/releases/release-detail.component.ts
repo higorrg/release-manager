@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ReleaseService } from '../../core/services/release.service';
 import { Release, ReleaseStatus } from '../../core/services/release.service';
+import { ClientService, ReleaseClientEnvironment, Client, Environment } from '../../core/services/client.service';
 
 @Component({
   selector: 'app-release-detail',
@@ -37,7 +38,7 @@ import { Release, ReleaseStatus } from '../../core/services/release.service';
               <div class="info-item">
                 <label>Status Atual:</label>
                 <span [class.status]="true" [class]="'status-' + statusClass()">
-                  {{ release()?.status }}
+                  {{ release()?.statusDisplayName }}
                 </span>
               </div>
               <div class="info-item">
@@ -146,8 +147,9 @@ import { Release, ReleaseStatus } from '../../core/services/release.service';
                     <label for="environment">Ambiente:</label>
                     <select id="environment" formControlName="environment" class="form-control">
                       <option value="">Selecione</option>
-                      <option value="homologacao">Homologação</option>
-                      <option value="producao">Produção</option>
+                      @for (env of environments(); track env.id) {
+                        <option [value]="env.name">{{ env.name }}</option>
+                      }
                     </select>
                   </div>
                   <button 
@@ -161,24 +163,26 @@ import { Release, ReleaseStatus } from '../../core/services/release.service';
             }
 
             <div class="clients-list">
-              @if (release()?.controlledClients && (release()?.controlledClients?.length ?? 0) > 0) {
+              @if (controlledClients().length > 0) {
                 <table class="clients-table">
                   <thead>
                     <tr>
                       <th>Código do Cliente</th>
+                      <th>Nome do Cliente</th>
                       <th>Ambiente</th>
                       <th>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
-                    @for (client of release()?.controlledClients || []; track client.id) {
+                    @for (controlledClient of controlledClients(); track controlledClient.id) {
                       <tr>
-                        <td>{{ client.clientCode }}</td>
-                        <td>{{ client.environment }}</td>
+                        <td>{{ getClientCode(controlledClient.clientId) }}</td>
+                        <td>{{ getClientName(controlledClient.clientId) }}</td>
+                        <td>{{ getEnvironmentName(controlledClient.environmentId) }}</td>
                         <td>
                           <button 
                             class="btn btn-danger btn-sm"
-                            (click)="removeClient(client.id)">
+                            (click)="removeClient(controlledClient.clientId, controlledClient.environmentId)">
                             Remover
                           </button>
                         </td>
@@ -438,8 +442,12 @@ export class ReleaseDetailComponent implements OnInit {
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private releaseService = inject(ReleaseService);
+  private clientService = inject(ClientService);
 
   release = signal<Release | null>(null);
+  controlledClients = signal<ReleaseClientEnvironment[]>([]);
+  clients = signal<Client[]>([]);
+  environments = signal<Environment[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
   updating = signal(false);
@@ -481,11 +489,12 @@ export class ReleaseDetailComponent implements OnInit {
   });
 
   statusClass = computed(() => {
-    const status = this.release()?.status;
+    const status = this.release()?.statusDisplayName;
     if (!status) return '';
     
     if (status.includes('Aprovad')) return 'approved';
     if (status.includes('Falha') || status.includes('Reprovad')) return 'failed';
+    if (status.includes('Disponível')) return 'available';
     return 'pending';
   });
 
@@ -503,6 +512,7 @@ export class ReleaseDetailComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     
+    // Load release
     this.releaseService.getRelease(id).subscribe({
       next: (release) => {
         this.release.set(release);
@@ -512,10 +522,46 @@ export class ReleaseDetailComponent implements OnInit {
         this.prerequisitesForm.patchValue({
           prerequisites: release.prerequisites || ''
         });
-        this.loading.set(false);
+        this.loadControlledClients(id);
+        this.loadClientsAndEnvironments();
       },
       error: (err) => {
         this.error.set('Erro ao carregar release: ' + err.message);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  loadControlledClients(releaseId: string): void {
+    this.clientService.getControlledClients(releaseId).subscribe({
+      next: (controlledClients) => {
+        this.controlledClients.set(controlledClients);
+      },
+      error: (err) => {
+        console.error('Erro ao carregar clientes controlados:', err);
+      }
+    });
+  }
+
+  loadClientsAndEnvironments(): void {
+    // Load clients
+    this.clientService.getAllClients().subscribe({
+      next: (clients) => {
+        this.clients.set(clients);
+      },
+      error: (err) => {
+        console.error('Erro ao carregar clientes:', err);
+      }
+    });
+
+    // Load environments
+    this.clientService.getAllEnvironments().subscribe({
+      next: (environments) => {
+        this.environments.set(environments);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Erro ao carregar ambientes:', err);
         this.loading.set(false);
       }
     });
@@ -597,10 +643,10 @@ export class ReleaseDetailComponent implements OnInit {
     this.releaseService.addControlledClient(
       this.release()!.id,
       clientCode!,
-      environment as 'homologacao' | 'producao'
+      environment!
     ).subscribe({
-      next: (updatedRelease) => {
-        this.release.set(updatedRelease);
+      next: () => {
+        this.loadControlledClients(this.release()!.id);
         this.clientForm.reset();
         this.showAddClient = false;
         this.updating.set(false);
@@ -612,16 +658,17 @@ export class ReleaseDetailComponent implements OnInit {
     });
   }
 
-  removeClient(clientId: string): void {
+  removeClient(clientId: string, environmentId: string): void {
     if (!this.release()) return;
     
     this.updating.set(true);
     this.releaseService.removeControlledClient(
       this.release()!.id,
-      clientId
+      clientId,
+      environmentId
     ).subscribe({
-      next: (updatedRelease) => {
-        this.release.set(updatedRelease);
+      next: () => {
+        this.loadControlledClients(this.release()!.id);
         this.updating.set(false);
       },
       error: (err) => {
@@ -633,6 +680,21 @@ export class ReleaseDetailComponent implements OnInit {
 
   navigateBack(): void {
     this.router.navigate(['/releases']);
+  }
+
+  getClientCode(clientId: string): string {
+    const client = this.clients().find(c => c.id === clientId);
+    return client?.clientCode || 'N/A';
+  }
+
+  getClientName(clientId: string): string {
+    const client = this.clients().find(c => c.id === clientId);
+    return client?.name || 'N/A';
+  }
+
+  getEnvironmentName(environmentId: string): string {
+    const environment = this.environments().find(e => e.id === environmentId);
+    return environment?.name || 'N/A';
   }
 
   formatDate(date: string | undefined): string {

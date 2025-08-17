@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { ClientService } from '../../core/services/client.service';
-import { Client } from '../../core/models/client.model';
+import { ClientService, Client } from '../../core/services/client.service';
 
 @Component({
     selector: 'app-client-list',
@@ -14,7 +13,7 @@ import { Client } from '../../core/models/client.model';
     template: `
     <div class="client-list-container">
       <div class="header">
-        <h1>Clientes em Controlado</h1>
+        <h1>Clientes Cadastrados</h1>
       </div>
 
       <div class="filters">
@@ -22,19 +21,8 @@ import { Client } from '../../core/models/client.model';
           <input 
             type="text" 
             [formControl]="searchControl"
-            placeholder="Buscar por código do cliente ou release..."
+            placeholder="Buscar por código ou nome do cliente..."
             class="search-input">
-        </div>
-        <div class="filter-group">
-          <label for="environment-filter">Ambiente:</label>
-          <select 
-            id="environment-filter" 
-            [formControl]="environmentFilter"
-            class="filter-select">
-            <option value="">Todos</option>
-            <option value="homologacao">Homologação</option>
-            <option value="producao">Produção</option>
-          </select>
         </div>
       </div>
 
@@ -62,57 +50,25 @@ import { Client } from '../../core/models/client.model';
                     </span>
                   }
                 </th>
-                <th (click)="sortBy('environment')" class="sortable">
-                  Ambiente
-                  @if (sortField() === 'environment') {
+                <th (click)="sortBy('name')" class="sortable">
+                  Nome
+                  @if (sortField() === 'name') {
                     <span class="sort-icon">
                       {{ sortDirection() === 'asc' ? '▲' : '▼' }}
                     </span>
                   }
                 </th>
-                <th (click)="sortBy('releaseProduct')" class="sortable">
-                  Produto
-                  @if (sortField() === 'releaseProduct') {
-                    <span class="sort-icon">
-                      {{ sortDirection() === 'asc' ? '▲' : '▼' }}
-                    </span>
-                  }
-                </th>
-                <th (click)="sortBy('releaseVersion')" class="sortable">
-                  Versão
-                  @if (sortField() === 'releaseVersion') {
-                    <span class="sort-icon">
-                      {{ sortDirection() === 'asc' ? '▲' : '▼' }}
-                    </span>
-                  }
-                </th>
-                <th>Status da Release</th>
-                <th>Ações</th>
+                <th>Descrição</th>
+                <th>Data de Criação</th>
               </tr>
             </thead>
             <tbody>
               @for (client of paginatedClients(); track client.id) {
                 <tr>
                   <td>{{ client.clientCode }}</td>
-                  <td>
-                    <span [class.badge]="true" [class]="'badge-' + client.environment">
-                      {{ client.environment }}
-                    </span>
-                  </td>
-                  <td>{{ client.releaseProduct }}</td>
-                  <td>{{ client.releaseVersion }}</td>
-                  <td>
-                    <span [class.status]="true" [class]="'status-' + getStatusClass(client.releaseStatus)">
-                      {{ client.releaseStatus }}
-                    </span>
-                  </td>
-                  <td>
-                    <button 
-                      class="btn btn-sm btn-primary"
-                      (click)="viewRelease(client.releaseId)">
-                      Ver Release
-                    </button>
-                  </td>
+                  <td>{{ client.name }}</td>
+                  <td>{{ client.description || '-' }}</td>
+                  <td>{{ formatDate(client.createdAt) }}</td>
                 </tr>
               }
             </tbody>
@@ -381,7 +337,6 @@ export class ClientListComponent implements OnInit {
   
   // Form controls
   searchControl = new FormControl('');
-  environmentFilter = new FormControl('');
   
   // Pagination
   currentPage = signal(1);
@@ -394,16 +349,12 @@ export class ClientListComponent implements OnInit {
   // Computed values
   filteredClients = computed(() => {
     const searchTerm = this.searchControl.value?.toLowerCase() || '';
-    const envFilter = this.environmentFilter.value || '';
     
     return this.clients().filter(client => {
       const matchesSearch = client.clientCode.toLowerCase().includes(searchTerm) ||
-                           client.releaseProduct.toLowerCase().includes(searchTerm) ||
-                           client.releaseVersion.toLowerCase().includes(searchTerm);
+                           client.name.toLowerCase().includes(searchTerm);
       
-      const matchesEnv = !envFilter || client.environment === envFilter;
-      
-      return matchesSearch && matchesEnv;
+      return matchesSearch;
     }).sort((a, b) => {
       const field = this.sortField();
       const dir = this.sortDirection() === 'asc' ? 1 : -1;
@@ -411,8 +362,10 @@ export class ClientListComponent implements OnInit {
       const aVal = a[field];
       const bVal = b[field];
       
-      if (aVal < bVal) return -1 * dir;
-      if (aVal > bVal) return 1 * dir;
+      if (aVal && bVal) {
+        if (aVal < bVal) return -1 * dir;
+        if (aVal > bVal) return 1 * dir;
+      }
       return 0;
     });
   });
@@ -444,23 +397,18 @@ export class ClientListComponent implements OnInit {
       .subscribe(() => {
         this.currentPage.set(1);
       });
-    
-    // Watch for environment filter changes
-    this.environmentFilter.valueChanges.subscribe(() => {
-      this.currentPage.set(1);
-    });
   }
 
   loadClients(): void {
     this.loading.set(true);
     this.error.set(null);
     
-    this.clientService.getAllControlledClients().subscribe({
-      next: (clients) => {
+    this.clientService.getAllClients().subscribe({
+      next: (clients: Client[]) => {
         this.clients.set(clients);
         this.loading.set(false);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error.set('Erro ao carregar clientes: ' + err.message);
         this.loading.set(false);
       }
@@ -476,15 +424,9 @@ export class ClientListComponent implements OnInit {
     }
   }
 
-  getStatusClass(status: string): string {
-    if (status.includes('Aprovad')) return 'approved';
-    if (status.includes('Falha') || status.includes('Reprovad')) return 'failed';
-    if (status.includes('Disponível')) return 'available';
-    return 'pending';
-  }
-
-  viewRelease(releaseId: string): void {
-    this.router.navigate(['/releases', releaseId]);
+  formatDate(date: string | undefined): string {
+    if (!date) return '-';
+    return new Date(date).toLocaleString('pt-BR');
   }
 
   nextPage(): void {

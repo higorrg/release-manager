@@ -1,22 +1,28 @@
 export interface Client {
     id: string;
     clientCode: string;
-    environment: 'homologacao' | 'producao';
-    releaseId: string;
-    releaseProduct: string;
-    releaseVersion: string;
-    releaseStatus: string;
+    name: string;
+    description?: string;
     createdAt: string;
-    updatedAt: string;
+    updatedAt?: string;
 }
 
-export interface CreateControlledClientRequest {
+export interface Environment {
+    id: string;
+    name: string;
+    description?: string;
+    createdAt: string;
+}
+
+export interface ReleaseClientEnvironment {
+    id: string;
     releaseId: string;
-    clientCode: string;
-    environment: 'homologacao' | 'producao';
+    clientId: string;
+    environmentId: string;
+    createdAt: string;
 }
 
-export interface UpdateControlledClientRequest {
-    clientCode?: string;
-    environment?: 'homologacao' | 'producao';
+export interface AddControlledClientRequest {
+    clientCode: string;
+    environment: string;
 }

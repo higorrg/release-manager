@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
 export interface ControlledClient {
@@ -194,16 +195,20 @@ export class ReleaseService {
         ];
     }
 
-    addControlledClient(releaseId: string, clientCode: string, environment: 'homologacao' | 'producao'): Observable<Release> {
+    addControlledClient(releaseId: string, clientCode: string, environment: string): Observable<Release> {
         const request = { clientCode, environment };
-        return this.http.post<Release>(`${this.apiUrl}/${releaseId}/controlled-clients`, request, {
+        return this.http.post<any>(`${this.apiUrl}/${releaseId}/controlled-clients`, request, {
             headers: this.getHeaders()
-        });
+        }).pipe(
+            switchMap(() => this.getRelease(releaseId))
+        );
     }
 
-    removeControlledClient(releaseId: string, clientId: string): Observable<Release> {
-        return this.http.delete<Release>(`${this.apiUrl}/${releaseId}/controlled-clients/${clientId}`, {
+    removeControlledClient(releaseId: string, clientId: string, environmentId: string): Observable<Release> {
+        return this.http.delete<void>(`${this.apiUrl}/${releaseId}/controlled-clients/${clientId}/environments/${environmentId}`, {
             headers: this.getHeaders()
-        });
+        }).pipe(
+            switchMap(() => this.getRelease(releaseId))
+        );
     }
 }
