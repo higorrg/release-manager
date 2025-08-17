@@ -103,6 +103,12 @@ export class ReleaseService {
         });
     }
 
+    createReleaseFromWeb(request: CreateReleaseRequest): Observable<Release> {
+        return this.http.post<Release>(`${this.apiUrl}`, request, {
+            headers: this.getHeaders()
+        });
+    }
+
     getAllReleases(): Observable<Release[]> {
         return this.http.get<Release[]>(this.apiUrl, {
             headers: this.getHeaders()

@@ -433,7 +433,7 @@ export class ReleaseListComponent {
         version: this.createForm.value.version!
       };
 
-      this.releaseService.createReleaseFromPipeline(request).subscribe({
+      this.releaseService.createReleaseFromWeb(request).subscribe({
         next: (release) => {
           this.createForm.reset();
           this.showCreateForm.set(false);

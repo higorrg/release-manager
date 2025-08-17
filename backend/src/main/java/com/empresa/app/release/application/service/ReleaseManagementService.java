@@ -80,6 +80,43 @@ public class ReleaseManagementService implements ReleaseManagementUseCase {
 
     @Override
     @Transactional
+    public Release createReleaseFromWeb(CreateReleaseCommand command) {
+        if (Objects.isNull(command.productName()) || command.productName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Product name cannot be null or empty");
+        }
+        
+        if (Objects.isNull(command.version()) || command.version().trim().isEmpty()) {
+            throw new IllegalArgumentException("Version cannot be null or empty");
+        }
+
+        var product = productRepository.findByName(command.productName())
+                .orElseGet(() -> createProduct(command.productName()));
+
+        if (releaseRepository.existsByProductIdAndVersion(product.getId(), command.version())) {
+            throw new IllegalStateException("Release already exists for product " + 
+                    command.productName() + " and version " + command.version());
+        }
+
+        // Para releases criadas via web, inicia com status "Interno" em vez de "MR Aprovado"
+        var release = Release.create(product.getId(), command.version());
+        release.updateStatus(ReleaseStatus.INTERNO);
+        var savedRelease = releaseRepository.save(release);
+
+        // Registrar histórico inicial com status "Interno"
+        var initialHistory = ReleaseStatusHistory.create(
+                savedRelease.getId(),
+                null,
+                ReleaseStatus.INTERNO,
+                "WEB_INTERFACE"
+        );
+        statusHistoryRepository.save(initialHistory);
+        System.out.println("✅ Status history created for new web release: " + savedRelease.getId());
+
+        return savedRelease;
+    }
+
+    @Override
+    @Transactional
     public Release updateReleaseStatus(UpdateReleaseStatusCommand command) {
         if (Objects.isNull(command.releaseId())) {
             throw new IllegalArgumentException("Release ID cannot be null");

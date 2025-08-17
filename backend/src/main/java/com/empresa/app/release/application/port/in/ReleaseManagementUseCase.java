@@ -18,6 +18,11 @@ public interface ReleaseManagementUseCase {
     Release createReleaseFromPipeline(CreateReleaseCommand command);
     
     /**
+     * Cria uma nova release a partir da interface web
+     */
+    Release createReleaseFromWeb(CreateReleaseCommand command);
+    
+    /**
      * Atualiza o status de uma release
      */
     Release updateReleaseStatus(UpdateReleaseStatusCommand command);

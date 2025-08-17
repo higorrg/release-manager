@@ -67,6 +67,26 @@ public class ReleaseController {
         }
     }
 
+    @POST
+    @Operation(summary = "Criar uma nova release via web", description = "Cria uma nova release a partir da interface web")
+    public Response createReleaseFromWeb(CreateReleaseRequest request) {
+        try {
+            var command = new ReleaseManagementUseCase.CreateReleaseCommand(
+                request.productName(),
+                request.version()
+            );
+            
+            Release release = releaseManagementUseCase.createReleaseFromWeb(command);
+            ReleaseResponse response = mapToResponse(release);
+            
+            return Response.status(Response.Status.CREATED).entity(response).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new ErrorResponse("Erro ao criar release: " + e.getMessage()))
+                .build();
+        }
+    }
+
     @GET
     @Operation(summary = "Listar releases", description = "Lista todas as releases ou por produto")
     public Response listReleases(@QueryParam("productId") String productId) {
