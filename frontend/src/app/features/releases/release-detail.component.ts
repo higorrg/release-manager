@@ -573,7 +573,8 @@ export class ReleaseDetailComponent implements OnInit {
         this.updating.set(false);
       },
       error: (err) => {
-        this.error.set('Erro ao atualizar status: ' + err.message);
+        const errorMessage = err.error?.message || err.message || 'Erro desconhecido';
+        this.error.set('Erro ao atualizar status: ' + errorMessage);
         this.updating.set(false);
       }
     });
@@ -595,7 +596,8 @@ export class ReleaseDetailComponent implements OnInit {
         this.updating.set(false);
       },
       error: (err) => {
-        this.error.set('Erro ao atualizar release notes: ' + err.message);
+        const errorMessage = err.error?.message || err.message || 'Erro desconhecido';
+        this.error.set('Erro ao atualizar release notes: ' + errorMessage);
         this.updating.set(false);
       }
     });
@@ -617,7 +619,8 @@ export class ReleaseDetailComponent implements OnInit {
         this.updating.set(false);
       },
       error: (err) => {
-        this.error.set('Erro ao atualizar pré-requisitos: ' + err.message);
+        const errorMessage = err.error?.message || err.message || 'Erro desconhecido';
+        this.error.set('Erro ao atualizar pré-requisitos: ' + errorMessage);
         this.updating.set(false);
       }
     });
@@ -626,8 +629,19 @@ export class ReleaseDetailComponent implements OnInit {
   addClient(): void {
     if (!this.clientForm.valid || !this.release()) return;
     
-    this.updating.set(true);
     const { clientCode, environment } = this.clientForm.value;
+    
+    // Check if client/environment combination already exists
+    const existingClient = this.controlledClients().find(
+      client => client.clientCode === clientCode && client.environmentName === environment
+    );
+    
+    if (existingClient) {
+      this.error.set('Este cliente já está associado a esta release neste ambiente');
+      return;
+    }
+    
+    this.updating.set(true);
     
     this.clientService.addControlledClient(
       this.release()!.id,
@@ -642,7 +656,8 @@ export class ReleaseDetailComponent implements OnInit {
         this.updating.set(false);
       },
       error: (err) => {
-        this.error.set('Erro ao adicionar cliente: ' + err.message);
+        const errorMessage = err.error?.message || err.message || 'Erro desconhecido';
+        this.error.set('Erro ao adicionar cliente: ' + errorMessage);
         this.updating.set(false);
       }
     });
@@ -667,7 +682,8 @@ export class ReleaseDetailComponent implements OnInit {
         this.updating.set(false);
       },
       error: (err) => {
-        this.error.set('Erro ao remover cliente: ' + err.message);
+        const errorMessage = err.error?.message || err.message || 'Erro desconhecido';
+        this.error.set('Erro ao remover cliente: ' + errorMessage);
         this.updating.set(false);
       }
     });
