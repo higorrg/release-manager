@@ -31,4 +31,9 @@ public interface ClientRepository {
      * Verifica se existe um cliente com o código especificado
      */
     boolean existsByClientCode(String clientCode);
+    
+    /**
+     * Remove um cliente por ID
+     */
+    void deleteById(UUID id);
 }

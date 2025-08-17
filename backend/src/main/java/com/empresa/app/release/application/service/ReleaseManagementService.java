@@ -266,6 +266,72 @@ public class ReleaseManagementService implements ReleaseManagementUseCase {
     }
 
     @Override
+    public Optional<Client> findClientById(UUID clientId) {
+        if (Objects.isNull(clientId)) {
+            throw new IllegalArgumentException("Client ID cannot be null");
+        }
+        return clientRepository.findById(clientId);
+    }
+
+    @Override
+    @Transactional
+    public Client createClient(CreateClientCommand command) {
+        if (Objects.isNull(command.clientCode()) || command.clientCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("Client code cannot be null or empty");
+        }
+        
+        if (Objects.isNull(command.name()) || command.name().trim().isEmpty()) {
+            throw new IllegalArgumentException("Client name cannot be null or empty");
+        }
+
+        // Check if client code already exists
+        if (clientRepository.findByClientCode(command.clientCode()).isPresent()) {
+            throw new IllegalStateException("Client with code '" + command.clientCode() + "' already exists");
+        }
+
+        var client = Client.create(command.clientCode(), command.name(), command.description());
+        return clientRepository.save(client);
+    }
+
+    @Override
+    @Transactional
+    public Client updateClient(UpdateClientCommand command) {
+        if (Objects.isNull(command.clientId())) {
+            throw new IllegalArgumentException("Client ID cannot be null");
+        }
+        
+        if (Objects.isNull(command.name()) || command.name().trim().isEmpty()) {
+            throw new IllegalArgumentException("Client name cannot be null or empty");
+        }
+
+        var client = clientRepository.findById(command.clientId())
+                .orElseThrow(() -> new IllegalArgumentException("Client not found"));
+
+        client.updateName(command.name());
+        client.updateDescription(command.description());
+        return clientRepository.save(client);
+    }
+
+    @Override
+    @Transactional
+    public void deleteClient(UUID clientId) {
+        if (Objects.isNull(clientId)) {
+            throw new IllegalArgumentException("Client ID cannot be null");
+        }
+
+        var client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new IllegalArgumentException("Client not found"));
+
+        // Check if client is being used in any releases
+        var controlledReleases = releaseClientEnvironmentRepository.findByClientId(clientId);
+        if (!controlledReleases.isEmpty()) {
+            throw new IllegalStateException("Cannot delete client: it is being used in " + controlledReleases.size() + " controlled releases");
+        }
+
+        clientRepository.deleteById(clientId);
+    }
+
+    @Override
     public List<Release> findAvailableVersions(String clientCode, String environment) {
         if (Objects.isNull(clientCode) || clientCode.trim().isEmpty()) {
             throw new IllegalArgumentException("Client code cannot be null or empty");

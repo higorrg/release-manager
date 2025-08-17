@@ -22,8 +22,21 @@ public class Client {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public Client(String clientCode, String name, String description) {
+        this.id = UUID.randomUUID();
+        this.clientCode = Objects.requireNonNull(clientCode, "Client code cannot be null");
+        this.name = Objects.requireNonNull(name, "Name cannot be null");
+        this.description = description;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public static Client create(String clientCode, String name) {
         return new Client(clientCode, name);
+    }
+
+    public static Client create(String clientCode, String name, String description) {
+        return new Client(clientCode, name, description);
     }
 
     public void updateName(String name) {

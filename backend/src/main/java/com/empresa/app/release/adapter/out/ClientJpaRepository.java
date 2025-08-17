@@ -55,4 +55,10 @@ public class ClientJpaRepository implements ClientRepository {
     public boolean existsByClientCode(String clientCode) {
         return ClientEntity.count("clientCode = ?1", clientCode) > 0;
     }
+
+    @Override
+    @Transactional
+    public void deleteById(UUID id) {
+        ClientEntity.deleteById(id);
+    }
 }

@@ -1,9 +1,9 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { ClientService, Client } from '../../core/services/client.service';
+import { ClientService, Client, CreateClientRequest, UpdateClientRequest } from '../../core/services/client.service';
 
 @Component({
     selector: 'app-client-list',
@@ -14,6 +14,9 @@ import { ClientService, Client } from '../../core/services/client.service';
     <div class="client-list-container">
       <div class="header">
         <h1>Clientes Cadastrados</h1>
+        <button class="btn btn-primary" (click)="openCreateForm()">
+          Novo Cliente
+        </button>
       </div>
 
       <div class="filters">
@@ -25,6 +28,57 @@ import { ClientService, Client } from '../../core/services/client.service';
             class="search-input">
         </div>
       </div>
+
+      @if (showForm()) {
+        <div class="form-overlay" (click)="closeForm()">
+          <div class="form-modal" (click)="$event.stopPropagation()">
+            <h2>{{ isEditing() ? 'Editar Cliente' : 'Novo Cliente' }}</h2>
+            <form [formGroup]="clientForm" (ngSubmit)="saveClient()">
+              @if (!isEditing()) {
+                <div class="form-group">
+                  <label for="clientCode">Código do Cliente:</label>
+                  <input 
+                    id="clientCode" 
+                    type="text" 
+                    formControlName="clientCode" 
+                    class="form-control"
+                    placeholder="Ex: CLI001">
+                </div>
+              }
+              <div class="form-group">
+                <label for="name">Nome:</label>
+                <input 
+                  id="name" 
+                  type="text" 
+                  formControlName="name" 
+                  class="form-control"
+                  placeholder="Nome do cliente">
+              </div>
+              <div class="form-group">
+                <label for="description">Descrição:</label>
+                <textarea 
+                  id="description" 
+                  formControlName="description" 
+                  class="form-control"
+                  rows="3"
+                  placeholder="Descrição do cliente (opcional)">
+                </textarea>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" (click)="closeForm()">
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  class="btn btn-primary" 
+                  [disabled]="!clientForm.valid || submitting()">
+                  {{ submitting() ? 'Salvando...' : (isEditing() ? 'Atualizar' : 'Criar') }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      }
 
       @if (loading()) {
         <div class="loading">Carregando clientes...</div>
@@ -60,6 +114,7 @@ import { ClientService, Client } from '../../core/services/client.service';
                 </th>
                 <th>Descrição</th>
                 <th>Data de Criação</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -69,6 +124,22 @@ import { ClientService, Client } from '../../core/services/client.service';
                   <td>{{ client.name }}</td>
                   <td>{{ client.description || '-' }}</td>
                   <td>{{ formatDate(client.createdAt) }}</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button 
+                        class="btn btn-sm btn-secondary" 
+                        (click)="editClient(client)"
+                        title="Editar">
+                        ✏️
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-danger" 
+                        (click)="confirmDelete(client)"
+                        title="Excluir">
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               }
             </tbody>
@@ -324,19 +395,156 @@ import { ClientService, Client } from '../../core/services/client.service';
       color: #495057;
       font-weight: 500;
     }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #0056b3;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #5a6268;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: #c82333;
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .form-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .form-modal {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .form-modal h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #495057;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+    .form-control:disabled {
+      background-color: #e9ecef;
+      opacity: 1;
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 30px;
+    }
   `]
 })
 export class ClientListComponent implements OnInit {
   private clientService = inject(ClientService);
   private router = inject(Router);
+  private fb = inject(FormBuilder);
 
   // State signals
   loading = signal(true);
   error = signal<string | null>(null);
   clients = signal<Client[]>([]);
+  showForm = signal(false);
+  isEditing = signal(false);
+  submitting = signal(false);
+  editingClient = signal<Client | null>(null);
   
   // Form controls
   searchControl = new FormControl('');
+  clientForm: FormGroup;
+  
+  constructor() {
+    this.clientForm = this.fb.group({
+      clientCode: ['', [Validators.required, Validators.maxLength(50)]],
+      name: ['', [Validators.required, Validators.maxLength(255)]],
+      description: ['', Validators.maxLength(500)]
+    });
+  }
   
   // Pagination
   currentPage = signal(1);
@@ -439,5 +647,107 @@ export class ClientListComponent implements OnInit {
     if (this.currentPage() > 1) {
       this.currentPage.set(this.currentPage() - 1);
     }
+  }
+
+  // CRUD methods
+  openCreateForm(): void {
+    this.isEditing.set(false);
+    this.editingClient.set(null);
+    this.clientForm.reset();
+    this.clientForm.get('clientCode')?.enable();
+    this.showForm.set(true);
+  }
+
+  editClient(client: Client): void {
+    this.isEditing.set(true);
+    this.editingClient.set(client);
+    this.clientForm.patchValue({
+      clientCode: client.clientCode,
+      name: client.name,
+      description: client.description || ''
+    });
+    this.clientForm.get('clientCode')?.disable();
+    this.showForm.set(true);
+  }
+
+  closeForm(): void {
+    this.showForm.set(false);
+    this.isEditing.set(false);
+    this.editingClient.set(null);
+    this.clientForm.reset();
+    this.error.set(null);
+  }
+
+  saveClient(): void {
+    if (!this.clientForm.valid) return;
+
+    this.submitting.set(true);
+    this.error.set(null);
+
+    const formValue = this.clientForm.value;
+
+    if (this.isEditing()) {
+      const updateRequest: UpdateClientRequest = {
+        name: formValue.name,
+        description: formValue.description || undefined
+      };
+
+      this.clientService.updateClient(this.editingClient()!.id, updateRequest).subscribe({
+        next: (updatedClient) => {
+          const currentClients = this.clients();
+          const index = currentClients.findIndex(c => c.id === updatedClient.id);
+          if (index !== -1) {
+            currentClients[index] = updatedClient;
+            this.clients.set([...currentClients]);
+          }
+          this.closeForm();
+          this.submitting.set(false);
+        },
+        error: (err) => {
+          const errorMessage = err.error?.message || err.message || 'Erro desconhecido';
+          this.error.set('Erro ao atualizar cliente: ' + errorMessage);
+          this.submitting.set(false);
+        }
+      });
+    } else {
+      const createRequest: CreateClientRequest = {
+        clientCode: formValue.clientCode,
+        name: formValue.name,
+        description: formValue.description || undefined
+      };
+
+      this.clientService.createClient(createRequest).subscribe({
+        next: (newClient) => {
+          const currentClients = this.clients();
+          this.clients.set([newClient, ...currentClients]);
+          this.closeForm();
+          this.submitting.set(false);
+        },
+        error: (err) => {
+          const errorMessage = err.error?.message || err.message || 'Erro desconhecido';
+          this.error.set('Erro ao criar cliente: ' + errorMessage);
+          this.submitting.set(false);
+        }
+      });
+    }
+  }
+
+  confirmDelete(client: Client): void {
+    if (confirm(`Tem certeza que deseja excluir o cliente "${client.name}"?\n\nEsta ação não pode ser desfeita.`)) {
+      this.deleteClient(client);
+    }
+  }
+
+  deleteClient(client: Client): void {
+    this.clientService.deleteClient(client.id).subscribe({
+      next: () => {
+        const currentClients = this.clients();
+        this.clients.set(currentClients.filter(c => c.id !== client.id));
+      },
+      error: (err) => {
+        const errorMessage = err.error?.message || err.message || 'Erro desconhecido';
+        this.error.set('Erro ao excluir cliente: ' + errorMessage);
+      }
+    });
   }
 }

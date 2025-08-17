@@ -83,6 +83,26 @@ public interface ReleaseManagementUseCase {
     Client findOrCreateClient(String clientCode);
     
     /**
+     * Busca um cliente por ID
+     */
+    Optional<Client> findClientById(UUID clientId);
+    
+    /**
+     * Cria um novo cliente
+     */
+    Client createClient(CreateClientCommand command);
+    
+    /**
+     * Atualiza um cliente existente
+     */
+    Client updateClient(UpdateClientCommand command);
+    
+    /**
+     * Exclui um cliente (apenas se não estiver em uso)
+     */
+    void deleteClient(UUID clientId);
+    
+    /**
      * Lista versões disponíveis para um cliente em um ambiente específico
      */
     List<Release> findAvailableVersions(String clientCode, String environment);
@@ -102,6 +122,10 @@ public interface ReleaseManagementUseCase {
     record UpdatePrerequisitesCommand(UUID releaseId, String prerequisites) {}
     
     record UpdatePackageInfoCommand(UUID releaseId, String downloadUrl, String packagePath) {}
+    
+    record CreateClientCommand(String clientCode, String name, String description) {}
+    
+    record UpdateClientCommand(UUID clientId, String name, String description) {}
     
     record AddControlledClientCommand(UUID releaseId, String clientCode, String environmentName) {}
 }

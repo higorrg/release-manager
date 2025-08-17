@@ -45,6 +45,17 @@ export interface AddControlledClientRequest {
     environment: string;
 }
 
+export interface CreateClientRequest {
+    clientCode: string;
+    name: string;
+    description?: string;
+}
+
+export interface UpdateClientRequest {
+    name: string;
+    description?: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -52,6 +63,7 @@ export class ClientService {
     private http = inject(HttpClient);
     private authService = inject(AuthService);
     private readonly apiUrl = 'http://localhost:8081/api/v1/releases';
+    private readonly clientApiUrl = 'http://localhost:8081/api/v1/clients';
 
     private getHeaders(): HttpHeaders {
         const token = this.authService.getToken();
@@ -92,6 +104,31 @@ export class ClientService {
     // Remove controlled client from a release
     removeControlledClient(releaseId: string, clientId: string, environmentId: string): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/${releaseId}/controlled-clients/${clientId}/environments/${environmentId}`, {
+            headers: this.getHeaders()
+        });
+    }
+
+    // CRUD methods for clients
+    createClient(request: CreateClientRequest): Observable<Client> {
+        return this.http.post<Client>(this.clientApiUrl, request, {
+            headers: this.getHeaders()
+        });
+    }
+
+    getClient(clientId: string): Observable<Client> {
+        return this.http.get<Client>(`${this.clientApiUrl}/${clientId}`, {
+            headers: this.getHeaders()
+        });
+    }
+
+    updateClient(clientId: string, request: UpdateClientRequest): Observable<Client> {
+        return this.http.put<Client>(`${this.clientApiUrl}/${clientId}`, request, {
+            headers: this.getHeaders()
+        });
+    }
+
+    deleteClient(clientId: string): Observable<void> {
+        return this.http.delete<void>(`${this.clientApiUrl}/${clientId}`, {
             headers: this.getHeaders()
         });
     }
