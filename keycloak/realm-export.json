@@ -145,11 +145,11 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "backend-client-secret",
       "publicClient": false,
-      "bearerOnly": true,
+      "bearerOnly": false,
       "consentRequired": false,
       "standardFlowEnabled": false,
       "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
+      "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": true,
       "authorizationServicesEnabled": true,
       "protocol": "openid-connect",
@@ -198,6 +198,13 @@
       {
         "name": "admin",
         "description": "Administrator role",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "release-manager"
+      },
+      {
+        "name": "user",
+        "description": "User role",
         "composite": false,
         "clientRole": false,
         "containerId": "release-manager"

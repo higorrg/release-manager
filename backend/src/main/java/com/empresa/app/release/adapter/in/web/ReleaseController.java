@@ -23,6 +23,7 @@ import com.empresa.app.release.domain.model.Release;
 import com.empresa.app.release.domain.model.ReleaseClientEnvironment;
 import com.empresa.app.release.domain.model.ReleaseStatus;
 import com.empresa.app.release.domain.model.ReleaseStatusHistory;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Release Management", description = "Operações de gerenciamento de releases")
+@RolesAllowed({"user", "admin"})
 public class ReleaseController {
 
     @Inject
@@ -49,6 +51,7 @@ public class ReleaseController {
     @POST
     @Path("/pipeline")
     @Operation(summary = "Criar uma nova release", description = "Cria uma nova release a partir da pipeline")
+    @RolesAllowed("admin")
     public Response createRelease(CreateReleaseRequest request) {
         try {
             var command = new ReleaseManagementUseCase.CreateReleaseCommand(
@@ -69,6 +72,7 @@ public class ReleaseController {
 
     @POST
     @Operation(summary = "Criar uma nova release via web", description = "Cria uma nova release a partir da interface web")
+    @RolesAllowed("admin")
     public Response createReleaseFromWeb(CreateReleaseRequest request) {
         try {
             var command = new ReleaseManagementUseCase.CreateReleaseCommand(
@@ -132,6 +136,7 @@ public class ReleaseController {
     @PUT
     @Path("/{releaseId}/status")
     @Operation(summary = "Atualizar status da release", description = "Atualiza o status de uma release")
+    @RolesAllowed("admin")
     public Response updateReleaseStatus(@PathParam("releaseId") String releaseId, 
                                       UpdateStatusRequest request) {
         try {
@@ -155,6 +160,7 @@ public class ReleaseController {
     @PUT
     @Path("/{releaseId}/release-notes")
     @Operation(summary = "Atualizar release notes", description = "Atualiza as release notes de uma release")
+    @RolesAllowed("admin")
     public Response updateReleaseNotes(@PathParam("releaseId") String releaseId,
                                      UpdateReleaseNotesRequest request) {
         try {
@@ -176,6 +182,7 @@ public class ReleaseController {
     @PUT
     @Path("/{releaseId}/prerequisites")
     @Operation(summary = "Atualizar pré-requisitos", description = "Atualiza os pré-requisitos de uma release")
+    @RolesAllowed("admin")
     public Response updatePrerequisites(@PathParam("releaseId") String releaseId,
                                       UpdatePrerequisitesRequest request) {
         try {
@@ -197,6 +204,7 @@ public class ReleaseController {
     @PUT
     @Path("/{releaseId}/package-info")
     @Operation(summary = "Atualizar informações de pacote", description = "Atualiza URL de download e caminho do pacote de uma release")
+    @RolesAllowed("admin")
     public Response updatePackageInfo(@PathParam("releaseId") String releaseId,
                                     UpdatePackageInfoRequest request) {
         try {
@@ -244,6 +252,7 @@ public class ReleaseController {
     @POST
     @Path("/{releaseId}/controlled-clients")
     @Operation(summary = "Adicionar cliente controlado", description = "Adiciona um cliente controlado à release")
+    @RolesAllowed("admin")
     public Response addControlledClient(@PathParam("releaseId") String releaseId,
                                       AddControlledClientRequest request) {
         try {
@@ -276,6 +285,7 @@ public class ReleaseController {
     @DELETE
     @Path("/{releaseId}/controlled-clients/{clientId}/environments/{environmentId}")
     @Operation(summary = "Remover cliente controlado", description = "Remove um cliente controlado da release")
+    @RolesAllowed("admin")
     public Response removeControlledClient(@PathParam("releaseId") String releaseId,
                                          @PathParam("clientId") String clientId,
                                          @PathParam("environmentId") String environmentId) {

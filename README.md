@@ -94,13 +94,14 @@ npm start
 ### Ambiente de Produção
 
 ```bash
-# Configure as variáveis de ambiente
-cp .env.example .env
-# Edite o arquivo .env com suas configurações
-
 # Execute todos os serviços
-docker-compose -f docker-compose.prod.yml up -d
+podman-compose -f docker-compose-prod.yml up -d
 ```
+
+**URLs de acesso em produção:**
+- Frontend: http://localhost:8082
+- Backend API: http://localhost:8081
+- Keycloak: http://localhost:8080
 
 ## 🔧 Configuração
 
@@ -185,6 +186,83 @@ npm test
 - `PUT /api/v1/releases/{id}/prerequisites` - Atualizar pré-requisitos
 - `GET /api/v1/releases/{id}` - Buscar release por ID
 - `GET /api/v1/releases/{id}/history` - Histórico de mudanças
+
+### Criação de Release via Pipeline
+
+Para criar uma release via pipeline, use os seguintes comandos:
+
+```bash
+# 1. Obter token de autenticação
+TOKEN=$(curl -s -X POST http://localhost:8080/realms/release-manager/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=password" \
+  -d "client_id=release-manager-backend" \
+  -d "client_secret=backend-client-secret" \
+  -d "username=admin" \
+  -d "password=admin123" | jq -r .access_token)
+
+# 2. Criar release
+curl -X POST http://localhost:8081/api/v1/releases/pipeline \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"productName": "MeuProduto", "version": "1.2.3"}'
+```
+
+**Exemplo para CI/CD Pipeline:**
+```yaml
+# GitHub Actions / GitLab CI example
+- name: Create Release
+  run: |
+    TOKEN=$(curl -s -X POST $KEYCLOAK_URL/realms/release-manager/protocol/openid-connect/token \
+      -H "Content-Type: application/x-www-form-urlencoded" \
+      -d "grant_type=password" \
+      -d "client_id=release-manager-backend" \
+      -d "client_secret=$CLIENT_SECRET" \
+      -d "username=$ADMIN_USER" \
+      -d "password=$ADMIN_PASSWORD" | jq -r .access_token)
+    
+    curl -X POST $API_URL/api/v1/releases/pipeline \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "{\"productName\": \"$PRODUCT_NAME\", \"version\": \"$VERSION\"}"
+```
+
+### Listagem de Releases
+
+Para outras aplicações consumirem a lista de releases:
+
+```bash
+# 1. Obter token (igual ao processo anterior)
+TOKEN=$(curl -s -X POST http://localhost:8080/realms/release-manager/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=password" \
+  -d "client_id=release-manager-backend" \
+  -d "client_secret=backend-client-secret" \
+  -d "username=admin" \
+  -d "password=admin123" | jq -r .access_token)
+
+# 2a. Listar todas as releases
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8081/api/v1/releases
+
+# 2b. Listar releases de um produto específico
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/v1/releases?productId=PRODUCT_ID_AQUI"
+```
+
+**Usando HTTPie:**
+```bash
+# Comando completo em uma linha
+TOKEN=$(curl -s -X POST http://localhost:8080/realms/release-manager/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=password" \
+  -d "client_id=release-manager-backend" \
+  -d "client_secret=backend-client-secret" \
+  -d "username=admin" \
+  -d "password=admin123" | jq -r .access_token) && \
+http GET http://localhost:8081/api/v1/releases "Authorization:Bearer $TOKEN"
+
+# Filtrar por produto
+http GET http://localhost:8081/api/v1/releases "Authorization:Bearer $TOKEN" productId=="PRODUCT_ID_AQUI"
+```
 
 ### Documentação Completa
 - Swagger UI: http://localhost:8081/q/swagger-ui
