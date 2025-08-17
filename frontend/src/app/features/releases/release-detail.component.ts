@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ReleaseService } from '../../core/services/release.service';
 import { Release, ReleaseStatus } from '../../core/services/release.service';
-import { ClientService, ReleaseClientEnvironment, Client, Environment } from '../../core/services/client.service';
+import { ClientService, ControlledClientDetail, Client, Environment } from '../../core/services/client.service';
 
 @Component({
   selector: 'app-release-detail',
@@ -176,9 +176,9 @@ import { ClientService, ReleaseClientEnvironment, Client, Environment } from '..
                   <tbody>
                     @for (controlledClient of controlledClients(); track controlledClient.id) {
                       <tr>
-                        <td>{{ getClientCode(controlledClient.clientId) }}</td>
-                        <td>{{ getClientName(controlledClient.clientId) }}</td>
-                        <td>{{ getEnvironmentName(controlledClient.environmentId) }}</td>
+                        <td>{{ controlledClient.clientCode }}</td>
+                        <td>{{ controlledClient.clientName }}</td>
+                        <td>{{ controlledClient.environmentName }}</td>
                         <td>
                           <button 
                             class="btn btn-danger btn-sm"
@@ -445,7 +445,7 @@ export class ReleaseDetailComponent implements OnInit {
   private clientService = inject(ClientService);
 
   release = signal<Release | null>(null);
-  controlledClients = signal<ReleaseClientEnvironment[]>([]);
+  controlledClients = signal<ControlledClientDetail[]>([]);
   clients = signal<Client[]>([]);
   environments = signal<Environment[]>([]);
   loading = signal(true);
@@ -523,7 +523,7 @@ export class ReleaseDetailComponent implements OnInit {
           prerequisites: release.prerequisites || ''
         });
         this.loadControlledClients(id);
-        this.loadClientsAndEnvironments();
+        this.loadEnvironments();
       },
       error: (err) => {
         this.error.set('Erro ao carregar release: ' + err.message);
@@ -543,18 +543,7 @@ export class ReleaseDetailComponent implements OnInit {
     });
   }
 
-  loadClientsAndEnvironments(): void {
-    // Load clients
-    this.clientService.getAllClients().subscribe({
-      next: (clients) => {
-        this.clients.set(clients);
-      },
-      error: (err) => {
-        console.error('Erro ao carregar clientes:', err);
-      }
-    });
-
-    // Load environments
+  loadEnvironments(): void {
     this.clientService.getAllEnvironments().subscribe({
       next: (environments) => {
         this.environments.set(environments);
@@ -640,13 +629,14 @@ export class ReleaseDetailComponent implements OnInit {
     this.updating.set(true);
     const { clientCode, environment } = this.clientForm.value;
     
-    this.releaseService.addControlledClient(
+    this.clientService.addControlledClient(
       this.release()!.id,
-      clientCode!,
-      environment!
+      { clientCode: clientCode!, environment: environment! }
     ).subscribe({
-      next: () => {
-        this.loadControlledClients(this.release()!.id);
+      next: (newControlledClient) => {
+        // Add the new client to the existing list without reloading
+        const currentClients = this.controlledClients();
+        this.controlledClients.set([...currentClients, newControlledClient]);
         this.clientForm.reset();
         this.showAddClient = false;
         this.updating.set(false);
@@ -662,13 +652,18 @@ export class ReleaseDetailComponent implements OnInit {
     if (!this.release()) return;
     
     this.updating.set(true);
-    this.releaseService.removeControlledClient(
+    this.clientService.removeControlledClient(
       this.release()!.id,
       clientId,
       environmentId
     ).subscribe({
       next: () => {
-        this.loadControlledClients(this.release()!.id);
+        // Remove the client from the existing list without reloading
+        const currentClients = this.controlledClients();
+        const updatedClients = currentClients.filter(
+          client => !(client.clientId === clientId && client.environmentId === environmentId)
+        );
+        this.controlledClients.set(updatedClients);
         this.updating.set(false);
       },
       error: (err) => {
@@ -680,21 +675,6 @@ export class ReleaseDetailComponent implements OnInit {
 
   navigateBack(): void {
     this.router.navigate(['/releases']);
-  }
-
-  getClientCode(clientId: string): string {
-    const client = this.clients().find(c => c.id === clientId);
-    return client?.clientCode || 'N/A';
-  }
-
-  getClientName(clientId: string): string {
-    const client = this.clients().find(c => c.id === clientId);
-    return client?.name || 'N/A';
-  }
-
-  getEnvironmentName(environmentId: string): string {
-    const environment = this.environments().find(e => e.id === environmentId);
-    return environment?.name || 'N/A';
   }
 
   formatDate(date: string | undefined): string {

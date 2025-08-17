@@ -28,6 +28,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/releases/client-list.component').then(m => m.ClientListComponent)
   },
   {
+    path: 'available-versions',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/releases/available-versions.component').then(m => m.AvailableVersionsComponent)
+  },
+  {
     path: '**',
     redirectTo: '/releases'
   }

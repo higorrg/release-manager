@@ -33,6 +33,11 @@ public interface ReleaseClientEnvironmentRepository {
     List<ReleaseClientEnvironment> findByEnvironmentId(UUID environmentId);
     
     /**
+     * Busca associações por client ID e environment ID
+     */
+    List<ReleaseClientEnvironment> findByClientIdAndEnvironmentId(UUID clientId, UUID environmentId);
+    
+    /**
      * Busca uma associação específica
      */
     Optional<ReleaseClientEnvironment> findByReleaseIdAndClientIdAndEnvironmentId(

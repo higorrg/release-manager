@@ -244,6 +244,42 @@ public class ReleaseManagementService implements ReleaseManagementUseCase {
                 });
     }
 
+    @Override
+    public List<Release> findAvailableVersions(String clientCode, String environment) {
+        if (Objects.isNull(clientCode) || clientCode.trim().isEmpty()) {
+            throw new IllegalArgumentException("Client code cannot be null or empty");
+        }
+        
+        if (Objects.isNull(environment) || environment.trim().isEmpty()) {
+            throw new IllegalArgumentException("Environment cannot be null or empty");
+        }
+
+        // Find client and environment
+        var client = clientRepository.findByClientCode(clientCode);
+        if (client.isEmpty()) {
+            return List.of(); // No client found, no available versions
+        }
+
+        var environmentObj = environmentRepository.findByName(environment.toUpperCase());
+        if (environmentObj.isEmpty()) {
+            return List.of(); // No environment found, no available versions
+        }
+
+        // Find all controlled clients for this client and environment
+        var controlledReleases = releaseClientEnvironmentRepository.findByClientIdAndEnvironmentId(
+                client.get().getId(), environmentObj.get().getId());
+
+        // Get all releases that are in "Controlada" or "Disponível" status for this client/environment
+        return controlledReleases.stream()
+                .map(rce -> releaseRepository.findById(rce.getReleaseId()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(release -> release.getStatus() == ReleaseStatus.CONTROLADA || 
+                                 release.getStatus() == ReleaseStatus.DISPONIVEL)
+                .sorted((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt())) // Most recent first
+                .toList();
+    }
+
     private Product createProduct(String productName) {
         var product = Product.create(productName);
         return productRepository.save(product);

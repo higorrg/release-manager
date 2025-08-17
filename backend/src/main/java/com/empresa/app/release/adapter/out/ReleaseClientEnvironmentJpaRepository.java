@@ -51,6 +51,15 @@ public class ReleaseClientEnvironmentJpaRepository implements ReleaseClientEnvir
     }
 
     @Override
+    public List<ReleaseClientEnvironment> findByClientIdAndEnvironmentId(UUID clientId, UUID environmentId) {
+        return ReleaseClientEnvironmentEntity.<ReleaseClientEnvironmentEntity>find(
+                        "clientId = ?1 and environmentId = ?2", clientId, environmentId)
+                .stream()
+                .map(ReleaseClientEnvironmentEntity::toDomain)
+                .toList();
+    }
+
+    @Override
     public Optional<ReleaseClientEnvironment> findByReleaseIdAndClientIdAndEnvironmentId(
             UUID releaseId, UUID clientId, UUID environmentId) {
         return ReleaseClientEnvironmentEntity.<ReleaseClientEnvironmentEntity>find(

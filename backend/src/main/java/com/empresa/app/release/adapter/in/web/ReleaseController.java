@@ -1,7 +1,9 @@
 package com.empresa.app.release.adapter.in.web;
 
 import com.empresa.app.release.adapter.in.dto.AddControlledClientRequest;
+import com.empresa.app.release.adapter.in.dto.AvailableVersionResponse;
 import com.empresa.app.release.adapter.in.dto.ClientResponse;
+import com.empresa.app.release.adapter.in.dto.ControlledClientDetailResponse;
 import com.empresa.app.release.adapter.in.dto.CreateReleaseRequest;
 import com.empresa.app.release.adapter.in.dto.EnvironmentResponse;
 import com.empresa.app.release.adapter.in.dto.ErrorResponse;
@@ -210,7 +212,15 @@ public class ReleaseController {
             );
             
             ReleaseClientEnvironment association = releaseManagementUseCase.addControlledClient(command);
-            ReleaseClientEnvironmentResponse response = ReleaseClientEnvironmentResponse.from(association);
+            
+            // Get client and environment details for rich response
+            Client client = releaseManagementUseCase.findOrCreateClient(request.clientCode());
+            Environment environment = releaseManagementUseCase.findAllEnvironments().stream()
+                .filter(env -> env.getName().equalsIgnoreCase(request.environment()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Environment not found"));
+            
+            ControlledClientDetailResponse response = ControlledClientDetailResponse.from(association, client, environment);
             
             return Response.status(Response.Status.CREATED).entity(response).build();
         } catch (Exception e) {
@@ -249,8 +259,23 @@ public class ReleaseController {
             UUID id = UUID.fromString(releaseId);
             List<ReleaseClientEnvironment> controlledClients = releaseManagementUseCase.findControlledClients(id);
             
-            List<ReleaseClientEnvironmentResponse> response = controlledClients.stream()
-                .map(ReleaseClientEnvironmentResponse::from)
+            // Get all clients and environments for rich response
+            List<Client> allClients = releaseManagementUseCase.findAllClients();
+            List<Environment> allEnvironments = releaseManagementUseCase.findAllEnvironments();
+            
+            List<ControlledClientDetailResponse> response = controlledClients.stream()
+                .map(rce -> {
+                    Client client = allClients.stream()
+                        .filter(c -> c.getId().equals(rce.getClientId()))
+                        .findFirst()
+                        .orElse(null);
+                    Environment environment = allEnvironments.stream()
+                        .filter(e -> e.getId().equals(rce.getEnvironmentId()))
+                        .findFirst()
+                        .orElse(null);
+                    
+                    return ControlledClientDetailResponse.from(rce, client, environment);
+                })
                 .collect(Collectors.toList());
                 
             return Response.ok(response).build();
@@ -295,6 +320,41 @@ public class ReleaseController {
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new ErrorResponse("Erro ao buscar ambientes: " + e.getMessage()))
+                .build();
+        }
+    }
+
+    @GET
+    @Path("/available-versions")
+    @Operation(summary = "Listar versões disponíveis", description = "Lista versões disponíveis para um cliente em um ambiente específico")
+    public Response getAvailableVersions(@QueryParam("clientCode") String clientCode,
+                                       @QueryParam("environment") String environment) {
+        try {
+            if (clientCode == null || clientCode.trim().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse("Client code is required"))
+                    .build();
+            }
+            
+            if (environment == null || environment.trim().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse("Environment is required"))
+                    .build();
+            }
+
+            List<Release> availableReleases = releaseManagementUseCase.findAvailableVersions(clientCode, environment);
+            
+            List<AvailableVersionResponse> response = availableReleases.stream()
+                .map(release -> {
+                    Product product = productRepository.findById(release.getProductId()).orElse(null);
+                    return AvailableVersionResponse.from(release, product);
+                })
+                .collect(Collectors.toList());
+                
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new ErrorResponse("Erro ao buscar versões disponíveis: " + e.getMessage()))
                 .build();
         }
     }

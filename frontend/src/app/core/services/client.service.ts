@@ -27,9 +27,22 @@ export interface ReleaseClientEnvironment {
     createdAt: string;
 }
 
+export interface ControlledClientDetail {
+    id: string;
+    releaseId: string;
+    clientId: string;
+    clientCode: string;
+    clientName: string;
+    clientDescription?: string;
+    environmentId: string;
+    environmentName: string;
+    environmentDescription?: string;
+    createdAt: string;
+}
+
 export interface AddControlledClientRequest {
     clientCode: string;
-    environmentName: string;
+    environment: string;
 }
 
 @Injectable({
@@ -62,16 +75,16 @@ export class ClientService {
         });
     }
 
-    // Get controlled clients for a specific release
-    getControlledClients(releaseId: string): Observable<ReleaseClientEnvironment[]> {
-        return this.http.get<ReleaseClientEnvironment[]>(`${this.apiUrl}/${releaseId}/controlled-clients`, {
+    // Get controlled clients for a specific release with full details
+    getControlledClients(releaseId: string): Observable<ControlledClientDetail[]> {
+        return this.http.get<ControlledClientDetail[]>(`${this.apiUrl}/${releaseId}/controlled-clients`, {
             headers: this.getHeaders()
         });
     }
 
     // Add controlled client to a release
-    addControlledClient(releaseId: string, request: AddControlledClientRequest): Observable<ReleaseClientEnvironment> {
-        return this.http.post<ReleaseClientEnvironment>(`${this.apiUrl}/${releaseId}/controlled-clients`, request, {
+    addControlledClient(releaseId: string, request: AddControlledClientRequest): Observable<ControlledClientDetail> {
+        return this.http.post<ControlledClientDetail>(`${this.apiUrl}/${releaseId}/controlled-clients`, request, {
             headers: this.getHeaders()
         });
     }

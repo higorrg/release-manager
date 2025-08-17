@@ -82,6 +82,11 @@ public interface ReleaseManagementUseCase {
      */
     Client findOrCreateClient(String clientCode);
     
+    /**
+     * Lista versões disponíveis para um cliente em um ambiente específico
+     */
+    List<Release> findAvailableVersions(String clientCode, String environment);
+    
     record CreateReleaseCommand(String productName, String version) {}
     
     record UpdateReleaseStatusCommand(UUID releaseId, ReleaseStatus newStatus, 
