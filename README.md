@@ -174,6 +174,135 @@ cd frontend
 npm test
 ```
 
+## 🔄 Integração com Pipelines CI/CD
+
+### **Pipeline Completa - Criar Release + Upload**
+
+**GitHub Actions:**
+```yaml
+name: Deploy Release
+
+on:
+  push:
+    tags: 
+      - 'v*.*.*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: Create Release and Upload Package
+        env:
+          KEYCLOAK_URL: ${{ secrets.KEYCLOAK_URL }}
+          API_URL: ${{ secrets.API_URL }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          ADMIN_USER: ${{ secrets.ADMIN_USER }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          PRODUCT_NAME: ${{ secrets.PRODUCT_NAME }}
+        run: |
+          # 1. Obter token de autenticação
+          TOKEN=$(curl -s -X POST $KEYCLOAK_URL/realms/release-manager/protocol/openid-connect/token \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "grant_type=password" \
+            -d "client_id=release-manager-backend" \
+            -d "client_secret=$CLIENT_SECRET" \
+            -d "username=$ADMIN_USER" \
+            -d "password=$ADMIN_PASSWORD" | jq -r .access_token)
+          
+          # 2. Criar release
+          curl -X POST $API_URL/api/v1/releases/pipeline \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"productName\": \"$PRODUCT_NAME\", \"version\": \"${{ steps.version.outputs.VERSION }}\"}"
+          
+          # 3. Upload do pacote (usando produto e versão)
+          curl -X POST "$API_URL/api/v1/releases/upload/$PRODUCT_NAME/${{ steps.version.outputs.VERSION }}" \
+            -H "Authorization: Bearer $TOKEN" \
+            -F "file=@dist/package.zip"
+```
+
+**GitLab CI:**
+```yaml
+deploy:
+  stage: deploy
+  only:
+    - tags
+  script:
+    # 1. Obter token
+    - |
+      TOKEN=$(curl -s -X POST $KEYCLOAK_URL/realms/release-manager/protocol/openid-connect/token \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        -d "grant_type=password" \
+        -d "client_id=release-manager-backend" \
+        -d "client_secret=$CLIENT_SECRET" \
+        -d "username=$ADMIN_USER" \
+        -d "password=$ADMIN_PASSWORD" | jq -r .access_token)
+    
+    # 2. Criar release
+    - |
+      curl -X POST $API_URL/api/v1/releases/pipeline \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "{\"productName\": \"$PRODUCT_NAME\", \"version\": \"$CI_COMMIT_TAG\"}"
+    
+    # 3. Upload do pacote
+    - |
+      curl -X POST "$API_URL/api/v1/releases/upload/$PRODUCT_NAME/$CI_COMMIT_TAG" \
+        -H "Authorization: Bearer $TOKEN" \
+        -F "file=@dist/package.zip"
+```
+
+### **Comandos Individuais**
+
+**1. Criar Release:**
+```bash
+# Obter token
+TOKEN=$(curl -s -X POST http://localhost:8080/realms/release-manager/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=password" \
+  -d "client_id=release-manager-backend" \
+  -d "client_secret=backend-client-secret" \
+  -d "username=admin" \
+  -d "password=admin123" | jq -r .access_token)
+
+# Criar release
+curl -X POST http://localhost:8081/api/v1/releases/pipeline \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"productName": "MeuProduto", "version": "8.5.0"}'
+```
+
+**2. Upload de Pacote (Novo - Recomendado):**
+```bash
+# Upload usando produto e versão (mais fácil para pipelines)
+curl -X POST "http://localhost:8081/api/v1/releases/upload/MeuProduto/8.5.0" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@package.zip"
+```
+
+**3. Upload de Pacote (Antigo - Por ID):**
+```bash
+# Upload usando ID da release (compatibilidade)
+curl -X POST "http://localhost:8081/api/v1/releases/RELEASE_ID/upload" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@package.zip"
+```
+
+### **Variáveis de Ambiente Necessárias:**
+
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `KEYCLOAK_URL` | URL base do Keycloak | `http://localhost:8080` |
+| `API_URL` | URL base da API | `http://localhost:8081` |
+| `CLIENT_SECRET` | Secret do cliente backend | `backend-client-secret` |
+| `ADMIN_USER` | Usuário administrador | `admin` |
+| `ADMIN_PASSWORD` | Senha do administrador | `admin123` |
+| `PRODUCT_NAME` | Nome do produto | `MeuProduto` |
+
 ## 📊 API Documentation
 
 **Swagger UI:** http://localhost:8081/q/swagger-ui
