@@ -1,6 +1,6 @@
 # Release Manager
 
-Sistema de gerenciamento de releases desenvolvido com **Quarkus** (backend) e **Angular 20** (frontend), utilizando autenticação via **Keycloak** integrado ao **Azure AD**.
+Sistema de gerenciamento de releases desenvolvido com **Quarkus** (backend) e **Angular 18** (frontend), utilizando autenticação via **Keycloak** integrado ao **Azure AD**.
 
 ## 🏗️ Arquitetura
 
@@ -11,7 +11,7 @@ Sistema de gerenciamento de releases desenvolvido com **Quarkus** (backend) e **
 - **Azure Blob Storage** para armazenamento de pacotes
 - **Flyway** para versionamento do banco de dados
 
-### Frontend (Angular 20)
+### Frontend (Angular 18)
 - **Standalone Components**
 - **Signals** para gerenciamento de estado
 - **Reactive Forms**
@@ -19,28 +19,23 @@ Sistema de gerenciamento de releases desenvolvido com **Quarkus** (backend) e **
 
 ## 🚀 Funcionalidades
 
-### ✅ Implementadas
-
-- **US-01**: Autenticação via SSO (Keycloak + Azure AD)
-- **US-02**: Controle de status das etapas de release
-- **US-03**: Registro de histórico de mudanças de status
-- **US-05**: Criação automática de releases via pipeline
-
-### 🚧 Em Desenvolvimento
-
-- **US-04**: Relacionamento de releases com clientes e ambientes
-- **US-06**: API para listar versões disponíveis
-- **US-07**: Download de pacotes instaláveis
+- **Autenticação via SSO** (Keycloak + Azure AD)
+- **Controle de status** das etapas de release
+- **Histórico de mudanças** de status
+- **Criação automática** de releases via pipeline
+- **Upload de pacotes** para Azure Blob Storage
+- **Relacionamento** de releases com clientes e ambientes
+- **API para listar versões** disponíveis
 
 ## 🛠️ Tecnologias
 
 | Componente | Tecnologia | Versão |
 |------------|------------|--------|
 | **Backend** | Java | 21 |
-| | Quarkus | 3.9.4 |
+| | Quarkus | 3.24.3 |
 | | PostgreSQL | 17 |
-| **Frontend** | Angular | 20 |
-| | TypeScript | 5.6 |
+| **Frontend** | Angular | 18 |
+| | TypeScript | 5.5 |
 | | Node.js | 20+ |
 | **Autenticação** | Keycloak | 24.0 |
 | **Containers** | Docker | Latest |
@@ -63,30 +58,36 @@ git clone <repository-url>
 cd release-manager
 ```
 
-2. **Inicie os serviços de infraestrutura**
+2. **Configure as variáveis de ambiente**
+```bash
+export AZURE_STORAGE_CONNECTION_STRING="sua-connection-string-aqui"
+export AZURE_STORAGE_CONTAINER_NAME="releases"
+```
+
+3. **Inicie os serviços de infraestrutura**
 ```bash
 docker-compose up -d postgres keycloak
 ```
 
-3. **Configure o Keycloak**
+4. **Configure o Keycloak**
    - Acesse: http://localhost:8080
    - Login: admin/admin123
    - O realm será importado automaticamente
 
-4. **Execute o Backend**
+5. **Execute o Backend**
 ```bash
 cd backend
 ./mvnw compile quarkus:dev
 ```
 
-5. **Execute o Frontend**
+6. **Execute o Frontend**
 ```bash
 cd frontend
 npm install
 npm start
 ```
 
-6. **Acesse a aplicação**
+7. **Acesse a aplicação**
    - Frontend: http://localhost:4200
    - Backend API: http://localhost:8081
    - Keycloak: http://localhost:8080
@@ -94,27 +95,61 @@ npm start
 ### Ambiente de Produção
 
 ```bash
-# Execute todos os serviços
-podman-compose -f docker-compose-prod.yml up -d
+# Configure as variáveis de ambiente no docker-compose-prod.yml
+docker-compose -f docker-compose-prod.yml up -d
 ```
-
-**URLs de acesso em produção:**
-- Frontend: http://localhost:8082
-- Backend API: http://localhost:8081
-- Keycloak: http://localhost:8080
 
 ## 🔧 Configuração
 
 ### Variáveis de Ambiente
 
-| Variável | Descrição | Padrão |
-|----------|-----------|--------|
-| `DB_USER` | Usuário do PostgreSQL | admin |
-| `DB_PASSWORD` | Senha do PostgreSQL | admin123 |
-| `KEYCLOAK_ADMIN_PASSWORD` | Senha do admin Keycloak | admin123 |
-| `OIDC_CLIENT_SECRET` | Secret do cliente backend | backend-client-secret |
-| `AZURE_STORAGE_CONNECTION_STRING` | String de conexão Azure Storage | - |
-| `API_BASE_URL` | URL base da API | http://backend:8080 |
+| Variável | Descrição | Obrigatório |
+|----------|-----------|-------------|
+| `AZURE_STORAGE_CONNECTION_STRING` | String de conexão Azure Storage | ✅ |
+| `AZURE_STORAGE_CONTAINER_NAME` | Nome do container | ❌ (padrão: releases) |
+| `DB_USER` | Usuário do PostgreSQL | ❌ (padrão: admin) |
+| `DB_PASSWORD` | Senha do PostgreSQL | ❌ (padrão: admin123) |
+| `KEYCLOAK_ADMIN_PASSWORD` | Senha do admin Keycloak | ❌ (padrão: admin123) |
+
+### Configuração do Azure Blob Storage
+
+#### **1. Criar Storage Account**
+1. Acesse https://portal.azure.com
+2. **Create a resource** → **Storage Account**
+3. Configure:
+   - **Storage account name**: nome único (ex: `releasemanagerstorage`)
+   - **Performance**: Standard
+   - **Redundancy**: LRS
+4. **Create**
+
+#### **2. Obter Connection String**
+1. **Storage Account** → **Access keys**
+2. **Show** na **Connection string** da **key1**
+3. **Copie** a string completa
+
+#### **3. Configurar Acesso Público**
+
+**Via Azure CLI (Recomendado):**
+```bash
+# 1. Descobrir resource group
+RESOURCE_GROUP=$(az storage account list --query "[?name=='releasemanagerstorage'].resourceGroup" --output tsv)
+
+# 2. Habilitar acesso público no storage account
+az storage account update \
+  --name releasemanagerstorage \
+  --resource-group $RESOURCE_GROUP \
+  --allow-blob-public-access true
+
+# 3. Configurar container para URLs públicas
+az storage container set-permission \
+  --name releases \
+  --public-access blob \
+  --account-name releasemanagerstorage
+```
+
+**Via Portal do Azure:**
+1. **Storage Account** → **Configuration** → **Allow Blob public access**: **Enabled** → **Save**
+2. **Containers** → **releases** → **Change access level** → **Blob** → **OK**
 
 ### Configuração do Azure AD
 
@@ -124,32 +159,6 @@ podman-compose -f docker-compose-prod.yml up -d
    - `clientId`: ID da aplicação Azure
    - `clientSecret`: Secret da aplicação Azure
    - `issuer`: Tenant do Azure AD
-
-## 📁 Estrutura do Projeto
-
-```
-release-manager/
-├── backend/                    # API Quarkus
-│   ├── src/main/java/com/empresa/app/
-│   │   └── release/           # Feature de releases
-│   │       ├── domain/        # Modelos de domínio
-│   │       ├── application/   # Casos de uso e ports
-│   │       └── adapter/       # Adaptadores (REST, JPA)
-│   └── src/main/resources/
-│       ├── application.properties
-│       └── db/migration/      # Scripts Flyway
-├── frontend/                  # Aplicação Angular
-│   ├── src/app/
-│   │   ├── core/             # Serviços e guards
-│   │   └── features/         # Componentes por feature
-│   └── nginx.conf
-├── keycloak/                 # Configuração Keycloak
-│   └── realm-export.json
-├── database/                 # Scripts de banco
-│   └── init.sql
-├── docker-compose.yml        # Desenvolvimento
-└── docker-compose.prod.yml   # Produção
-```
 
 ## 🧪 Testes
 
@@ -165,107 +174,16 @@ cd frontend
 npm test
 ```
 
-## 📊 Status das User Stories
+## 📊 API Documentation
 
-| US | Título | Status | Progresso |
-|----|--------|--------|-----------|
-| US-01 | Autenticação SSO | ✅ | 100% |
-| US-02 | Controle de Status | ✅ | 100% |
-| US-03 | Histórico de Status | ✅ | 100% |
-| US-04 | Clientes e Ambientes | 🚧 | 60% |
-| US-05 | Pipeline Integration | ✅ | 100% |
-| US-06 | API de Versões | 🚧 | 40% |
-| US-07 | Download de Pacotes | 🚧 | 20% |
+**Swagger UI:** http://localhost:8081/q/swagger-ui
 
-## 🔗 API Endpoints
-
-### Releases
-- `POST /api/v1/releases/pipeline` - Criar release via pipeline
-- `PUT /api/v1/releases/{id}/status` - Atualizar status
-- `PUT /api/v1/releases/{id}/release-notes` - Atualizar release notes
-- `PUT /api/v1/releases/{id}/prerequisites` - Atualizar pré-requisitos
-- `GET /api/v1/releases/{id}` - Buscar release por ID
-- `GET /api/v1/releases/{id}/history` - Histórico de mudanças
-
-### Criação de Release via Pipeline
-
-Para criar uma release via pipeline, use os seguintes comandos:
-
-```bash
-# 1. Obter token de autenticação
-TOKEN=$(curl -s -X POST http://localhost:8080/realms/release-manager/protocol/openid-connect/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password" \
-  -d "client_id=release-manager-backend" \
-  -d "client_secret=backend-client-secret" \
-  -d "username=admin" \
-  -d "password=admin123" | jq -r .access_token)
-
-# 2. Criar release
-curl -X POST http://localhost:8081/api/v1/releases/pipeline \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"productName": "MeuProduto", "version": "1.2.3"}'
-```
-
-**Exemplo para CI/CD Pipeline:**
-```yaml
-# GitHub Actions / GitLab CI example
-- name: Create Release
-  run: |
-    TOKEN=$(curl -s -X POST $KEYCLOAK_URL/realms/release-manager/protocol/openid-connect/token \
-      -H "Content-Type: application/x-www-form-urlencoded" \
-      -d "grant_type=password" \
-      -d "client_id=release-manager-backend" \
-      -d "client_secret=$CLIENT_SECRET" \
-      -d "username=$ADMIN_USER" \
-      -d "password=$ADMIN_PASSWORD" | jq -r .access_token)
-    
-    curl -X POST $API_URL/api/v1/releases/pipeline \
-      -H "Authorization: Bearer $TOKEN" \
-      -H "Content-Type: application/json" \
-      -d "{\"productName\": \"$PRODUCT_NAME\", \"version\": \"$VERSION\"}"
-```
-
-### Listagem de Releases
-
-Para outras aplicações consumirem a lista de releases:
-
-```bash
-# 1. Obter token (igual ao processo anterior)
-TOKEN=$(curl -s -X POST http://localhost:8080/realms/release-manager/protocol/openid-connect/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password" \
-  -d "client_id=release-manager-backend" \
-  -d "client_secret=backend-client-secret" \
-  -d "username=admin" \
-  -d "password=admin123" | jq -r .access_token)
-
-# 2a. Listar todas as releases
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8081/api/v1/releases
-
-# 2b. Listar releases de um produto específico
-curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/v1/releases?productId=PRODUCT_ID_AQUI"
-```
-
-**Usando HTTPie:**
-```bash
-# Comando completo em uma linha
-TOKEN=$(curl -s -X POST http://localhost:8080/realms/release-manager/protocol/openid-connect/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password" \
-  -d "client_id=release-manager-backend" \
-  -d "client_secret=backend-client-secret" \
-  -d "username=admin" \
-  -d "password=admin123" | jq -r .access_token) && \
-http GET http://localhost:8081/api/v1/releases "Authorization:Bearer $TOKEN"
-
-# Filtrar por produto
-http GET http://localhost:8081/api/v1/releases "Authorization:Bearer $TOKEN" productId=="PRODUCT_ID_AQUI"
-```
-
-### Documentação Completa
-- Swagger UI: http://localhost:8081/q/swagger-ui
+A documentação completa da API está disponível via Swagger, incluindo todos os endpoints para:
+- Criação e gerenciamento de releases
+- Upload de pacotes
+- Controle de status
+- Histórico de mudanças
+- Associação com clientes e ambientes
 
 ## 🤝 Contribuição
 
@@ -278,10 +196,3 @@ http GET http://localhost:8081/api/v1/releases "Authorization:Bearer $TOKEN" pro
 ## 📝 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-## 📞 Suporte
-
-Para questões e suporte:
-- 📧 Email: suporte@empresa.com
-- 📋 Issues: [GitHub Issues](https://github.com/empresa/release-manager/issues)
-- 📖 Wiki: [Documentação Técnica](https://github.com/empresa/release-manager/wiki)
