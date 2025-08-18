@@ -38,12 +38,12 @@ Sistema de gerenciamento de releases desenvolvido com **Quarkus** (backend) e **
 | | TypeScript | 5.5 |
 | | Node.js | 20+ |
 | **Autenticação** | Keycloak | 24.0 |
-| **Containers** | Docker | Latest |
+| **Containers** | Podman | Latest |
 | **Storage** | Azure Blob | Latest |
 
 ## 📋 Pré-requisitos
 
-- **Docker** e **Docker Compose**
+- **Podman** e **Podman Compose**
 - **Java 21** (para desenvolvimento)
 - **Node.js 20+** (para desenvolvimento)
 - **Maven 3.9+** (para build do backend)
@@ -66,7 +66,7 @@ export AZURE_STORAGE_CONTAINER_NAME="releases"
 
 3. **Inicie os serviços de infraestrutura**
 ```bash
-docker-compose up -d postgres keycloak
+podman-compose up -d postgres keycloak
 ```
 
 4. **Configure o Keycloak**
@@ -96,7 +96,189 @@ npm start
 
 ```bash
 # Configure as variáveis de ambiente no docker-compose-prod.yml
-docker-compose -f docker-compose-prod.yml up -d
+podman-compose -f docker-compose-prod.yml up -d
+```
+
+## 🏗️ Compilação da Stack
+
+### **Build Completo - Produção**
+
+**1. Compilar Backend:**
+```bash
+cd backend
+./mvnw clean package -DskipTests
+```
+
+**2. Compilar Frontend:**
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+**3. Build das Imagens Podman:**
+```bash
+# Backend (Quarkus JVM)
+cd backend
+podman build -f src/main/docker/Dockerfile.jvm -t release-manager-backend .
+
+# Frontend (Angular + Nginx)
+cd frontend
+podman build -t release-manager-frontend .
+```
+
+**4. Executar Stack Completa:**
+```bash
+# Subir toda a stack em produção
+podman-compose -f docker-compose-prod.yml up -d
+```
+
+### **Build de Desenvolvimento**
+
+**1. Compilar Backend (modo desenvolvimento):**
+```bash
+cd backend
+./mvnw compile quarkus:dev
+# Servidor inicia em http://localhost:8081
+```
+
+**2. Compilar Frontend (modo desenvolvimento):**
+```bash
+cd frontend
+npm install
+npm start
+# Servidor inicia em http://localhost:4200
+```
+
+**3. Executar Infraestrutura:**
+```bash
+# Apenas banco e Keycloak para desenvolvimento
+podman-compose up -d postgres keycloak
+```
+
+### **Scripts Úteis**
+
+**Build e Test Completo:**
+```bash
+# Backend - compilação e testes
+cd backend
+./mvnw clean compile test
+
+# Frontend - build e testes
+cd frontend
+npm install
+npm run build
+npm test
+```
+
+**Limpeza do Ambiente:**
+```bash
+# Limpar containers
+podman-compose down -v
+
+# Limpar builds
+cd backend && ./mvnw clean
+cd frontend && rm -rf dist/ node_modules/
+
+# Rebuild completo
+cd backend && ./mvnw clean package
+cd frontend && npm install && npm run build
+```
+
+**Verificar Saúde da Aplicação:**
+```bash
+# Backend health check
+curl http://localhost:8081/q/health
+
+# Frontend (após build)
+curl http://localhost:4200
+
+# Keycloak
+curl http://localhost:8080/health
+```
+
+### **Build para CI/CD**
+
+**GitHub Actions / GitLab CI:**
+```bash
+# Backend - Compilação para produção
+cd backend
+./mvnw clean package -DskipTests
+podman build -f src/main/docker/Dockerfile.jvm -t $REGISTRY/release-manager-backend:$VERSION .
+
+# Frontend - Build otimizado
+cd frontend
+npm ci
+npm run build --prod
+podman build -t $REGISTRY/release-manager-frontend:$VERSION .
+
+# Push das imagens
+podman push $REGISTRY/release-manager-backend:$VERSION
+podman push $REGISTRY/release-manager-frontend:$VERSION
+```
+
+### **Requisitos de Sistema**
+
+**Para Compilação:**
+- **Java 21** (OpenJDK ou Oracle)
+- **Maven 3.9+** 
+- **Node.js 18+** e **npm 9+**
+- **Podman 4+** e **Podman Compose 1+**
+- **Memória RAM**: 4GB mínimo, 8GB recomendado
+- **Espaço em Disco**: 2GB para builds + 1GB para containers
+
+**Verificar Instalação:**
+```bash
+java -version        # Java 21
+mvn -version         # Maven 3.9+
+node -version        # Node 18+
+npm -version         # npm 9+
+podman -version      # Podman 4+
+podman-compose -version  # Compose 1+
+```
+
+### **Troubleshooting**
+
+**Problemas Comuns de Build:**
+
+```bash
+# 1. Erro de memória no Maven
+export MAVEN_OPTS="-Xmx2048m"
+./mvnw clean package
+
+# 2. Erro de porta ocupada
+lsof -ti:8080 | xargs kill -9  # Keycloak
+lsof -ti:8081 | xargs kill -9  # Backend
+lsof -ti:4200 | xargs kill -9  # Frontend
+
+# 3. Cache corrompido
+./mvnw dependency:purge-local-repository
+rm -rf frontend/node_modules frontend/dist
+npm install
+
+# 4. Configuração Podman (Linux)
+# Podman não requer configurações especiais de grupo
+
+# 5. Limpar completamente e rebuildar
+podman-compose down -v
+podman system prune -f
+./mvnw clean && npm run clean
+./mvnw package && npm run build
+```
+
+**Logs para Debug:**
+```bash
+# Backend logs
+podman-compose logs backend
+
+# Frontend logs
+podman-compose logs frontend
+
+# Keycloak logs
+podman-compose logs keycloak
+
+# PostgreSQL logs
+podman-compose logs postgres
 ```
 
 ## 🔧 Configuração
