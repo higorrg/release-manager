@@ -4,7 +4,7 @@ import com.empresa.app.release.adapter.in.dto.ClientResponse;
 import com.empresa.app.release.adapter.in.dto.CreateClientRequest;
 import com.empresa.app.release.adapter.in.dto.ErrorResponse;
 import com.empresa.app.release.adapter.in.dto.UpdateClientRequest;
-import com.empresa.app.release.application.port.in.ReleaseManagementUseCase;
+import com.empresa.app.release.application.port.in.ClientManagementUseCase;
 import com.empresa.app.release.domain.model.Client;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -26,13 +26,13 @@ import java.util.stream.Collectors;
 public class ClientController {
 
     @Inject
-    ReleaseManagementUseCase releaseManagementUseCase;
+    ClientManagementUseCase clientManagementUseCase;
 
     @GET
     @Operation(summary = "Listar clientes", description = "Lista todos os clientes cadastrados")
     public Response getAllClients() {
         try {
-            List<Client> clients = releaseManagementUseCase.findAllClients();
+            List<Client> clients = clientManagementUseCase.findAllClients();
             
             List<ClientResponse> response = clients.stream()
                 .map(ClientResponse::from)
@@ -52,7 +52,7 @@ public class ClientController {
     public Response getClient(@PathParam("clientId") String clientId) {
         try {
             UUID id = UUID.fromString(clientId);
-            return releaseManagementUseCase.findClientById(id)
+            return clientManagementUseCase.findClientById(id)
                 .map(client -> Response.ok(ClientResponse.from(client)).build())
                 .orElse(Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse("Cliente não encontrado"))
@@ -69,13 +69,13 @@ public class ClientController {
     @RolesAllowed("admin")
     public Response createClient(CreateClientRequest request) {
         try {
-            var command = new ReleaseManagementUseCase.CreateClientCommand(
+            var command = new ClientManagementUseCase.CreateClientCommand(
                 request.clientCode(),
                 request.name(),
                 request.description()
             );
             
-            Client client = releaseManagementUseCase.createClient(command);
+            Client client = clientManagementUseCase.createClient(command);
             ClientResponse response = ClientResponse.from(client);
             
             return Response.status(Response.Status.CREATED).entity(response).build();
@@ -93,13 +93,13 @@ public class ClientController {
     public Response updateClient(@PathParam("clientId") String clientId, UpdateClientRequest request) {
         try {
             UUID id = UUID.fromString(clientId);
-            var command = new ReleaseManagementUseCase.UpdateClientCommand(
+            var command = new ClientManagementUseCase.UpdateClientCommand(
                 id,
                 request.name(),
                 request.description()
             );
             
-            Client client = releaseManagementUseCase.updateClient(command);
+            Client client = clientManagementUseCase.updateClient(command);
             return Response.ok(ClientResponse.from(client)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -115,7 +115,7 @@ public class ClientController {
     public Response deleteClient(@PathParam("clientId") String clientId) {
         try {
             UUID id = UUID.fromString(clientId);
-            releaseManagementUseCase.deleteClient(id);
+            clientManagementUseCase.deleteClient(id);
             return Response.noContent().build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)

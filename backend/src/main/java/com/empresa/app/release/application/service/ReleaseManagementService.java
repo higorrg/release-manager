@@ -1,6 +1,8 @@
 package com.empresa.app.release.application.service;
 
-import com.empresa.app.release.application.port.in.ReleaseManagementUseCase;
+import com.empresa.app.release.application.port.in.ReleaseUseCase;
+import com.empresa.app.release.application.port.in.ClientManagementUseCase;
+import com.empresa.app.release.application.port.in.ReleaseClientAssociationUseCase;
 import com.empresa.app.release.application.port.out.ClientRepository;
 import com.empresa.app.release.application.port.out.EnvironmentRepository;
 import com.empresa.app.release.application.port.out.ProductRepository;
@@ -23,7 +25,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
-public class ReleaseManagementService implements ReleaseManagementUseCase {
+public class ReleaseManagementService implements ReleaseUseCase, ClientManagementUseCase, ReleaseClientAssociationUseCase {
 
     @Inject
     ReleaseRepository releaseRepository;

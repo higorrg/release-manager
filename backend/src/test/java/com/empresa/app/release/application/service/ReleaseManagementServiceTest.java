@@ -1,6 +1,8 @@
 package com.empresa.app.release.application.service;
 
-import com.empresa.app.release.application.port.in.ReleaseManagementUseCase;
+import com.empresa.app.release.application.port.in.ReleaseUseCase;
+import com.empresa.app.release.application.port.in.ClientManagementUseCase;
+import com.empresa.app.release.application.port.in.ReleaseClientAssociationUseCase;
 import com.empresa.app.release.application.port.out.ProductRepository;
 import com.empresa.app.release.application.port.out.ReleaseRepository;
 import com.empresa.app.release.application.port.out.ReleaseStatusHistoryRepository;
@@ -56,7 +58,7 @@ class ReleaseManagementServiceTest {
     @Test
     void shouldCreateReleaseFromPipelineSuccessfully() {
         // Given
-        var command = new ReleaseManagementUseCase.CreateReleaseCommand("Plataforma Shift", "1.0.0");
+        var command = new ReleaseUseCase.CreateReleaseCommand("Plataforma Shift", "1.0.0");
         
         when(productRepository.findByName("Plataforma Shift")).thenReturn(Optional.of(product));
         when(releaseRepository.existsByProductIdAndVersion(productId, "1.0.0")).thenReturn(false);
@@ -80,7 +82,7 @@ class ReleaseManagementServiceTest {
     @Test
     void shouldCreateProductWhenNotExists() {
         // Given
-        var command = new ReleaseManagementUseCase.CreateReleaseCommand("New Product", "1.0.0");
+        var command = new ReleaseUseCase.CreateReleaseCommand("New Product", "1.0.0");
         var newProduct = Product.create("New Product");
         newProduct.setId(UUID.randomUUID());
         
@@ -101,7 +103,7 @@ class ReleaseManagementServiceTest {
     @Test
     void shouldThrowExceptionWhenReleaseAlreadyExists() {
         // Given
-        var command = new ReleaseManagementUseCase.CreateReleaseCommand("Plataforma Shift", "1.0.0");
+        var command = new ReleaseUseCase.CreateReleaseCommand("Plataforma Shift", "1.0.0");
         
         when(productRepository.findByName("Plataforma Shift")).thenReturn(Optional.of(product));
         when(releaseRepository.existsByProductIdAndVersion(productId, "1.0.0")).thenReturn(true);
@@ -116,7 +118,7 @@ class ReleaseManagementServiceTest {
     @Test
     void shouldUpdateReleaseStatusSuccessfully() {
         // Given
-        var command = new ReleaseManagementUseCase.UpdateReleaseStatusCommand(
+        var command = new ReleaseUseCase.UpdateReleaseStatusCommand(
                 releaseId, 
                 ReleaseStatus.PARA_TESTE_SISTEMA, 
                 "testuser", 
@@ -142,7 +144,7 @@ class ReleaseManagementServiceTest {
     @Test
     void shouldThrowExceptionWhenReleaseNotFoundForStatusUpdate() {
         // Given
-        var command = new ReleaseManagementUseCase.UpdateReleaseStatusCommand(
+        var command = new ReleaseUseCase.UpdateReleaseStatusCommand(
                 releaseId, 
                 ReleaseStatus.PARA_TESTE_SISTEMA, 
                 "testuser", 
@@ -162,12 +164,12 @@ class ReleaseManagementServiceTest {
     void shouldValidateInputParameters() {
         // When & Then
         assertThrows(IllegalArgumentException.class, 
-                () -> service.createReleaseFromPipeline(new ReleaseManagementUseCase.CreateReleaseCommand(null, "1.0.0")));
+                () -> service.createReleaseFromPipeline(new ReleaseUseCase.CreateReleaseCommand(null, "1.0.0")));
         
         assertThrows(IllegalArgumentException.class, 
-                () -> service.createReleaseFromPipeline(new ReleaseManagementUseCase.CreateReleaseCommand("Product", null)));
+                () -> service.createReleaseFromPipeline(new ReleaseUseCase.CreateReleaseCommand("Product", null)));
         
         assertThrows(IllegalArgumentException.class, 
-                () -> service.updateReleaseStatus(new ReleaseManagementUseCase.UpdateReleaseStatusCommand(null, ReleaseStatus.MR_APROVADO, "user", null)));
+                () -> service.updateReleaseStatus(new ReleaseUseCase.UpdateReleaseStatusCommand(null, ReleaseStatus.MR_APROVADO, "user", null)));
     }
 }

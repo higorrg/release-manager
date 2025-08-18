@@ -14,7 +14,9 @@ import com.empresa.app.release.adapter.in.dto.UpdatePackageInfoRequest;
 import com.empresa.app.release.adapter.in.dto.UpdatePrerequisitesRequest;
 import com.empresa.app.release.adapter.in.dto.UpdateReleaseNotesRequest;
 import com.empresa.app.release.adapter.in.dto.UpdateStatusRequest;
-import com.empresa.app.release.application.port.in.ReleaseManagementUseCase;
+import com.empresa.app.release.application.port.in.ReleaseUseCase;
+import com.empresa.app.release.application.port.in.ClientManagementUseCase;
+import com.empresa.app.release.application.port.in.ReleaseClientAssociationUseCase;
 import com.empresa.app.release.application.port.out.ProductRepository;
 import com.empresa.app.release.domain.model.Client;
 import com.empresa.app.release.domain.model.Environment;
@@ -43,7 +45,13 @@ import java.util.stream.Collectors;
 public class ReleaseController {
 
     @Inject
-    ReleaseManagementUseCase releaseManagementUseCase;
+    ReleaseUseCase releaseUseCase;
+    
+    @Inject
+    ClientManagementUseCase clientManagementUseCase;
+    
+    @Inject
+    ReleaseClientAssociationUseCase releaseClientAssociationUseCase;
 
     @Inject
     ProductRepository productRepository;
@@ -54,12 +62,12 @@ public class ReleaseController {
     @RolesAllowed("admin")
     public Response createRelease(CreateReleaseRequest request) {
         try {
-            var command = new ReleaseManagementUseCase.CreateReleaseCommand(
+            var command = new ReleaseUseCase.CreateReleaseCommand(
                 request.productName(),
                 request.version()
             );
             
-            Release release = releaseManagementUseCase.createReleaseFromPipeline(command);
+            Release release = releaseUseCase.createReleaseFromPipeline(command);
             ReleaseResponse response = mapToResponse(release);
             
             return Response.status(Response.Status.CREATED).entity(response).build();
@@ -75,12 +83,12 @@ public class ReleaseController {
     @RolesAllowed("admin")
     public Response createReleaseFromWeb(CreateReleaseRequest request) {
         try {
-            var command = new ReleaseManagementUseCase.CreateReleaseCommand(
+            var command = new ReleaseUseCase.CreateReleaseCommand(
                 request.productName(),
                 request.version()
             );
             
-            Release release = releaseManagementUseCase.createReleaseFromWeb(command);
+            Release release = releaseUseCase.createReleaseFromWeb(command);
             ReleaseResponse response = mapToResponse(release);
             
             return Response.status(Response.Status.CREATED).entity(response).build();
@@ -98,9 +106,9 @@ public class ReleaseController {
             List<Release> releases;
             
             if (productId != null && !productId.isEmpty()) {
-                releases = releaseManagementUseCase.findReleasesByProduct(UUID.fromString(productId));
+                releases = releaseUseCase.findReleasesByProduct(UUID.fromString(productId));
             } else {
-                releases = releaseManagementUseCase.findAllReleases();
+                releases = releaseUseCase.findAllReleases();
             }
             
             List<ReleaseResponse> response = releases.stream()
@@ -121,7 +129,7 @@ public class ReleaseController {
     public Response getRelease(@PathParam("releaseId") String releaseId) {
         try {
             UUID id = UUID.fromString(releaseId);
-            return releaseManagementUseCase.findReleaseById(id)
+            return releaseUseCase.findReleaseById(id)
                 .map(release -> Response.ok(mapToResponse(release)).build())
                 .orElse(Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse("Release não encontrada"))
@@ -141,14 +149,14 @@ public class ReleaseController {
                                       UpdateStatusRequest request) {
         try {
             UUID id = UUID.fromString(releaseId);
-            var command = new ReleaseManagementUseCase.UpdateReleaseStatusCommand(
+            var command = new ReleaseUseCase.UpdateReleaseStatusCommand(
                 id,
                 ReleaseStatus.valueOf(request.newStatus()),
                 request.changedBy(),
                 request.comments()
             );
             
-            Release release = releaseManagementUseCase.updateReleaseStatus(command);
+            Release release = releaseUseCase.updateReleaseStatus(command);
             return Response.ok(mapToResponse(release)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -165,12 +173,12 @@ public class ReleaseController {
                                      UpdateReleaseNotesRequest request) {
         try {
             UUID id = UUID.fromString(releaseId);
-            var command = new ReleaseManagementUseCase.UpdateReleaseNotesCommand(
+            var command = new ReleaseUseCase.UpdateReleaseNotesCommand(
                 id,
                 request.releaseNotes()
             );
             
-            Release release = releaseManagementUseCase.updateReleaseNotes(command);
+            Release release = releaseUseCase.updateReleaseNotes(command);
             return Response.ok(mapToResponse(release)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -187,12 +195,12 @@ public class ReleaseController {
                                       UpdatePrerequisitesRequest request) {
         try {
             UUID id = UUID.fromString(releaseId);
-            var command = new ReleaseManagementUseCase.UpdatePrerequisitesCommand(
+            var command = new ReleaseUseCase.UpdatePrerequisitesCommand(
                 id,
                 request.prerequisites()
             );
             
-            Release release = releaseManagementUseCase.updatePrerequisites(command);
+            Release release = releaseUseCase.updatePrerequisites(command);
             return Response.ok(mapToResponse(release)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -209,13 +217,13 @@ public class ReleaseController {
                                     UpdatePackageInfoRequest request) {
         try {
             UUID id = UUID.fromString(releaseId);
-            var command = new ReleaseManagementUseCase.UpdatePackageInfoCommand(
+            var command = new ReleaseUseCase.UpdatePackageInfoCommand(
                 id,
                 request.downloadUrl(),
                 request.packagePath()
             );
             
-            Release release = releaseManagementUseCase.updatePackageInfo(command);
+            Release release = releaseUseCase.updatePackageInfo(command);
             return Response.ok(mapToResponse(release)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -230,7 +238,7 @@ public class ReleaseController {
     public Response getReleaseHistory(@PathParam("releaseId") String releaseId) {
         try {
             UUID id = UUID.fromString(releaseId);
-            List<ReleaseStatusHistory> history = releaseManagementUseCase.findReleaseStatusHistory(id);
+            List<ReleaseStatusHistory> history = releaseUseCase.findReleaseStatusHistory(id);
             
             List<ReleaseStatusHistoryResponse> response = history.stream()
                 .map(this::mapToHistoryResponse)
@@ -257,17 +265,17 @@ public class ReleaseController {
                                       AddControlledClientRequest request) {
         try {
             UUID id = UUID.fromString(releaseId);
-            var command = new ReleaseManagementUseCase.AddControlledClientCommand(
+            var command = new ReleaseClientAssociationUseCase.AddControlledClientCommand(
                 id,
                 request.clientCode(),
                 request.environment()
             );
             
-            ReleaseClientEnvironment association = releaseManagementUseCase.addControlledClient(command);
+            ReleaseClientEnvironment association = releaseClientAssociationUseCase.addControlledClient(command);
             
             // Get client and environment details for rich response
-            Client client = releaseManagementUseCase.findOrCreateClient(request.clientCode());
-            Environment environment = releaseManagementUseCase.findAllEnvironments().stream()
+            Client client = clientManagementUseCase.findOrCreateClient(request.clientCode());
+            Environment environment = clientManagementUseCase.findAllEnvironments().stream()
                 .filter(env -> env.getName().equalsIgnoreCase(request.environment()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Environment not found"));
@@ -294,7 +302,7 @@ public class ReleaseController {
             UUID clientUuid = UUID.fromString(clientId);
             UUID environmentUuid = UUID.fromString(environmentId);
             
-            releaseManagementUseCase.removeControlledClient(releaseUuid, clientUuid, environmentUuid);
+            releaseClientAssociationUseCase.removeControlledClient(releaseUuid, clientUuid, environmentUuid);
             
             return Response.noContent().build();
         } catch (Exception e) {
@@ -310,11 +318,11 @@ public class ReleaseController {
     public Response getControlledClients(@PathParam("releaseId") String releaseId) {
         try {
             UUID id = UUID.fromString(releaseId);
-            List<ReleaseClientEnvironment> controlledClients = releaseManagementUseCase.findControlledClients(id);
+            List<ReleaseClientEnvironment> controlledClients = releaseClientAssociationUseCase.findControlledClients(id);
             
             // Get all clients and environments for rich response
-            List<Client> allClients = releaseManagementUseCase.findAllClients();
-            List<Environment> allEnvironments = releaseManagementUseCase.findAllEnvironments();
+            List<Client> allClients = clientManagementUseCase.findAllClients();
+            List<Environment> allEnvironments = clientManagementUseCase.findAllEnvironments();
             
             List<ControlledClientDetailResponse> response = controlledClients.stream()
                 .map(rce -> {
@@ -344,7 +352,7 @@ public class ReleaseController {
     @Operation(summary = "Listar clientes disponíveis", description = "Lista todos os clientes disponíveis")
     public Response getAllClients() {
         try {
-            List<Client> clients = releaseManagementUseCase.findAllClients();
+            List<Client> clients = clientManagementUseCase.findAllClients();
             
             List<ClientResponse> response = clients.stream()
                 .map(ClientResponse::from)
@@ -363,7 +371,7 @@ public class ReleaseController {
     @Operation(summary = "Listar ambientes disponíveis", description = "Lista todos os ambientes disponíveis")
     public Response getAllEnvironments() {
         try {
-            List<Environment> environments = releaseManagementUseCase.findAllEnvironments();
+            List<Environment> environments = clientManagementUseCase.findAllEnvironments();
             
             List<EnvironmentResponse> response = environments.stream()
                 .map(EnvironmentResponse::from)
@@ -395,7 +403,7 @@ public class ReleaseController {
                     .build();
             }
 
-            List<Release> availableReleases = releaseManagementUseCase.findAvailableVersions(clientCode, environment);
+            List<Release> availableReleases = releaseUseCase.findAvailableVersions(clientCode, environment);
             
             List<AvailableVersionResponse> response = availableReleases.stream()
                 .map(release -> {
