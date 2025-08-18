@@ -103,14 +103,15 @@ import { ConfirmationService } from '../../shared/services/confirmation.service'
                 <button (click)="viewDetails(release.id)" class="btn btn-outline">
                   Ver Detalhes
                 </button>
-                @if (release.downloadUrl) {
-                  <a 
-                    [href]="release.downloadUrl" 
-                    target="_blank"
-                    class="btn btn-download">
-                    Download
-                  </a>
-                }
+                <a 
+                  [href]="release.downloadUrl || '#'" 
+                  target="_blank"
+                  class="btn btn-download"
+                  [class.disabled]="!release.downloadUrl"
+                  [attr.aria-disabled]="!release.downloadUrl"
+                  (click)="!release.downloadUrl && $event.preventDefault()">
+                  Download
+                </a>
                 <button (click)="viewHistory(release.id)" class="btn btn-outline">
                   Histórico
                 </button>
@@ -373,6 +374,19 @@ import { ConfirmationService } from '../../shared/services/confirmation.service'
       background: #138496;
       text-decoration: none;
       color: white;
+    }
+
+    .btn-download.disabled {
+      background: #6c757d;
+      color: #ffffff;
+      cursor: not-allowed;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .btn-download.disabled:hover {
+      background: #6c757d;
+      color: #ffffff;
     }
   `],
   imports: [CommonModule, FormsModule, ReactiveFormsModule],

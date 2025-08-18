@@ -92,14 +92,18 @@ import { AvailableVersion } from '../../core/models/available-version.model';
                     <p>{{ formatDate(version.createdAt) }}</p>
                   </div>
 
-                  @if (version.downloadUrl) {
-                    <div class="info-section">
-                      <h4>Download</h4>
-                      <a [href]="version.downloadUrl" class="download-link" target="_blank">
-                        Baixar Pacote
-                      </a>
-                    </div>
-                  }
+                  <div class="info-section">
+                    <h4>Download</h4>
+                    <a 
+                      [href]="version.downloadUrl || '#'" 
+                      class="download-link"
+                      [class.disabled]="!version.downloadUrl"
+                      [attr.aria-disabled]="!version.downloadUrl"
+                      target="_blank"
+                      (click)="!version.downloadUrl && $event.preventDefault()">
+                      {{ version.downloadUrl ? 'Baixar Pacote' : 'Pacote não disponível' }}
+                    </a>
+                  </div>
                 </div>
 
                 <div class="version-actions">
@@ -314,6 +318,17 @@ import { AvailableVersion } from '../../core/models/available-version.model';
 
     .download-link:hover {
       text-decoration: underline;
+    }
+
+    .download-link.disabled {
+      color: #6c757d;
+      cursor: not-allowed;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .download-link.disabled:hover {
+      text-decoration: none;
     }
 
     .version-actions {

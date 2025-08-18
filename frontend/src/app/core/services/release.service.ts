@@ -23,7 +23,6 @@ export interface Release {
     releaseNotes?: string;
     prerequisites?: string;
     downloadUrl?: string;
-    packagePath?: string;
     controlledClients?: ControlledClient[];
     createdAt: string;
     updatedAt: string;
@@ -78,7 +77,6 @@ export interface UpdatePrerequisitesRequest {
 
 export interface UpdatePackageInfoRequest {
     downloadUrl?: string;
-    packagePath?: string;
 }
 
 @Injectable({
@@ -170,8 +168,8 @@ export class ReleaseService {
         });
     }
 
-    updatePackageInfo(releaseId: string, downloadUrl?: string, packagePath?: string): Observable<Release> {
-        const request: UpdatePackageInfoRequest = { downloadUrl, packagePath };
+    updatePackageInfo(releaseId: string, downloadUrl?: string): Observable<Release> {
+        const request: UpdatePackageInfoRequest = { downloadUrl };
         return this.http.put<Release>(`${this.apiUrl}/${releaseId}/package-info`, request, {
             headers: this.getHeaders()
         });

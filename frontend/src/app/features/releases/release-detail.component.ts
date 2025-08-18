@@ -136,15 +136,6 @@ import { ConfirmationService } from '../../shared/services/confirmation.service'
                   class="form-control"
                   placeholder="https://exemplo.com/download/release.zip">
               </div>
-              <div class="form-group">
-                <label for="packagePath">Caminho do Pacote:</label>
-                <input 
-                  id="packagePath"
-                  type="text" 
-                  formControlName="packagePath" 
-                  class="form-control"
-                  placeholder="/path/to/package/release.zip">
-              </div>
               <div class="download-actions">
                 <button 
                   type="submit" 
@@ -152,14 +143,15 @@ import { ConfirmationService } from '../../shared/services/confirmation.service'
                   [disabled]="!packageInfoForm.dirty || updating()">
                   Salvar Informações
                 </button>
-                @if (release()?.downloadUrl) {
-                  <a 
-                    [href]="release()?.downloadUrl" 
-                    target="_blank"
-                    class="btn btn-download">
-                    Download do Pacote
-                  </a>
-                }
+                <a 
+                  [href]="release()?.downloadUrl || '#'" 
+                  target="_blank"
+                  class="btn btn-download"
+                  [class.disabled]="!release()?.downloadUrl"
+                  [attr.aria-disabled]="!release()?.downloadUrl"
+                  (click)="!release()?.downloadUrl && $event.preventDefault()">
+                  Download do Pacote
+                </a>
               </div>
             </form>
           </section>
@@ -439,6 +431,19 @@ import { ConfirmationService } from '../../shared/services/confirmation.service'
       color: white;
     }
 
+    .btn-download.disabled {
+      background: #6c757d;
+      color: #ffffff;
+      cursor: not-allowed;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .btn-download.disabled:hover {
+      background: #6c757d;
+      color: #ffffff;
+    }
+
     .download-actions {
       display: flex;
       align-items: center;
@@ -550,8 +555,7 @@ export class ReleaseDetailComponent implements OnInit {
   });
 
   packageInfoForm = this.fb.group({
-    downloadUrl: [''],
-    packagePath: ['']
+    downloadUrl: ['']
   });
 
   statusClass = computed(() => {
@@ -589,8 +593,7 @@ export class ReleaseDetailComponent implements OnInit {
           prerequisites: release.prerequisites || ''
         });
         this.packageInfoForm.patchValue({
-          downloadUrl: release.downloadUrl || '',
-          packagePath: release.packagePath || ''
+          downloadUrl: release.downloadUrl || ''
         });
         this.loadControlledClients(id);
         this.loadEnvironments();
@@ -700,12 +703,11 @@ export class ReleaseDetailComponent implements OnInit {
     if (!this.packageInfoForm.dirty || !this.release()) return;
     
     this.updating.set(true);
-    const { downloadUrl, packagePath } = this.packageInfoForm.value;
+    const { downloadUrl } = this.packageInfoForm.value;
     
     this.releaseService.updatePackageInfo(
       this.release()!.id,
-      downloadUrl || undefined,
-      packagePath || undefined
+      downloadUrl || undefined
     ).subscribe({
       next: (updatedRelease) => {
         this.release.set(updatedRelease);
