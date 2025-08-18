@@ -41,4 +41,9 @@ public interface ReleaseRepository {
      * Lista todas as releases
      */
     List<Release> findAll();
+    
+    /**
+     * Busca uma release por nome do produto e versão
+     */
+    Optional<Release> findByProductNameAndVersion(String productName, String version);
 }

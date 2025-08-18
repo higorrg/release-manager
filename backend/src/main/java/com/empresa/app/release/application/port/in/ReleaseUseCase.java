@@ -45,6 +45,11 @@ public interface ReleaseUseCase {
     Optional<Release> findReleaseById(UUID releaseId);
     
     /**
+     * Busca uma release por nome do produto e versão
+     */
+    Optional<Release> findByProductNameAndVersion(String productName, String version);
+    
+    /**
      * Lista todas as releases
      */
     List<Release> findAllReleases();

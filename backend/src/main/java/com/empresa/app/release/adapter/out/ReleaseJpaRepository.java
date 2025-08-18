@@ -70,4 +70,13 @@ public class ReleaseJpaRepository implements ReleaseRepository {
                 .map(ReleaseEntity::toDomain)
                 .toList();
     }
+
+    @Override
+    public Optional<Release> findByProductNameAndVersion(String productName, String version) {
+        return ReleaseEntity.<ReleaseEntity>find(
+                "SELECT r FROM ReleaseEntity r JOIN ProductEntity p ON r.productId = p.id WHERE p.name = ?1 AND r.version = ?2",
+                productName, version)
+                .firstResultOptional()
+                .map(ReleaseEntity::toDomain);
+    }
 }

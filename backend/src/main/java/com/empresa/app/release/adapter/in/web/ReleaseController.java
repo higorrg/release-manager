@@ -39,6 +39,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -430,7 +431,7 @@ public class ReleaseController {
     @POST
     @Path("/{releaseId}/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Operation(summary = "Upload de pacote", description = "Faz upload do pacote de instalação para o Azure Blob Storage")
+    @Operation(summary = "Upload de pacote por ID", description = "Faz upload do pacote de instalação para o Azure Blob Storage usando ID da release")
     @RolesAllowed("admin")
     public Response uploadPackage(@PathParam("releaseId") String releaseId,
                                 @RestForm FileUpload file) {
@@ -478,6 +479,65 @@ public class ReleaseController {
         }
     }
 
+    @POST
+    @Path("/upload/{productName}/{version}")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Operation(summary = "Upload de pacote por versão", description = "Faz upload do pacote de instalação usando nome do produto e versão")
+    @RolesAllowed("admin")
+    public Response uploadPackageByVersion(@PathParam("productName") String productName,
+                                         @PathParam("version") String version,
+                                         @RestForm FileUpload file) {
+        try {
+            if (file == null || file.uploadedFile() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse("Arquivo é obrigatório"))
+                    .build();
+            }
+
+            // Buscar release por produto e versão
+            Optional<Release> releaseOpt = releaseUseCase.findByProductNameAndVersion(productName, version);
+            if (releaseOpt.isEmpty()) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse("Release não encontrada para produto '" + productName + "' versão '" + version + "'"))
+                    .build();
+            }
+
+            Release existingRelease = releaseOpt.get();
+            
+            String contentType = file.contentType();
+            if (contentType == null || contentType.isEmpty()) {
+                contentType = "application/octet-stream";
+            }
+            
+            long fileSize = Files.size(file.uploadedFile());
+            
+            var command = new FileUploadUseCase.UploadPackageCommand(
+                existingRelease.getId(),
+                file.fileName(),
+                Files.newInputStream(file.uploadedFile()),
+                contentType,
+                fileSize
+            );
+            
+            Release release = fileUploadUseCase.uploadReleasePackage(command);
+            ReleaseResponse response = mapToResponse(release);
+            
+            return Response.ok(response).build();
+            
+        } catch (IOException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new ErrorResponse("Erro ao processar arquivo: " + e.getMessage()))
+                .build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new ErrorResponse("Erro de validação: " + e.getMessage()))
+                .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new ErrorResponse("Erro ao fazer upload: " + e.getMessage()))
+                .build();
+        }
+    }
 
     private ReleaseStatusHistoryResponse mapToHistoryResponse(ReleaseStatusHistory history) {
         return ReleaseStatusHistoryResponse.from(history);

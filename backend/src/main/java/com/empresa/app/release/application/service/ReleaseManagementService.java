@@ -208,6 +208,17 @@ public class ReleaseManagementService implements ReleaseUseCase, ClientManagemen
     }
 
     @Override
+    public Optional<Release> findByProductNameAndVersion(String productName, String version) {
+        if (Objects.isNull(productName) || productName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Product name cannot be null or empty");
+        }
+        if (Objects.isNull(version) || version.trim().isEmpty()) {
+            throw new IllegalArgumentException("Version cannot be null or empty");
+        }
+        return releaseRepository.findByProductNameAndVersion(productName, version);
+    }
+
+    @Override
     public List<Release> findAllReleases() {
         return releaseRepository.findAll();
     }
