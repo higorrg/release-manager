@@ -5,7 +5,7 @@
 echo "🧹 Starting Release Manager cleanup..."
 
 # Navigate to project directory
-cd /home/higor/workspace/release-manager || exit
+cd ~/workspace/release-manager || exit
 
 # Stop all containers using podman-compose
 echo "📦 Stopping all containers..."
@@ -29,7 +29,3 @@ podman volume rm release-manager_postgres-data 2>/dev/null || echo "postgres-dat
 podman volume rm release-manager_keycloak-data 2>/dev/null || echo "keycloak-data volume not found"
 
 echo "✅ Cleanup complete!"
-echo ""
-echo "🚀 Starting up the application:"
-
-podman-compose up -d

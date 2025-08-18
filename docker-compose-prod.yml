@@ -29,13 +29,16 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin123}
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/releasemanager
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
       KC_DB_USERNAME: ${DB_USER:-admin}
       KC_DB_PASSWORD: ${DB_PASSWORD:-admin123}
       KC_HOSTNAME: ${KC_HOSTNAME:-localhost}
       KC_HOSTNAME_PORT: ${KC_PORT:-8080}
-      KC_HTTP_ENABLED: "true"
       KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"  
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"  
       TZ: ${TZ:-America/Sao_Paulo}
     ports:
       - "${KC_PORT:-8080}:8080"
@@ -43,8 +46,13 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
-    command: ["start-dev", "--import-realm"]
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:Z
+    command:
+      - start
+      - --import-realm
+      - --hostname-strict=false
+      - --hostname-strict-https=false
+      - --http-enabled=true
     networks:
       - release-manager-network
     restart: unless-stopped
