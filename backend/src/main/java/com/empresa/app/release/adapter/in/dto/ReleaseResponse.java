@@ -20,7 +20,6 @@ public record ReleaseResponse(
         String releaseNotes,
         String prerequisites,
         String downloadUrl,
-        String packagePath,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -38,7 +37,6 @@ public record ReleaseResponse(
                 release.getReleaseNotes(),
                 release.getPrerequisites(),
                 release.getDownloadUrl(),
-                release.getPackagePath(),
                 release.getCreatedAt(),
                 release.getUpdatedAt()
         );

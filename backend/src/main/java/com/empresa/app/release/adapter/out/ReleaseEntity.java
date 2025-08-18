@@ -46,9 +46,6 @@ public class ReleaseEntity extends PanacheEntityBase {
     @Column(name = "download_url", length = 500)
     public String downloadUrl;
 
-    @Column(name = "package_path", length = 500)
-    public String packagePath;
-
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     public LocalDateTime createdAt;
@@ -71,7 +68,6 @@ public class ReleaseEntity extends PanacheEntityBase {
         entity.releaseNotes = release.getReleaseNotes();
         entity.prerequisites = release.getPrerequisites();
         entity.downloadUrl = release.getDownloadUrl();
-        entity.packagePath = release.getPackagePath();
         entity.createdAt = release.getCreatedAt();
         entity.updatedAt = release.getUpdatedAt();
         return entity;
@@ -89,7 +85,6 @@ public class ReleaseEntity extends PanacheEntityBase {
         release.setReleaseNotes(this.releaseNotes);
         release.setPrerequisites(this.prerequisites);
         release.setDownloadUrl(this.downloadUrl);
-        release.setPackagePath(this.packagePath);
         release.setCreatedAt(this.createdAt);
         release.setUpdatedAt(this.updatedAt);
         return release;
@@ -105,7 +100,6 @@ public class ReleaseEntity extends PanacheEntityBase {
         this.releaseNotes = release.getReleaseNotes();
         this.prerequisites = release.getPrerequisites();
         this.downloadUrl = release.getDownloadUrl();
-        this.packagePath = release.getPackagePath();
         this.updatedAt = release.getUpdatedAt();
     }
 }

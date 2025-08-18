@@ -3,6 +3,7 @@ package com.empresa.app.release.application.service;
 import com.empresa.app.release.application.port.in.ReleaseUseCase;
 import com.empresa.app.release.application.port.in.ClientManagementUseCase;
 import com.empresa.app.release.application.port.in.ReleaseClientAssociationUseCase;
+import com.empresa.app.release.application.port.in.FileUploadUseCase;
 import com.empresa.app.release.application.port.out.ClientRepository;
 import com.empresa.app.release.application.port.out.EnvironmentRepository;
 import com.empresa.app.release.application.port.out.ProductRepository;
@@ -16,6 +17,7 @@ import com.empresa.app.release.domain.model.Release;
 import com.empresa.app.release.domain.model.ReleaseClientEnvironment;
 import com.empresa.app.release.domain.model.ReleaseStatus;
 import com.empresa.app.release.domain.model.ReleaseStatusHistory;
+import com.empresa.app.release.adapter.out.AzureBlobStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -25,7 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
-public class ReleaseManagementService implements ReleaseUseCase, ClientManagementUseCase, ReleaseClientAssociationUseCase {
+public class ReleaseManagementService implements ReleaseUseCase, ClientManagementUseCase, ReleaseClientAssociationUseCase, FileUploadUseCase {
 
     @Inject
     ReleaseRepository releaseRepository;
@@ -44,6 +46,9 @@ public class ReleaseManagementService implements ReleaseUseCase, ClientManagemen
     
     @Inject
     ReleaseClientEnvironmentRepository releaseClientEnvironmentRepository;
+    
+    @Inject
+    AzureBlobStorageService azureBlobStorageService;
 
     @Override
     @Transactional
@@ -189,10 +194,6 @@ public class ReleaseManagementService implements ReleaseUseCase, ClientManagemen
 
         if (command.downloadUrl() != null) {
             release.updateDownloadUrl(command.downloadUrl());
-        }
-        
-        if (command.packagePath() != null) {
-            release.updatePackagePath(command.packagePath());
         }
         
         return releaseRepository.save(release);
@@ -404,6 +405,49 @@ public class ReleaseManagementService implements ReleaseUseCase, ClientManagemen
                                  release.getStatus() == ReleaseStatus.DISPONIVEL)
                 .sorted((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt())) // Most recent first
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public Release uploadReleasePackage(UploadPackageCommand command) {
+        if (Objects.isNull(command.releaseId())) {
+            throw new IllegalArgumentException("Release ID cannot be null");
+        }
+        
+        if (Objects.isNull(command.fileName()) || command.fileName().trim().isEmpty()) {
+            throw new IllegalArgumentException("File name cannot be null or empty");
+        }
+        
+        if (Objects.isNull(command.fileStream())) {
+            throw new IllegalArgumentException("File stream cannot be null");
+        }
+
+        if (command.fileSize() <= 0) {
+            throw new IllegalArgumentException("File size must be greater than 0");
+        }
+
+        var release = releaseRepository.findById(command.releaseId())
+                .orElseThrow(() -> new IllegalArgumentException("Release not found with ID: " + command.releaseId()));
+
+        try {
+            var uploadResult = azureBlobStorageService.uploadFile(
+                    command.releaseId().toString(),
+                    command.fileName(),
+                    command.fileStream(),
+                    command.contentType()
+            );
+
+            if (!uploadResult.success()) {
+                throw new RuntimeException("File upload failed: " + uploadResult.errorMessage());
+            }
+
+            release.updateDownloadUrl(uploadResult.downloadUrl());
+
+            return releaseRepository.save(release);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload package for release " + command.releaseId(), e);
+        }
     }
 
     private Product createProduct(String productName) {

@@ -15,7 +15,6 @@ public class Release {
     private String releaseNotes;
     private String prerequisites;
     private String downloadUrl;
-    private String packagePath;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -58,10 +57,6 @@ public class Release {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void updatePackagePath(String packagePath) {
-        this.packagePath = packagePath;
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public boolean isAvailable() {
         return status == ReleaseStatus.DISPONIVEL;
@@ -105,7 +100,6 @@ public class Release {
     public String getReleaseNotes() { return releaseNotes; }
     public String getPrerequisites() { return prerequisites; }
     public String getDownloadUrl() { return downloadUrl; }
-    public String getPackagePath() { return packagePath; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 
@@ -120,7 +114,6 @@ public class Release {
     public void setReleaseNotes(String releaseNotes) { this.releaseNotes = releaseNotes; }
     public void setPrerequisites(String prerequisites) { this.prerequisites = prerequisites; }
     public void setDownloadUrl(String downloadUrl) { this.downloadUrl = downloadUrl; }
-    public void setPackagePath(String packagePath) { this.packagePath = packagePath; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 

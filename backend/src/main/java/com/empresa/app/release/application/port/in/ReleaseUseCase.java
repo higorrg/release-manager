@@ -73,5 +73,5 @@ public interface ReleaseUseCase {
     
     record UpdatePrerequisitesCommand(UUID releaseId, String prerequisites) {}
     
-    record UpdatePackageInfoCommand(UUID releaseId, String downloadUrl, String packagePath) {}
+    record UpdatePackageInfoCommand(UUID releaseId, String downloadUrl) {}
 }

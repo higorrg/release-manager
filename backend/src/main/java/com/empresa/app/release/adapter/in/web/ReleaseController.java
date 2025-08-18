@@ -17,6 +17,7 @@ import com.empresa.app.release.adapter.in.dto.UpdateStatusRequest;
 import com.empresa.app.release.application.port.in.ReleaseUseCase;
 import com.empresa.app.release.application.port.in.ClientManagementUseCase;
 import com.empresa.app.release.application.port.in.ReleaseClientAssociationUseCase;
+import com.empresa.app.release.application.port.in.FileUploadUseCase;
 import com.empresa.app.release.application.port.out.ProductRepository;
 import com.empresa.app.release.domain.model.Client;
 import com.empresa.app.release.domain.model.Environment;
@@ -30,9 +31,13 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -55,6 +60,9 @@ public class ReleaseController {
 
     @Inject
     ProductRepository productRepository;
+    
+    @Inject
+    FileUploadUseCase fileUploadUseCase;
 
     @POST
     @Path("/pipeline")
@@ -219,8 +227,7 @@ public class ReleaseController {
             UUID id = UUID.fromString(releaseId);
             var command = new ReleaseUseCase.UpdatePackageInfoCommand(
                 id,
-                request.downloadUrl(),
-                request.packagePath()
+                request.downloadUrl()
             );
             
             Release release = releaseUseCase.updatePackageInfo(command);
@@ -419,6 +426,58 @@ public class ReleaseController {
                 .build();
         }
     }
+
+    @POST
+    @Path("/{releaseId}/upload")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Operation(summary = "Upload de pacote", description = "Faz upload do pacote de instalação para o Azure Blob Storage")
+    @RolesAllowed("admin")
+    public Response uploadPackage(@PathParam("releaseId") String releaseId,
+                                @RestForm FileUpload file) {
+        try {
+            if (file == null || file.uploadedFile() == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse("Arquivo é obrigatório"))
+                    .build();
+            }
+
+            UUID id = UUID.fromString(releaseId);
+            
+            String contentType = file.contentType();
+            if (contentType == null || contentType.isEmpty()) {
+                contentType = "application/octet-stream";
+            }
+            
+            long fileSize = Files.size(file.uploadedFile());
+            
+            var command = new FileUploadUseCase.UploadPackageCommand(
+                id,
+                file.fileName(),
+                Files.newInputStream(file.uploadedFile()),
+                contentType,
+                fileSize
+            );
+            
+            Release release = fileUploadUseCase.uploadReleasePackage(command);
+            ReleaseResponse response = mapToResponse(release);
+            
+            return Response.ok(response).build();
+            
+        } catch (IOException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new ErrorResponse("Erro ao processar arquivo: " + e.getMessage()))
+                .build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new ErrorResponse("Erro de validação: " + e.getMessage()))
+                .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new ErrorResponse("Erro ao fazer upload: " + e.getMessage()))
+                .build();
+        }
+    }
+
 
     private ReleaseStatusHistoryResponse mapToHistoryResponse(ReleaseStatusHistory history) {
         return ReleaseStatusHistoryResponse.from(history);
