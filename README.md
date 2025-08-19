@@ -43,10 +43,26 @@ Sistema de gerenciamento de releases desenvolvido com **Quarkus** (backend) e **
 
 ## 📋 Pré-requisitos
 
-- **Podman** e **Podman Compose**
-- **Java 21** (para desenvolvimento)
-- **Node.js 20+** (para desenvolvimento)
-- **Maven 3.9+** (para build do backend)
+**Para Desenvolvimento:**
+- **Java 21** (OpenJDK ou Oracle)
+- **Maven 3.9+** 
+- **Node.js 20+** e **npm 9+**
+- **Podman 4+** e **Podman Compose 1+**
+
+**Para Produção:**
+- **Podman 4+** e **Podman Compose 1+**
+- **Memória RAM**: 4GB mínimo, 8GB recomendado
+- **Espaço em Disco**: 2GB para builds + 1GB para containers
+
+**Verificar Instalação:**
+```bash
+java -version        # Java 21
+mvn -version         # Maven 3.9+
+node -version        # Node 20+
+npm -version         # npm 9+
+podman -version      # Podman 4+
+podman-compose -version  # Compose 1+
+```
 
 ## 🚀 Como Executar
 
@@ -217,25 +233,6 @@ podman push $REGISTRY/release-manager-backend:$VERSION
 podman push $REGISTRY/release-manager-frontend:$VERSION
 ```
 
-### **Requisitos de Sistema**
-
-**Para Compilação:**
-- **Java 21** (OpenJDK ou Oracle)
-- **Maven 3.9+** 
-- **Node.js 18+** e **npm 9+**
-- **Podman 4+** e **Podman Compose 1+**
-- **Memória RAM**: 4GB mínimo, 8GB recomendado
-- **Espaço em Disco**: 2GB para builds + 1GB para containers
-
-**Verificar Instalação:**
-```bash
-java -version        # Java 21
-mvn -version         # Maven 3.9+
-node -version        # Node 18+
-npm -version         # npm 9+
-podman -version      # Podman 4+
-podman-compose -version  # Compose 1+
-```
 
 ### **Troubleshooting**
 
