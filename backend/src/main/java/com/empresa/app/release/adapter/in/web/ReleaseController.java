@@ -395,7 +395,7 @@ public class ReleaseController {
 
     @GET
     @Path("/available-versions")
-    @Operation(summary = "Listar versões disponíveis", description = "Lista versões disponíveis para um cliente em um ambiente específico")
+    @Operation(summary = "Listar versões disponíveis", description = "Lista versões disponíveis para um cliente em um ambiente específico. A release deve estar no status CONTROLADA ou DISPONÍVEL")
     public Response getAvailableVersions(@QueryParam("clientCode") String clientCode,
                                        @QueryParam("environment") String environment) {
         try {
