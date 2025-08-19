@@ -1,18 +1,64 @@
 # Project Guidelines
 
-## User Stories
+## Prompt para geração completa:
 
-### US-01 - Segurança
+Implemente um sistema Release Manager completo seguindo todas as especificações do arquivo AGENTS.md. 
 
-**Título da História:** Segurança (Autenticação e Autorização)
+Foque nas User Stories detalhadas para entender os fluxos de negócio e dores dos usuários. Use as tecnologias obrigatórias listadas e siga a arquitetura hexagonal especificada. 
 
-**História:**
+Crie toda a estrutura: backend Quarkus com APIs REST, frontend Angular 18 responsivo, configuração Keycloak com Azure AD, integração Azure Blob Storage, migrações Liquibase, containerização com Podman Compose, e exemplos de integração CI/CD.
 
-Como **Release Manager**,
+O sistema deve resolver as dores de negócio descritas nas User Stories, não apenas implementar funcionalidades técnicas.
 
-eu quero **autenticar-me na aplicação utilizando login via SSO integrado ao AzureAD através do Keycloak**,
+Documente tudo no arquivo README.md na raiz do projeto para servir de onboarding para desenvolvedores e analistas DevOps.
 
-para **acessar o sistema com segurança e praticidade, aproveitando as credenciais corporativas já existentes**.
+--- 
+
+## Contexto do Negócio
+
+O Release Manager é um sistema crítico para gerenciar o ciclo de vida de releases de software em uma empresa de desenvolvimento de software.
+
+### Problemas Atuais
+
+- **Falta de visibilidade**: Stakeholders interrompem constantemente o trabalho perguntando sobre status de releases
+- **Processo manual**: Release Manager perde tempo atualizando status e enviando relatórios
+- **Sem rastreabilidade**: Não há histórico de quem mudou o quê e quando
+- **Integração inexistente**: Pipeline gera releases mas não notifica o sistema de gestão
+- **Distribuição legada**: Pacotes são enviados por um sistema legado para clientes.
+
+### Stakeholders
+
+- **Release Manager**: Pessoa responsável por coordenar todas as releases.
+- **Dev Team**: Equipe de desenvolvimento que aprova MRs e gera versões.
+- **QA Team**: Equipe de testes que valida releases em diferentes ambientes.
+- **DevOps**: Equipe responsável por builds e deploy em produção.
+- **Product Owners**: Gestores que precisam de visibilidade sobre cronogramas.
+- **Clientes**: Empresas que usam o software em diferentes ambientes.
+
+---
+
+## User Stories Detalhadas
+
+### US-01 - Autenticação Corporativa
+
+**Contexto de Negócio:** A empresa já utiliza Azure AD para todos os sistemas internos. Devemos evitar que as equipes percam tempo gerenciando múltiplas credenciais e há riscos de segurança com senhas fracas ou reutilizadas.
+
+**História:** Como **Release Manager**,
+eu quero **acessar o sistema usando minhas credenciais corporativas (Azure AD)**,
+para **não precisar gerenciar outra senha e ter acesso baseado no meu perfil da empresa**.
+
+**Regras de Negócio:**
+
+- Apenas funcionários autorizados no Azure AD podem acessar
+- Diferentes perfis de acesso (Admin, Read-only, etc.)
+- Session timeout após inatividade
+- Log de acessos para auditoria
+
+**Cenários de Uso:**
+
+- Funcionário tenta acessar → Redireciona para Azure AD → Login automático se já logado no Windows
+- Funcionário sai da empresa → Acesso é revogado automaticamente no Azure AD
+- Funcionário muda de departamento → Perfil de acesso é atualizado automaticamente
 
 **Critérios de Aceitação:**
 
@@ -20,108 +66,188 @@ para **acessar o sistema com segurança e praticidade, aproveitando as credencia
 - Apenas usuários autorizados no AzureAD devem conseguir acessar o sistema.
 - Após login bem-sucedido, o usuário deve ser redirecionado automaticamente à tela principal da aplicação.
 
-### US-02 - Controlar status de cada etapa da release
+---
 
-**Título da História:** Alterar status das etapas da release
+### US-02 - Controle de Status das Releases
 
-**História:**
+**Contexto de Negócio:** Uma release passa por 14 etapas diferentes, desde "MR Aprovado" até "Disponível". Cada etapa é responsabilidade de uma equipe diferente. Atualmente, o Release Manager atualiza uma planilha Excel e envia emails quando há mudanças.
 
-Como **Release Manager**,
+**Fluxo de Trabalho Real:**
 
-eu quero **alterar o status de cada etapa da release**,
+1. **Dev Team**: Aprova MR → Status: "MR Aprovado"
+2. **DevOps**: Executa build → Status: "Falha no Build" ou "Para Teste de Sistema"
+3. **QA**: Testa em homologação → Status: "Reprovada/Aprovada no teste"
+4. **DevOps**: Build produção → Status: "Falha no Build para Produção" ou "Para Teste Regressivo"
+5. **QA**: Teste regressivo → Status: "Reprovada/Aprovada no teste regressivo"
+6. **Release Manager**: Controla distribuição → Status: "Controlada", "Interna", "Disponível"
 
-para **que os stakeholders possam ter visibilidade do status da release**.
+**História:** Como **Release Manager**,
+eu quero **atualizar e visualizar o status atual de cada release em tempo real**,
+para **que todas as equipes saibam exatamente em que etapa cada versão está, sem precisar me perguntar**.
+
+**Dores Atuais:**
+
+- 15+ interrupções por dia perguntando "qual o status da versão X?"
+- Esquecimento de atualizar planilha causa confusão
+- Equipes trabalham com informações desatualizadas
+- Sem visibilidade de gargalos no processo
+
+**Valor Esperado:**
+
+- Dashboard em tempo real para todas as equipes
+- Redução drástica de interrupções
+- Identificação proativa de gargalos
+- Comunicação automática de mudanças críticas
 
 **Critérios de Aceitação:**
 
-- Ao acessar uma release, o status pode ser alterado.
+- Ao acessar uma release, o status pode ser alterado e uma observação pode ser informada opcionalmente.
 - Ao acessar uma release, o status atual deve ser apresentado.
-- Os status disponíveis para seleção devem incluir:
-    - MR Aprovado
-    - Falha no Build para Teste
-    - Para Teste de Sistema
-    - Reprovada no teste
-    - Aprovada no teste
-    - Falha no Build para Produção
-    - Para Teste Regressivo
-    - Falha na instalação da Estável
-    - Interno
-    - Revogada
-    - Reprovada no teste regressivo
-    - Aprovada no teste regressivo
-    - Controlada
-    - Disponível
+- Os status disponíveis são:
+  - MR Aprovado
+  - Falha no Build para Teste
+  - Para Teste de Sistema
+  - Reprovada no teste
+  - Aprovada no teste
+  - Falha no Build para Produção
+  - Para Teste Regressivo
+  - Falha na instalação da Estável
+  - Interno
+  - Revogada
+  - Reprovada no teste regressivo
+  - Aprovada no teste regressivo
+  - Controlada
+  - Disponível
 
-### US-03 - Registrar histórico do status
+---
 
-**Título da História:** Registrar log de alterações de status da release
+### US-03 - Histórico Imutável de Mudanças
 
-**História:**
+**Contexto de Negócio:** A empresa passa por auditorias regulares e precisa comprovar quando e por quem cada decisão foi tomada.
 
-Como **Sistema**,
+**História:** Como **Auditor/Gestor**,
+eu quero **consultar o histórico completo de mudanças de status de qualquer release**,
+para **entender a timeline, identificar problemas recorrentes e comprovar conformidade com processos**.
 
-eu quero **registrar um novo log a cada alteração de status da release**,
+**Regras de Negócio:**
 
-para **termos rastreabilidade**.
+- Histórico é imutável (não pode ser editado ou excluído).
+- Cada mudança registra: usuário, timestamp, status anterior, novo status e uma observação opcional.
+- Retenção mínima de 5 anos para auditorias.
+- Acesso controlado por perfil de usuário.
+
+**Cenários de Uso:**
+
+- Auditoria pergunta: "Quem aprovou a release 8.5.0 para produção?" → Sistema mostra histórico completo.
+- Gestor quer saber: "Por que a versão 8.4.3 demorou 2 semanas em teste?" → Histórico mostra 3 reprovas consecutivas.
+- Processo de melhoria: "Onde estão nossos gargalos?" → Relatório mostra que 60% das releases falham no primeiro build.
 
 **Critérios de Aceitação:**
 
 - Deve ser criada uma tabela ou mecanismo de armazenamento.
 - Um novo registro deve ser incluído sempre que ocorrer uma alteração de status da release.
 - Não devem existir operações de alteração ou exclusão dos registros, apenas inserções.
-- Não será desenvolvida interface de consulta neste momento; a verificação será feita diretamente no banco de dados.
 
-### US-04 - Indicar clientes em Controlado
+---
 
-**Título da História:** Relacionar release a códigos de cliente e ambiente
+### US-04 - Relacionamento Release-Cliente-Ambiente
 
-**História:**
+**Contexto de Negócio:** O software da empresa é vendido para diferentes clientes. Cada cliente pode ter ambiente de homologação e produção. Nem todas as releases são adequadas para todos os clientes ou ambientes.
 
-Como **Release Manager**,
+**Exemplo Real:**
 
-eu quero **relacionar uma release a vários códigos de clientes e para cada ambiente deles (homologação ou produção)**,
+- Release 8.5.0: Liberada para Cliente A (produção) e Cliente B (homologação).
+- Release 8.4.9: Patch crítico liberado para todos os clientes em produção.
+- Release 9.0.0: Beta apenas para clientes parceiros em homologação.
 
-para **que a API descrita na "US-06 - Listar versões disponíveis", saiba se pode ou não apresentar aquela release para o ambiente solicitado**.
+**História:** Como **Release Manager**,
+eu quero **definir quais clientes podem usar cada release e em quais ambientes**,
+para **controlar a distribuição e garantir que clientes recebam apenas versões adequadas ao seu contexto**.
+
+**Regras de Negócio:**
+
+- Cliente pode ter código interno diferente do nome comercial.
+- Mesmo cliente pode ter comportamentos diferentes entre homologação e produção.
+- Releases podem ser restritivas (apenas clientes específicos) ou abertas (todos os clientes).
+- Histórico de quais clientes usaram quais versões.
+
+**Cenários de Uso:**
+
+- Cliente Premium quer testar nova feature → Release Manager libera versão beta só para ele em homologação
+- Bug crítico descoberto → Release Manager bloqueia versão para novos clientes mas mantém para quem já usa
+- Release estável → Release Manager libera para todos os clientes em produção
 
 **Critérios de Aceitação:**
 
 - Deve ser possível informar manualmente o código de um ou mais clientes para uma release.
 - Deve ser possível associar a cada código de cliente o ambiente correspondente (homologação ou produção).
+- O sistema deve emitir uma mensagem de alerta se o usuário informar código de cliente e ambiente duplicados.
+- Deve ser possível excluir um item desta lista.
 - A relação entre release, código de cliente e ambiente deve estar disponível para consulta pela API.
-- Não deve haver integração com o sistema de licenciamento nem validação do código informado.
 
-### US-05 - Envio de Informações pela pipeline
+---
 
-**Título da História:** Registrar automaticamente a criação de releases via pipeline
+### US-05 - Integração Automática com Pipeline
 
-**História:**
+**Contexto de Negócio:** A empresa tem pipeline CI/CD que gera automaticamente versões quando MRs são aprovados. Atualmente, o Release Manager só fica sabendo por email ou Slack, causando atraso na comunicação para stakeholders.
 
-Como **Release Manager**,
+**Fluxo Atual vs Desejado:**
 
-eu quero **que a pipeline envie automaticamente os dados da release para a API do Release Manager assim que o MR da versão for aprovado**,
+- **Atual**: Pipeline gera versão → Desenvolvedor envia mensagem → Release Manager vê a mensagem → Atualiza planilha → Avisa stakeholders.
+- **Desejado**: Pipeline gera versão → Chama API → Sistema atualiza automaticamente → Stakeholders veem em tempo real.
 
-para **que a nova release seja registrada com o status inicial de “MR Aprovado”, garantindo rastreabilidade e padronização no processo de versionamento**.
+**História:** Como **Release Manager**,
+
+eu quero **que a pipeline envie automaticamente os dados da release para a API do Release Manager assim que o MR da versão for aprovado**,
+
+para **que a nova release seja registrada com o status inicial de “MR Aprovado”, garantindo rastreabilidade e padronização no processo de versionamento**.
+
+**Regras de Negócio:**
+
+- Apenas versões que passaram na aprovação do MR devem ser registradas.
+- Sistema deve distinguir entre Kit (major), Service Pack (minor) e Patch.
+- Não deve haver duplicação para a mesma versão.
+- Status inicial sempre "MR Aprovado".
+- Deve incluir metadados: produto, versão, branch, commit hash.
+
+**Cenários de Uso:**
+
+- Pipeline cria versão 8.5.0 → API registra automaticamente → Equipes veem nova versão no dashboard.
+- Pipeline tenta registrar 8.5.0 novamente → Sistema atualiza sem duplicar.
+- Pipeline falha antes do MR → Nenhum registro é criado → Não há "falsos positivos".
 
 **Critérios de Aceitação:**
 
 - A API do Release Manager deve ser acionada automaticamente pela pipeline após a aprovação do MR na branch de versão (Kit, SP ou Patch).
+- A API do Release Manager deve ser orientada a versão, não ao ID da release.
 - A requisição deve conter:
-    - Nome do produto
-    - Versão (major, minor ou patch)
-- A release deve ser registrada na API com o status inicial **MR Aprovado**.
+  - Nome do produto
+  - Versão (major, minor ou patch)
+- A release deve ser registrada na API com o status inicial **MR Aprovado**.
 - A chamada da API deve ocorrer na etapa de geração de versões da pipeline.
 
-### US-06 - Listar versões disponíveis
+---
 
-**Título da História:** Listar versões disponíveis para atualização da plataforma
+### US-06 - API de Versões Disponíveis para Clientes
 
-**História:**
+**Contexto de Negócio:** Clientes consultam constantemente quais versões podem atualizar. Atualmente isso é feito via email/telefone, gerando trabalho manual e atrasos. Clientes querem integrar essa consulta em seus próprios sistemas de atualização.
 
-Como **Release Manager**,
+**História:** Como **Sistema do Cliente**,
+eu quero **consultar via API quais versões estão disponíveis para meu ambiente específico**,
+para **que possa realizar o download da nova versão**.
 
-eu quero **listar as versões disponíveis para atualização da Plataforma Shift com release notes e pré-requisitos, para cada cliente e ambiente (homologação ou produção)**,
+**Regras de Negócio:**
 
-para **garantir visibilidade sobre as versões que podem ser aplicadas, promovendo atualizações seguras e informadas**.
+- API deve filtrar por código do cliente e ambiente (homologação/produção).
+- Retornar apenas versões "Disponíveis" ou "Controladas" aprovadas para aquele cliente.
+- Incluir release notes, pré-requisitos e URL de download.
+- Versionamento da API para compatibilidade.
+
+**Cenários de Uso:**
+
+- Sistema do cliente ABC consulta versões para produção → Recebe lista filtrada com apenas versões aprovadas.
+- Sistema de parceiro consulta versões beta → Recebe versões experimentais liberadas especialmente.
+- Cliente tenta acessar versão não liberada → API retorna lista vazia/negação.
 
 **Critérios de Aceitação:**
 
@@ -129,55 +255,94 @@ para **garantir visibilidade sobre as versões que podem ser aplicadas, promoven
 - A resposta da API deve conter, para cada versão: número da versão, release notes, pré-requisitos e a URL de download.
 - Release notes e pré-requisitos serão cadastrados manualmente.
 
-### US-07 - Fornecer Pacote
+---
 
-**Título da História:** Fornecer pacote instalável da versão
+### US-07 - Distribuição de Pacotes
 
-**História:**
+**Contexto de Negócio:** Pacotes de instalação (.zip, .tar.gz) precisam ser baixados pelos sistemas instalados nos clientes de forma transparente.
 
-Como **Release Manager**,
+**Problemas Atuais:**
 
-eu quero **que o pacote instalável da versão esteja disponível para download**,
+- Links ocupam banda dos nossos servidores.
+- Sem controle de acesso (qualquer um com link baixa).
+- Sem métricas de download.
+- Processo legado de upload/compartilhamento.
 
-para **que o cliente possa realizar a atualização do produto com todos os componentes necessários**.
+**História:** Como **Cliente**,
+eu quero **baixar pacotes de instalação diretamente através de URLs persistentes e seguras**,
+para **atualizar meu ambiente**.
+
+**Regras de Negócio:**
+
+- Pacotes armazenados em cloud storage seguro.
+- URLs públicas mas não-listáveis (segurança por obscuridade).
+- Controle de acesso baseado na liberação da release para o cliente.
+- Métricas de download para insights de adoção.
+
+**Cenários de Uso:**
+
+- Cliente acessa sistema → Vê lista de versões → Clica download → Baixa diretamente do storage.
+- Pipeline gera novo pacote → Upload automático → URL disponível imediatamente.
+- Release é revogada → Sistema deixa de apresentar a release na listagem para os clientes automaticamente.
 
 **Critérios de Aceitação:**
 
-* O sistema deve disponibilizar o pacote da versão (ex: `.zip`, `.tar.gz`) para download.
-* O pacote deve conter o produto completo e seus componentes.
-* Os pacotes deverão ser armazenados no blob storage da Azure.
-    
-## Banco de Dados
+- O sistema deve disponibilizar o pacote da versão (ex: `.zip`, `.tar.gz`) para download.
+- O pacote deve conter o produto completo e seus componentes.
+- Os pacotes deverão ser armazenados no blob storage da Azure.
 
-* O banco de dados (SGBD) deve ser o Postgres versão 17.
+---
 
-## Autenticação
+## Especificações Técnicas Obrigatórias
+
+### Tecnologias Não-Negociáveis
+
+- **Backend**: Java 21 + Quarkus 3.24.3.
+- **Liquibase**: Disponível no Quarkus.
+- **Frontend**: Angular 18+ com Standalone Components.
+- **Autenticação**: Keycloak + Azure AD.
+- **Storage**: Azure Blob Storage.
+- **Database**: PostgreSQL 17.
+- **Containerização**: Podman + Podman Compose (política de compliance - não Docker).
+
+### Integrações
+
+- **Azure Blob Storage**: Container "releases".
+- **Keycloak**: Criar realm novo com importação automática. 
+- **Pipeline CI/CD**: Viabilizar Gitlab CI e scrips groovy e bash.
+
+### Autenticação
 
 * A autenticação deverá ser realizada por Keycloak.
 * Criar todos os artefatos necessários para configurar o Keycloak.
 * A URL do AzureAD para o keycloak é: https://example.com
 
-## Ambiente de Execução
+### Compliance e Segurança
 
-### Desenvolvimento
+- **Histórico Imutável**: Mudanças de status são append-only
+- **Autenticação Obrigatória**: Todos endpoints protegidos
+- **Logs Estruturados**: Para auditoria e monitoramento
+- **Retenção de Dados**: Mínimo 5 anos para auditorias
 
-* Apenas o banco de dados será em container na versão alpine.
+### Ambiente de Desenvolvimento
 
-### Produção
+- Apenas PostgreSQL + Keycloak em containers
+- Backend e Frontend executam nativamente
+- Hot reload habilitado
 
-* Todos os componentes deverão ser executados em containers, banco de dados, backend e frontend.
-* Criar um docker-compose com todos devidamente configurados.
+### Ambiente de Produção
 
-## Backend
+- Stack completa em containers Podman
+- Nginx para servir frontend
+- Health checks e monitoramento
+- Backup automático do banco
+
+## Desenvolvimento do Backend
 
 ### Persona
 
-Você é um desenvolvedor Java moderno, utilizando **Java 21** com **Quarkus** para construir aplicações reativas, 
-eficientes e com boot ultrarrápido. Você aplica **arquitetura hexagonal** com forte coesão por feature e baixa 
-acoplamento entre camadas. Você preza por legibilidade, testes fáceis, e responsabilidade única. Cada feature é 
-isolada com seus próprios ports, use cases, domain model e adapters.
-
----
+Você é um desenvolvedor Java moderno, utilizando **Java 21** com **Quarkus** para construir aplicações reativas, eficientes e com boot ultrarrápido. Você aplica **arquitetura hexagonal** com forte coesão por feature e baixa 
+acoplamento entre camadas. Você preza por legibilidade, testes fáceis, e responsabilidade única. Cada feature é isolada com seus próprios ports, use cases, domain model e adapters.
 
 ### Estrutura de Pacotes
 
@@ -198,8 +363,6 @@ src/main/java/com/empresa/app/feature-x/
 │   └── out/           --> Banco de dados, APIs externas (saída)
 └── config/            --> Configuration específica da feature
 ```
-
----
 
 ### 🧱 Arquitetura Hexagonal
 
@@ -236,8 +399,6 @@ src/main/java/com/empresa/app/feature-x/
 * Use `@QuarkusTest` para testar a integração completa
 * Use `Testcontainers` para dependências como banco de dados
 
----
-
 ### Boas Práticas com Quarkus
 
 * Use `@RestPath` e `@RestQuery` para endpoints REST.
@@ -247,8 +408,6 @@ src/main/java/com/empresa/app/feature-x/
 * Para agendamento, use `@Scheduled`.
 * Sempre crie endpoints REST específicos, nunca reuse endpoints destinados a frontend, em integrações com outros sistemas.
 * Versione as APIs por URL.
-
----
 
 ### Naming Conventions
 
@@ -261,8 +420,6 @@ src/main/java/com/empresa/app/feature-x/
 | Adapter Out   | `XxxRestClient`, `XxxJpa`    |
 | Model         | `Xxx`, `XxxId`, `XxxEvent`   |
 
----
-
 ### Recursos Úteis
 
 * [Quarkus Guides](https://quarkus.io/guides/)
@@ -270,9 +427,11 @@ src/main/java/com/empresa/app/feature-x/
 * [Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/)
 * [Ports and Adapters com Quarkus](https://quarkus.io/blog/ports-and-adapters/)
 
-## Frontend
+---
 
-- Use Angular framework version 20.
+## Desenvolvimento do Frontend
+
+- 
 - You are an expert in TypeScript, Angular, and scalable web application development. You write maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
 ### TypeScript Best Practices
