@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: docker.io/library/postgres:17-alpine
-    container_name: release-manager-db-prod
+    container_name: release-manager-db
     environment:
       POSTGRES_DB: releasemanager
       POSTGRES_USER: ${DB_USER:-admin}
@@ -24,7 +24,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
-    container_name: release-manager-keycloak-prod
+    container_name: release-manager-keycloak
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin123}
@@ -66,7 +66,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.jvm
-    container_name: release-manager-backend-prod
+    container_name: release-manager-backend
     environment:
       QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres:5432/releasemanager
       QUARKUS_DATASOURCE_USERNAME: ${DB_USER:-admin}
@@ -98,7 +98,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: release-manager-frontend-prod
+    container_name: release-manager-frontend
     environment:
       API_BASE_URL: ${API_BASE_URL:-http://backend:8081}
       KEYCLOAK_URL: ${KEYCLOAK_URL:-http://keycloak:8080}
