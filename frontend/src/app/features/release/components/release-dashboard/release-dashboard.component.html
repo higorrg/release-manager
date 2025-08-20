@@ -1,0 +1,38 @@
+<h2>Release Dashboard</h2>
+
+@if (loading()) {
+  <p>Loading releases...</p>
+}
+
+@if (error()) {
+  <div class="error-message">
+    {{ error() }}
+  </div>
+}
+
+@if (!loading() && !error() && releases().length > 0) {
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Version</th>
+        <th>Status</th>
+        <th>Last Updated</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (release of releases(); track release.id) {
+        <tr>
+          <td>{{ release.productName }}</td>
+          <td>{{ release.version }}</td>
+          <td>{{ release.currentStatus }}</td>
+          <td>{{ release.updatedAt | date: 'medium' }}</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="4">No releases found.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

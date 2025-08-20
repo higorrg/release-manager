@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="1" author="jules">
+        <createTable tableName="releases">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="product_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(50)"/>
+            <column name="branch" type="VARCHAR(255)"/>
+            <column name="commit_hash" type="VARCHAR(255)"/>
+            <column name="current_status" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="release_notes" type="TEXT"/>
+            <column name="prerequisites" type="TEXT"/>
+            <column name="download_url" type="VARCHAR(1024)"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="releases" columnNames="product_name, version" constraintName="uk_release_product_version"/>
+
+        <createTable tableName="release_status_history">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="release_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_history_release" references="releases(id)"/>
+            </column>
+            <column name="previous_status" type="VARCHAR(100)"/>
+            <column name="new_status" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notes" type="TEXT"/>
+            <column name="changed_by_user" type="VARCHAR(255)"/>
+            <column name="changed_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="client_releases">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="release_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_client_release_release" references="releases(id)"/>
+            </column>
+            <column name="client_code" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="environment" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="client_releases" columnNames="release_id, client_code, environment" constraintName="uk_client_release_env"/>
+    </changeSet>
+
+</databaseChangeLog>
