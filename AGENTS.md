@@ -2,11 +2,13 @@
 
 ## Prompt para geração completa:
 
-Implemente um sistema Release Manager completo seguindo todas as especificações do arquivo AGENTS.md. 
+Implemente um sistema chamado ReleaseManager, completo seguindo todas as especificações do arquivo AGENTS.md.
 
-Foque nas User Stories detalhadas para entender os fluxos de negócio e dores dos usuários. Use as tecnologias obrigatórias listadas e siga a arquitetura hexagonal especificada. 
+Foque nas User Stories detalhadas para entender os fluxos de negócio e dores dos usuários.
 
-Crie toda a estrutura: backend Quarkus com APIs REST, frontend Angular 18 responsivo, configuração Keycloak com Azure AD, integração Azure Blob Storage, migrações Liquibase, containerização com Podman Compose, e exemplos de integração CI/CD.
+Use as tecnologias obrigatórias listadas e siga a arquitetura especificada.
+
+Crie toda a estrutura:backend Quarkus com APIs REST, frontend Angular 18 responsivo, configuração Keycloak com Azure AD, integração Azure Blob Storage, migrações com Liquibase, containerização com Podman Compose, e exemplos de integração CI/CD na documentação.
 
 O sistema deve resolver as dores de negócio descritas nas User Stories, não apenas implementar funcionalidades técnicas.
 
@@ -28,7 +30,7 @@ O Release Manager é um sistema crítico para gerenciar o ciclo de vida de relea
 
 ### Stakeholders
 
-- **Release Manager**: Pessoa responsável por coordenar todas as releases.
+- **Gestor de Release**: Pessoa responsável por coordenar todas as releases.
 - **Dev Team**: Equipe de desenvolvimento que aprova MRs e gera versões.
 - **QA Team**: Equipe de testes que valida releases em diferentes ambientes.
 - **DevOps**: Equipe responsável por builds e deploy em produção.
@@ -43,7 +45,7 @@ O Release Manager é um sistema crítico para gerenciar o ciclo de vida de relea
 
 **Contexto de Negócio:** A empresa já utiliza Azure AD para todos os sistemas internos. Devemos evitar que as equipes percam tempo gerenciando múltiplas credenciais e há riscos de segurança com senhas fracas ou reutilizadas.
 
-**História:** Como **Release Manager**,
+**História:** Como **gestor de releases**,
 eu quero **acessar o sistema usando minhas credenciais corporativas (Azure AD)**,
 para **não precisar gerenciar outra senha e ter acesso baseado no meu perfil da empresa**.
 
@@ -81,7 +83,7 @@ para **não precisar gerenciar outra senha e ter acesso baseado no meu perfil da
 5. **QA**: Teste regressivo → Status: "Reprovada/Aprovada no teste regressivo"
 6. **Release Manager**: Controla distribuição → Status: "Controlada", "Interna", "Disponível"
 
-**História:** Como **Release Manager**,
+**História:** Como **gestor de releases**,
 eu quero **atualizar e visualizar o status atual de cada release em tempo real**,
 para **que todas as equipes saibam exatamente em que etapa cada versão está, sem precisar me perguntar**.
 
@@ -125,7 +127,7 @@ para **que todas as equipes saibam exatamente em que etapa cada versão está, s
 
 **Contexto de Negócio:** A empresa passa por auditorias regulares e precisa comprovar quando e por quem cada decisão foi tomada.
 
-**História:** Como **Auditor/Gestor**,
+**História:** Como **gestor de releases**,
 eu quero **consultar o histórico completo de mudanças de status de qualquer release**,
 para **entender a timeline, identificar problemas recorrentes e comprovar conformidade com processos**.
 
@@ -160,7 +162,7 @@ para **entender a timeline, identificar problemas recorrentes e comprovar confor
 - Release 8.4.9: Patch crítico liberado para todos os clientes em produção.
 - Release 9.0.0: Beta apenas para clientes parceiros em homologação.
 
-**História:** Como **Release Manager**,
+**História:** Como **gestor de releases**,
 eu quero **definir quais clientes podem usar cada release e em quais ambientes**,
 para **controlar a distribuição e garantir que clientes recebam apenas versões adequadas ao seu contexto**.
 
@@ -196,9 +198,9 @@ para **controlar a distribuição e garantir que clientes recebam apenas versõe
 - **Atual**: Pipeline gera versão → Desenvolvedor envia mensagem → Release Manager vê a mensagem → Atualiza planilha → Avisa stakeholders.
 - **Desejado**: Pipeline gera versão → Chama API → Sistema atualiza automaticamente → Stakeholders veem em tempo real.
 
-**História:** Como **Release Manager**,
+**História:** Como **gestor de releases**,
 
-eu quero **que a pipeline envie automaticamente os dados da release para a API do Release Manager assim que o MR da versão for aprovado**,
+eu quero **que a pipeline envie automaticamente os dados da release para a API do sistema Release Manager assim que o MR da versão for aprovado pelo engenheiro de software principal**,
 
 para **que a nova release seja registrada com o status inicial de “MR Aprovado”, garantindo rastreabilidade e padronização no processo de versionamento**.
 
