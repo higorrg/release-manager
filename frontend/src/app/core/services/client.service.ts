@@ -103,7 +103,7 @@ export class ClientService {
 
     // Remove controlled client from a release
     removeControlledClient(releaseId: string, clientId: string, environmentId: string): Observable<void> {
-        return this.http.delete<void>(`${this.apiUrl}/${releaseId}/controlled-clients/${clientId}/environments/${environmentId}`, {
+        return this.http.delete<void>(`${this.apiUrl}/${releaseId}/controlled-clients/${clientId}/${environmentId}`, {
             headers: this.getHeaders()
         });
     }

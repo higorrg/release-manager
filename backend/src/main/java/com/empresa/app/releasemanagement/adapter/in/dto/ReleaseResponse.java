@@ -1,6 +1,6 @@
 package com.empresa.app.releasemanagement.adapter.in.dto;
 
-import com.empresa.app.shared.domain.model.Product;
+import com.empresa.app.product.domain.model.Product;
 import com.empresa.app.releasemanagement.domain.model.Release;
 import com.empresa.app.releasemanagement.domain.model.ReleaseStatus;
 import com.empresa.app.releasemanagement.domain.model.ReleaseStatusHistory;

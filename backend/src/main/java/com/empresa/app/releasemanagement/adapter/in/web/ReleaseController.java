@@ -227,6 +227,117 @@ public class ReleaseController {
         }
     }
 
+    @GET
+    @Path("/clients")
+    @Operation(summary = "Listar clientes", description = "Lista todos os clientes disponíveis")
+    public Response getAllClients() {
+        try {
+            List<Client> clients = clientManagementUseCase.findAllClients();
+            
+            List<ClientResponse> response = clients.stream()
+                .map(ClientResponse::from)
+                .collect(Collectors.toList());
+                
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao buscar clientes: " + e.getMessage(), e);
+        }
+    }
+
+    @GET
+    @Path("/environments")
+    @Operation(summary = "Listar ambientes", description = "Lista todos os ambientes disponíveis")
+    public Response getAllEnvironments() {
+        try {
+            List<Environment> environments = clientManagementUseCase.findAllEnvironments();
+            return Response.ok(environments).build();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao buscar ambientes: " + e.getMessage(), e);
+        }
+    }
+
+    @POST
+    @Path("/{releaseId}/controlled-clients")
+    @Operation(summary = "Adicionar cliente controlado", description = "Adiciona um cliente controlado a uma release")
+    @RolesAllowed("admin")
+    public Response addControlledClient(@PathParam("releaseId") String releaseId, 
+                                      AddControlledClientRequest request) {
+        try {
+            UUID id = UUID.fromString(releaseId);
+            var command = new ReleaseClientAssociationUseCase.AddControlledClientCommand(
+                id, 
+                request.clientCode(), 
+                request.environment()
+            );
+            
+            ReleaseClientEnvironment association = releaseClientAssociationUseCase.addControlledClient(command);
+            
+            // Return detailed response instead of basic association
+            Client client = clientManagementUseCase.findClientById(association.getClientId())
+                .orElseThrow(() -> new RuntimeException("Client not found: " + association.getClientId()));
+            Environment environment = clientManagementUseCase.findAllEnvironments().stream()
+                .filter(env -> env.getId().equals(association.getEnvironmentId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Environment not found: " + association.getEnvironmentId()));
+            
+            ControlledClientDetailResponse response = ControlledClientDetailResponse.from(association, client, environment);
+            return Response.status(Response.Status.CREATED).entity(response).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (IllegalStateException e) {
+            return Response.status(Response.Status.CONFLICT).entity(e.getMessage()).build();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao adicionar cliente controlado: " + e.getMessage(), e);
+        }
+    }
+
+    @GET
+    @Path("/{releaseId}/controlled-clients")
+    @Operation(summary = "Listar clientes controlados", description = "Lista os clientes controlados de uma release")
+    public Response getControlledClients(@PathParam("releaseId") String releaseId) {
+        try {
+            UUID id = UUID.fromString(releaseId);
+            List<ReleaseClientEnvironment> controlledClients = releaseClientAssociationUseCase.findControlledClients(id);
+            
+            List<ControlledClientDetailResponse> response = controlledClients.stream()
+                .map(rce -> {
+                    Client client = clientManagementUseCase.findClientById(rce.getClientId())
+                        .orElseThrow(() -> new RuntimeException("Client not found: " + rce.getClientId()));
+                    Environment environment = clientManagementUseCase.findAllEnvironments().stream()
+                        .filter(env -> env.getId().equals(rce.getEnvironmentId()))
+                        .findFirst()
+                        .orElseThrow(() -> new RuntimeException("Environment not found: " + rce.getEnvironmentId()));
+                    return ControlledClientDetailResponse.from(rce, client, environment);
+                })
+                .collect(Collectors.toList());
+            
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao buscar clientes controlados: " + e.getMessage(), e);
+        }
+    }
+
+    @DELETE
+    @Path("/{releaseId}/controlled-clients/{clientId}/{environmentId}")
+    @Operation(summary = "Remover cliente controlado", description = "Remove um cliente controlado de uma release")
+    @RolesAllowed("admin")
+    public Response removeControlledClient(@PathParam("releaseId") String releaseId,
+                                         @PathParam("clientId") String clientId,
+                                         @PathParam("environmentId") String environmentId) {
+        try {
+            UUID relId = UUID.fromString(releaseId);
+            UUID cliId = UUID.fromString(clientId);
+            UUID envId = UUID.fromString(environmentId);
+            
+            releaseClientAssociationUseCase.removeControlledClient(relId, cliId, envId);
+            return Response.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao remover cliente controlado: " + e.getMessage(), e);
+        }
+    }
+
     private ReleaseResponse mapToResponse(Release release) {
         Product product = productRepository.findById(release.getProductId()).orElse(null);
         return ReleaseResponse.from(release, product);

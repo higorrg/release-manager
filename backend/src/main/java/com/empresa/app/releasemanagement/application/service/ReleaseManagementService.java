@@ -6,13 +6,13 @@ import com.empresa.app.releasemanagement.application.port.in.ReleaseClientAssoci
 import com.empresa.app.filemanagement.application.port.in.FileUploadUseCase;
 import com.empresa.app.clientmanagement.application.port.out.ClientRepository;
 import com.empresa.app.clientmanagement.application.port.out.EnvironmentRepository;
-import com.empresa.app.shared.application.port.out.ProductRepository;
+import com.empresa.app.product.application.port.out.ProductRepository;
 import com.empresa.app.releasemanagement.application.port.out.ReleaseClientEnvironmentRepository;
 import com.empresa.app.releasemanagement.application.port.out.ReleaseRepository;
 import com.empresa.app.releasemanagement.application.port.out.ReleaseStatusHistoryRepository;
 import com.empresa.app.clientmanagement.domain.model.Client;
 import com.empresa.app.clientmanagement.domain.model.Environment;
-import com.empresa.app.shared.domain.model.Product;
+import com.empresa.app.product.domain.model.Product;
 import com.empresa.app.releasemanagement.domain.model.Release;
 import com.empresa.app.releasemanagement.domain.model.ReleaseClientEnvironment;
 import com.empresa.app.releasemanagement.domain.model.ReleaseStatus;

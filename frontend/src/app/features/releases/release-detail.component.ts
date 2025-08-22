@@ -744,9 +744,8 @@ export class ReleaseDetailComponent implements OnInit {
       { clientCode: clientCode!, environment: environment! }
     ).subscribe({
       next: (newControlledClient) => {
-        // Add the new client to the existing list without reloading
-        const currentClients = this.controlledClients();
-        this.controlledClients.set([...currentClients, newControlledClient]);
+        // Reload the entire list to ensure data consistency
+        this.loadControlledClients(this.release()!.id);
         this.clientForm.reset();
         this.showAddClient = false;
         this.updating.set(false);
@@ -786,12 +785,8 @@ export class ReleaseDetailComponent implements OnInit {
       environmentId
     ).subscribe({
       next: () => {
-        // Remove the client from the existing list without reloading
-        const currentClients = this.controlledClients();
-        const updatedClients = currentClients.filter(
-          client => !(client.clientId === clientId && client.environmentId === environmentId)
-        );
-        this.controlledClients.set(updatedClients);
+        // Reload the entire list to ensure data consistency
+        this.loadControlledClients(this.release()!.id);
         this.updating.set(false);
       },
       error: (err) => {
