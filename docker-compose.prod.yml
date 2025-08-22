@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17-alpine
+    container_name: release-manager-postgres
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-release_manager}
+      POSTGRES_USER: ${DATABASE_USER:-release_manager}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/postgres-init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+    networks:
+      - release-manager-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-release_manager} -d ${DATABASE_NAME:-release_manager}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: release-manager-keycloak
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-release_manager}
+      KC_DB_USERNAME: ${DATABASE_USER:-release_manager}
+      KC_DB_PASSWORD: ${DATABASE_PASSWORD}
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-localhost}
+      KC_HOSTNAME_PORT: ${KEYCLOAK_PORT:-8080}
+      KC_HOSTNAME_STRICT: true
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+      KC_PROXY: edge
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    ports:
+      - "${KEYCLOAK_PORT:-8080}:8080"
+    volumes:
+      - ./keycloak/realm-config:/opt/keycloak/realm-config:ro
+      - ./keycloak/import-realm.sh:/opt/keycloak/import-realm.sh:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - release-manager-network
+    restart: unless-stopped
+    command: start --optimized
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # Backend Quarkus
+  backend:
+    build:
+      context: ./backend
+      dockerfile: src/main/docker/Dockerfile.jvm
+    container_name: release-manager-backend
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-release_manager}
+      DATABASE_USER: ${DATABASE_USER:-release_manager}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-backend-secret-change-in-production}
+      AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+    ports:
+      - "${BACKEND_PORT:-8081}:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - release-manager-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Frontend Angular with Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        BACKEND_URL: ${BACKEND_URL:-http://localhost:8081}
+        KEYCLOAK_URL: ${KEYCLOAK_URL:-http://localhost:8080}
+    container_name: release-manager-frontend
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - release-manager-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Setup container para inicialização
+  setup:
+    image: curlimages/curl:latest
+    container_name: release-manager-setup
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - release-manager-network
+    volumes:
+      - ./keycloak/import-realm.sh:/setup/import-realm.sh:ro
+      - ./scripts/setup-prod.sh:/setup/setup-prod.sh:ro
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    entrypoint: ["/bin/sh", "/setup/setup-prod.sh"]
+
+volumes:
+  postgres_data:
+    name: release-manager-postgres-data
+
+networks:
+  release-manager-network:
+    name: release-manager-network
+    driver: bridge

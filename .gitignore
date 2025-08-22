@@ -1,16 +1,54 @@
-# Compiled class file
-*.class
+# Release Manager - GitIgnore
 
-# Log file
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.settings
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backend - Java/Maven
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/.mvn/wrapper/maven-wrapper.properties
+backend/mvnw
+backend/mvnw.cmd
+
+# Backend - Quarkus
+backend/.quarkus/
+backend/quarkus.log
+
+# Frontend - Node/Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+frontend/*.log
+
+# Logs
 *.log
+logs/
 
-# BlueJ files
-*.ctxt
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
+# Build artifacts
+*.class
 *.jar
 *.war
 *.nar
@@ -18,18 +56,34 @@
 *.zip
 *.tar.gz
 *.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
 
-target
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
-# IDE
-.idea
-.settings
-.project
-.classpath
+# Temporary files
+tmp/
+temp/
+.mtj.tmp/
+*.ctxt
 
-# Docker
-data
+# Docker/Podman volumes (if not using named volumes)
+volumes/
+data/
+
+# Backup files
+*.bak
+*.backup
+
+# Azure Storage keys (if accidentally committed)
+azure-storage-key.txt
+
+# Keycloak export files (may contain sensitive data)
+keycloak-export.json
+
+# CI/CD secrets
+secrets.yml
+credentials.yml

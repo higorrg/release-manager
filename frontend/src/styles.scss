@@ -1,0 +1,100 @@
+/* Application-wide Styles */
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Material Theme Customizations */
+.mat-toolbar {
+  background: #1976d2 !important;
+  color: white !important;
+}
+
+.mat-card {
+  margin: 16px;
+  border-radius: 8px;
+}
+
+.mat-table {
+  width: 100%;
+}
+
+.mat-header-cell {
+  font-weight: 600;
+}
+
+/* Custom utility classes */
+.full-width {
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-16 {
+  margin-top: 16px;
+}
+
+.mb-16 {
+  margin-bottom: 16px;
+}
+
+.ml-16 {
+  margin-left: 16px;
+}
+
+.mr-16 {
+  margin-right: 16px;
+}
+
+.p-16 {
+  padding: 16px;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.gap-16 {
+  gap: 16px;
+}
+
+/* Status colors */
+.status-mr-aprovado {
+  color: #4caf50;
+}
+
+.status-falha {
+  color: #f44336;
+}
+
+.status-teste {
+  color: #ff9800;
+}
+
+.status-aprovada {
+  color: #4caf50;
+}
+
+.status-disponivel {
+  color: #2196f3;
+}
+
+.status-controlada {
+  color: #9c27b0;
+}
+
+.status-revogada {
+  color: #795548;
+}

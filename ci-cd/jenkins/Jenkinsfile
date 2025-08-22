@@ -1,0 +1,269 @@
+// Jenkinsfile para Release Manager
+// Pipeline declarativo para build, test e deploy
+
+pipeline {
+    agent any
+    
+    // Configuração de ferramentas
+    tools {
+        maven 'Maven-3.9'
+        nodejs 'NodeJS-18'
+        jdk 'JDK-21'
+    }
+    
+    // Variáveis de ambiente
+    environment {
+        RELEASE_MANAGER_API = "${env.RELEASE_MANAGER_URL}/api/pipeline/v1/releases"
+        MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
+        DOCKER_REGISTRY = 'your-registry.com'
+        PRODUCT_NAME = 'Sistema Principal'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    // Definir versão baseada na branch/tag
+                    if (env.TAG_NAME) {
+                        env.VERSION = env.TAG_NAME
+                        env.IS_RELEASE = 'true'
+                    } else {
+                        env.VERSION = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+                        env.IS_RELEASE = 'false'
+                    }
+                }
+            }
+        }
+        
+        stage('Build') {
+            parallel {
+                stage('Build Backend') {
+                    steps {
+                        dir('backend') {
+                            sh 'mvn clean compile'
+                        }
+                    }
+                }
+                
+                stage('Build Frontend') {
+                    steps {
+                        dir('frontend') {
+                            sh 'npm ci'
+                            sh 'npm run build'
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Test') {
+            parallel {
+                stage('Test Backend') {
+                    steps {
+                        dir('backend') {
+                            sh 'mvn test'
+                        }
+                    }
+                    post {
+                        always {
+                            publishTestResults testResultsPattern: 'backend/target/surefire-reports/*.xml'
+                            publishCoverage adapters: [
+                                jacocoAdapter('backend/target/site/jacoco/jacoco.xml')
+                            ], sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+                        }
+                    }
+                }
+                
+                stage('Test Frontend') {
+                    steps {
+                        dir('frontend') {
+                            sh 'npm run test -- --watch=false --browsers=ChromeHeadless'
+                        }
+                    }
+                    post {
+                        always {
+                            publishTestResults testResultsPattern: 'frontend/coverage/junit.xml'
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Quality Analysis') {
+            when {
+                anyOf {
+                    branch 'main'
+                    expression { env.IS_RELEASE == 'true' }
+                }
+            }
+            steps {
+                script {
+                    def scannerHome = tool 'SonarScanner'
+                    withSonarQubeEnv('SonarQube') {
+                        dir('backend') {
+                            sh """
+                                mvn sonar:sonar \
+                                    -Dsonar.projectKey=release-manager-backend \
+                                    -Dsonar.projectVersion=${env.VERSION}
+                            """
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Package') {
+            when {
+                expression { env.IS_RELEASE == 'true' }
+            }
+            parallel {
+                stage('Package Backend') {
+                    steps {
+                        dir('backend') {
+                            sh 'mvn package -DskipTests'
+                            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                        }
+                    }
+                }
+                
+                stage('Package Frontend') {
+                    steps {
+                        dir('frontend') {
+                            sh 'npm run build'
+                            sh "tar -czf release-manager-frontend-${env.VERSION}.tar.gz -C dist ."
+                            archiveArtifacts artifacts: "release-manager-frontend-${env.VERSION}.tar.gz", fingerprint: true
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Build Docker Images') {
+            when {
+                expression { env.IS_RELEASE == 'true' }
+            }
+            steps {
+                script {
+                    // Build backend image
+                    def backendImage = docker.build(
+                        "${DOCKER_REGISTRY}/release-manager-backend:${env.VERSION}",
+                        "-f backend/src/main/docker/Dockerfile.jvm backend"
+                    )
+                    
+                    // Build frontend image
+                    def frontendImage = docker.build(
+                        "${DOCKER_REGISTRY}/release-manager-frontend:${env.VERSION}",
+                        "frontend"
+                    )
+                    
+                    // Push images
+                    docker.withRegistry("https://${DOCKER_REGISTRY}", 'docker-registry-credentials') {
+                        backendImage.push()
+                        backendImage.push('latest')
+                        frontendImage.push()
+                        frontendImage.push('latest')
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to Staging') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    // Deploy para staging usando docker-compose
+                    sshagent(['staging-server-key']) {
+                        sh """
+                            scp docker-compose.prod.yml staging-server:/opt/release-manager/
+                            ssh staging-server 'cd /opt/release-manager && docker-compose pull && docker-compose up -d'
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to Production') {
+            when {
+                expression { env.IS_RELEASE == 'true' }
+            }
+            steps {
+                script {
+                    // Approval manual para produção
+                    input message: "Deploy to production?", ok: "Deploy",
+                          submitterParameter: 'APPROVER'
+                    
+                    echo "Deployment approved by: ${env.APPROVER}"
+                    
+                    // Deploy para produção
+                    sshagent(['production-server-key']) {
+                        sh """
+                            scp docker-compose.prod.yml production-server:/opt/release-manager/
+                            ssh production-server 'cd /opt/release-manager && docker-compose pull && docker-compose up -d'
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Notify Release Manager') {
+            when {
+                expression { env.IS_RELEASE == 'true' }
+            }
+            steps {
+                script {
+                    // Notificar o Release Manager sobre a nova versão
+                    sh """
+                        curl -X POST "${RELEASE_MANAGER_API}" \
+                            -H "Content-Type: application/json" \
+                            -d '{
+                                "productName": "${PRODUCT_NAME}",
+                                "version": "${env.VERSION}"
+                            }'
+                    """
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            // Cleanup
+            cleanWs()
+        }
+        
+        success {
+            script {
+                if (env.IS_RELEASE == 'true') {
+                    slackSend(
+                        channel: '#releases',
+                        color: 'good',
+                        message: "✅ Release ${env.VERSION} deployed successfully to production!"
+                    )
+                }
+            }
+        }
+        
+        failure {
+            script {
+                slackSend(
+                    channel: '#releases',
+                    color: 'danger',
+                    message: "❌ Build failed for ${env.BRANCH_NAME} - ${env.BUILD_URL}"
+                )
+            }
+        }
+        
+        unstable {
+            script {
+                slackSend(
+                    channel: '#releases',
+                    color: 'warning',
+                    message: "⚠️ Build unstable for ${env.BRANCH_NAME} - ${env.BUILD_URL}"
+                )
+            }
+        }
+    }
+}

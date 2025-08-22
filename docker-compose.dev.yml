@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17-alpine
+    container_name: release-manager-postgres-dev
+    environment:
+      POSTGRES_DB: release_manager
+      POSTGRES_USER: release_manager
+      POSTGRES_PASSWORD: release_manager
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - release-manager-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U release_manager -d release_manager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: release-manager-keycloak-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: release_manager
+      KC_DB_PASSWORD: release_manager
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/realm-config:/opt/keycloak/realm-config:ro
+      - ./keycloak/import-realm.sh:/opt/keycloak/import-realm.sh:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - release-manager-network
+    command: start-dev
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # Azurite (Azure Storage Emulator for development)
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: release-manager-azurite-dev
+    ports:
+      - "10000:10000" # Blob service
+      - "10001:10001" # Queue service  
+      - "10002:10002" # Table service
+    volumes:
+      - azurite_data:/data
+    networks:
+      - release-manager-network
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:10000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Setup container para inicialização
+  setup:
+    image: curlimages/curl:latest
+    container_name: release-manager-setup-dev
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      azurite:
+        condition: service_healthy
+    networks:
+      - release-manager-network
+    volumes:
+      - ./keycloak/import-realm.sh:/setup/import-realm.sh:ro
+      - ./scripts/setup-dev.sh:/setup/setup-dev.sh:ro
+    entrypoint: ["/bin/sh", "/setup/setup-dev.sh"]
+
+volumes:
+  postgres_data:
+    name: release-manager-postgres-data-dev
+  azurite_data:
+    name: release-manager-azurite-data-dev
+
+networks:
+  release-manager-network:
+    name: release-manager-network-dev
+    driver: bridge

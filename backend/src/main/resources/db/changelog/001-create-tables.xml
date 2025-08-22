@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.25.xsd">
+
+    <changeSet id="001-create-products-table" author="release-manager">
+        <createTable tableName="products">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="002-create-releases-table" author="release-manager">
+        <createTable tableName="releases">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="release_notes" type="TEXT"/>
+            <column name="prerequisites" type="TEXT"/>
+            <column name="download_url" type="VARCHAR(500)"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint
+            baseTableName="releases"
+            baseColumnNames="product_id"
+            referencedTableName="products"
+            referencedColumnNames="id"
+            constraintName="fk_releases_product_id"/>
+            
+        <addUniqueConstraint
+            tableName="releases"
+            columnNames="product_id,version"
+            constraintName="uk_releases_product_version"/>
+    </changeSet>
+
+    <changeSet id="003-create-clients-table" author="release-manager">
+        <createTable tableName="clients">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="004-create-release-client-environments-table" author="release-manager">
+        <createTable tableName="release_client_environments">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="release_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="environment" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint
+            baseTableName="release_client_environments"
+            baseColumnNames="release_id"
+            referencedTableName="releases"
+            referencedColumnNames="id"
+            constraintName="fk_release_client_environments_release_id"/>
+            
+        <addForeignKeyConstraint
+            baseTableName="release_client_environments"
+            baseColumnNames="client_id"
+            referencedTableName="clients"
+            referencedColumnNames="id"
+            constraintName="fk_release_client_environments_client_id"/>
+            
+        <addUniqueConstraint
+            tableName="release_client_environments"
+            columnNames="release_id,client_id,environment"
+            constraintName="uk_release_client_environment"/>
+    </changeSet>
+
+    <changeSet id="005-create-release-status-history-table" author="release-manager">
+        <createTable tableName="release_status_history">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="release_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="previous_status" type="VARCHAR(50)"/>
+            <column name="new_status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="observation" type="TEXT"/>
+            <column name="changed_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint
+            baseTableName="release_status_history"
+            baseColumnNames="release_id"
+            referencedTableName="releases"
+            referencedColumnNames="id"
+            constraintName="fk_release_status_history_release_id"/>
+    </changeSet>
+
+    <changeSet id="006-create-indexes" author="release-manager">
+        <createIndex tableName="releases" indexName="idx_releases_status">
+            <column name="status"/>
+        </createIndex>
+        
+        <createIndex tableName="releases" indexName="idx_releases_version">
+            <column name="version"/>
+        </createIndex>
+        
+        <createIndex tableName="release_status_history" indexName="idx_release_status_history_release_id">
+            <column name="release_id"/>
+        </createIndex>
+        
+        <createIndex tableName="release_status_history" indexName="idx_release_status_history_changed_at">
+            <column name="changed_at"/>
+        </createIndex>
+        
+        <createIndex tableName="release_client_environments" indexName="idx_release_client_environments_release_id">
+            <column name="release_id"/>
+        </createIndex>
+        
+        <createIndex tableName="release_client_environments" indexName="idx_release_client_environments_client_id">
+            <column name="client_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
