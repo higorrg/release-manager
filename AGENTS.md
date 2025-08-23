@@ -1,36 +1,15 @@
-# Project Guidelines
+# Release Manager - Especificações Simplificadas
 
-## Prompt para geração completa:
+## Sistema
 
-Implemente um sistema chamado ReleaseManager, completo seguindo todas as especificações do arquivo AGENTS.md.
+Release Manager - Sistema para gerenciar o ciclo de vida completo de releases de software.
 
-Foque nas User Stories detalhadas para entender os fluxos de negócio e dores dos usuários.
+## Contexto de Negócio
 
-Use as tecnologias obrigatórias listadas e siga a arquitetura especificada.
+- **Problema**: Gestão manual de releases causa interrupções constantes, falta de visibilidade e ausência de rastreabilidade
+- **Solução**: Sistema automatizado com dashboard em tempo real e integração com pipeline CI/CD
 
-Crie toda a estrutura: backend Quarkus com APIs REST, frontend Angular 18 responsivo, configuração Keycloak com Azure AD, integração Azure Blob Storage, migrações com Liquibase, containerização com Podman Compose, e exemplos de integração CI/CD na documentação.
-
-O sistema deve resolver as dores de negócio descritas nas User Stories, não apenas implementar funcionalidades técnicas.
-
-Documente tudo no arquivo README.md na raiz do projeto para servir de onboarding para desenvolvedores e analistas DevOps.
-
-Compile tudo antes de terminar e certifique-se de que tudo funciona integrado desde o frontend até o banco de dados.
-
---- 
-
-## Contexto do Negócio
-
-O Release Manager é um sistema crítico para gerenciar o ciclo de vida de releases de software em uma empresa de desenvolvimento de software.
-
-### Problemas Atuais
-
-- **Falta de visibilidade**: Stakeholders interrompem constantemente o trabalho perguntando sobre status de releases
-- **Processo manual**: Release Manager perde tempo atualizando status e enviando relatórios
-- **Sem rastreabilidade**: Não há histórico de quem mudou o quê e quando
-- **Integração inexistente**: Pipeline gera releases mas não notifica o sistema de gestão
-- **Distribuição legada**: Pacotes são enviados por um sistema legado para clientes.
-
-### Stakeholders
+## Stakeholders
 
 - **Gestor de Release**: Pessoa responsável por coordenar todas as releases.
 - **Dev Team**: Equipe de desenvolvimento que aprova MRs e gera versões.
@@ -299,188 +278,113 @@ para **atualizar meu ambiente**.
 
 ---
 
-## Especificações Técnicas Obrigatórias
+## Stack Tecnológica
 
-### Tecnologias Não-Negociáveis
+### Backend
 
-- **Backend**: Java 21 + Quarkus 3.24.3.
-- **Liquibase**: Disponível no Quarkus.
-- **Frontend**: Angular 18+ com Standalone Components.
-- **Autenticação**: Keycloak + Azure AD.
-- **Storage**: Azure Blob Storage.
-- **Database**: PostgreSQL 17.
-- **Containerização**: Podman + Podman Compose (política de compliance - não Docker).
+- **Java 21 + Quarkus 3.24.3**
+- **PostgreSQL 17** com Liquibase
+- **Arquitetura hexagonal** (package-by-feature)
+- **Azure Blob Storage** para armazenamento de pacotes
 
-### Integrações
+### Frontend
 
-- **Azure Blob Storage**: Container "releases".
-- **Keycloak**: Criar realm novo com importação automática. 
-- **Pipeline CI/CD**: Viabilizar Gitlab CI e scrips groovy e bash.
+- **Angular 18+** com Standalone Components
+- **NG-Zorro** (Ant Design)
+- **Signals** para gerenciamento de estado
+- **OnPush** change detection
 
-### Autenticação
+### Infraestrutura
 
-* A autenticação deverá ser realizada por Keycloak.
-* Criar todos os artefatos necessários para configurar o Keycloak.
-* A URL do AzureAD para o keycloak é: https://example.com
+- **Keycloak** para autenticação
+- **Podman + Podman Compose** (sem Docker)
+- **Nginx** para servir frontend em produção
 
-### Compliance e Segurança
+## Arquitetura Backend (Quarkus)
 
-- **Histórico Imutável**: Mudanças de status são append-only
-- **Autenticação Obrigatória**: Todos endpoints protegidos
-- **Logs Estruturados**: Para auditoria e monitoramento
-- **Retenção de Dados**: Mínimo 5 anos para auditorias
-
-### Ambiente de Desenvolvimento
-
-- Apenas PostgreSQL + Keycloak em containers
-- Backend e Frontend executam nativamente
-- Hot reload habilitado
-
-### Ambiente de Produção
-
-- Stack completa em containers Podman
-- Nginx para servir frontend
-- Health checks e monitoramento
-- Backup automático do banco
-
-## Desenvolvimento do Backend
-
-### Persona
-
-Você é um desenvolvedor Java moderno, utilizando **Java 21** com **Quarkus** para construir aplicações reativas, eficientes e com boot ultrarrápido. Você aplica **arquitetura hexagonal** com forte coesão por feature e baixa 
-acoplamento entre camadas. Você preza por legibilidade, testes fáceis, e responsabilidade única. Cada feature é isolada com seus próprios ports, use cases, domain model e adapters.
-
-### Estrutura de Pacotes
-
-Use **package-by-feature**, estruturando cada feature assim:
+**A arquitetura do backend é Hexagonal.**
 
 ```
-src/main/java/com/empresa/app/feature-x/
-├── application/
-│   ├── port/
-│   │   ├── in/        --> Interfaces dos casos de uso (entrada)
-│   │   └── out/       --> Interfaces dos gateways (saída)
-│   └── service/       --> Implementações dos casos de uso
-├── domain/
-│   ├── model/         --> Entidades, Value Objects
-│   └── event/         --> Eventos de domínio (opcional)
-├── adapter/
-│   ├── in/            --> REST, Messaging, etc. (entrada)
-│   └── out/           --> Banco de dados, APIs externas (saída)
-└── config/            --> Configuration específica da feature
+src/main/java/com/empresa/releasemanager/
+├── release/
+│   ├── application/
+│   │   ├── port/in/          → ReleaseUseCase
+│   │   ├── port/out/         → ReleaseRepository
+│   │   └── service/          → ReleaseService
+│   ├── domain/model/         → Release, ReleaseStatus
+│   └── adapter/
+│       ├── in/               → ReleaseRestResource
+│       └── out/              → ReleaseJpaRepository
+├── client/                   → Similar structure
+└── integration/              → Pipeline integration
 ```
-
-### 🧱 Arquitetura Hexagonal
-
-* Os **casos de uso** ficam em `application.service`
-* As **interfaces (ports)** ficam em `application.port.in` (entrada) e `application.port.out` (saída)
-* Os **adaptadores (adapters)** implementam os ports
-* O **domínio** não conhece nada fora dele
-
-### 📦 Modularização
-
-* Evite `package com.empresa.app.service`, use `com.empresa.app.agendamento.application.service`
-* Facilita coesão, testes, e localização de código
-* Nunca use nested classes, sempre crie um arquivo para cada classe.
-* Sempre utiliza princípios e práticas de Clean Code.
-* Sempre utiliza SOLID:
-  * [Single Responsibility Principle](https://stackify.com/solid-design-principles/): A class should have one, and only one, reason to change.
-  * [Open/Closed Principle](https://stackify.com/solid-design-open-closed-principle/): Software entities (classes, modules, functions, etc.) should be open for extension, but closed for modification.
-  * [Liskov Substitution Principle](https://stackify.com/solid-design-liskov-substitution-principle/): Objects of a superclass shall be replaceable with objects of its subclasses without breaking the application.
-  * [Interface Segregation Principle](https://stackify.com/interface-segregation-principle/): Clients should not be forced to depend upon interfaces that they do not use.
-  * [Dependency Inversion](https://stackify.com/dependency-inversion-principle/): High-level modules, which provide complex logic, should be easily reusable and unaffected by changes in low-level modules, which provide utility features.
-
-### ✍️ Código
-
-* Use **Java Records** para DTOs e Value Objects
-* Use `Objects.isNull()` e `Objects.nonNull()` ao invés de `== null`
-* Use `Optional` para retornos nulos, evite `null`
-* Use `@Inject` do CDI ao invés de `@Autowired`
-* Use `sealed`, `record`, `var` e outros recursos do Java 21
-
-### 🧪 Testes
-
-* Testes unitários para `application.service.*`
-* Testes de integração para `adapter.*`
-* Use `@QuarkusTest` para testar a integração completa
-* Use `Testcontainers` para dependências como banco de dados
-
-### Boas Práticas com Quarkus
-
-* Use `@RestPath` e `@RestQuery` para endpoints REST.
-* Prefira o `PanacheRepository` apenas em adapters.
-* Use `@Transactional` apenas nos adapters (não em use cases).
-* Use configuração via `application.properties`.
-* Para agendamento, use `@Scheduled`.
-* Sempre crie endpoints REST específicos, nunca reuse endpoints destinados a frontend, em integrações com outros sistemas.
-* Versione as APIs por URL.
 
 ### Naming Conventions
 
-| Camada        | Sufixo/Padrão                |
-| ------------- | ---------------------------- |
-| Port In       | `XxxUseCase`                 |
-| Port Out      | `XxxRepository`, `XxxClient` |
-| Use Case Impl | `XxxService`                 |
-| Adapter In    | `XxxRestResource`            |
-| Adapter Out   | `XxxRestClient`, `XxxJpa`    |
-| Model         | `Xxx`, `XxxId`, `XxxEvent`   |
+- **Ports In**: `XxxUseCase`
+- **Ports Out**: `XxxRepository`, `XxxClient`
+- **Services**: `XxxService`
+- **REST**: `XxxRestResource`
+- **JPA**: `XxxJpaRepository`
 
-### Recursos Úteis
+## Arquitetura Frontend (Angular)
 
-* [Quarkus Guides](https://quarkus.io/guides/)
-* [Java 21 Features](https://openjdk.org/projects/jdk/21/)
-* [Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/)
-* [Ports and Adapters com Quarkus](https://quarkus.io/blog/ports-and-adapters/)
+```
+src/app/
+├── features/
+│   ├── releases/
+│   ├── clients/
+│   └── dashboard/
+├── shared/
+│   ├── components/
+│   ├── services/
+│   └── models/
+└── core/
+    ├── auth/
+    └── api/
+```
 
----
+## Padrões de Código
 
-## Desenvolvimento do Frontend
+### Java/Quarkus
 
-- You are an expert in TypeScript, Angular, and scalable web application development. You write maintainable, performant, and accessible code following Angular and TypeScript best practices.
-- Use NG-Zorro component library based on Ant Design
+- Java Records para DTOs
+- `Optional` ao invés de null
+- `@Inject` (CDI) ao invés de `@Autowired`
+- `@RestPath`/`@RestQuery` para REST
+- `@Transactional` apenas em adapters
 
-### TypeScript Best Practices
+### Angular/TypeScript
 
-- Use strict type checking
-- Prefer type inference when the type is obvious
-- Avoid the `any` type; use `unknown` when type is uncertain
+- Standalone components (sem NgModules)
+- `input()`/`output()` functions
+- `computed()` para estado derivado
+- Control flow nativo (`@if`, `@for`, `@switch`)
+- `inject()` ao invés de constructor injection
 
-### Angular Best Practices
+## Ambientes
 
-- Always use standalone components over NgModules
-- Do NOT set `standalone: true` inside the `@Component`, `@Directive` and `@Pipe` decorators
-- Use signals for state management
-- Implement lazy loading for feature routes
-- Use `NgOptimizedImage` for all static images.
-- Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
+### Desenvolvimento
 
-### Components
+- PostgreSQL + Keycloak em containers
+- Backend/Frontend executam nativamente
+- Hot reload habilitado
 
-- Keep components small and focused on a single responsibility
-- Use `input()` and `output()` functions instead of decorators
-- Use `computed()` for derived state
-- Set `changeDetection: ChangeDetectionStrategy.OnPush` in `@Component` decorator
-- Prefer inline templates for small components
-- Prefer Reactive forms instead of Template-driven ones
-- Do NOT use `ngClass`, use `class` bindings instead
-- DO NOT use `ngStyle`, use `style` bindings instead
+### Produção
 
-### State Management
+- Stack completa containerizada
+- Health checks e monitoramento
+- Backup automático
 
-- Use signals for local component state
-- Use `computed()` for derived state
-- Keep state transformations pure and predictable
-- Do NOT use `mutate` on signals, use `update` or `set` instead
+## Integrações
 
-### Templates
+- **Azure AD**: [https://example.com](https://example.com)
+- **Pipeline CI/CD**: GitLab CI com scripts Groovy/Bash
+- **Azure Blob Storage**: Container "releases"
 
-- Keep templates simple and avoid complex logic
-- Use native control flow (`@if`, `@for`, `@switch`) instead of `*ngIf`, `*ngFor`, `*ngSwitch`
-- Use the async pipe to handle observables
+## Compliance
 
-### Services
-
-- Design services around a single responsibility
-- Use the `providedIn: 'root'` option for singleton services
-- Use the `inject()` function instead of constructor injection
+- Logs estruturados para auditoria
+- Histórico imutável de mudanças
+- Todos endpoints protegidos por autenticação
+- Retenção de dados por 5+ anos

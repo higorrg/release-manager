@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+    <changeSet id="001-insert-sample-clients" author="system">
+        <insert tableName="clients">
+            <column name="client_code" value="EMPRESA_A"/>
+            <column name="company_name" value="Empresa A Ltda"/>
+            <column name="contact_email" value="contato@empresaa.com"/>
+            <column name="contact_phone" value="+55 11 1234-5678"/>
+            <column name="is_active" valueBoolean="true"/>
+            <column name="is_beta_partner" valueBoolean="true"/>
+            <column name="notes" value="Cliente parceiro para testes beta"/>
+        </insert>
+        
+        <insert tableName="clients">
+            <column name="client_code" value="EMPRESA_B"/>
+            <column name="company_name" value="Empresa B S.A."/>
+            <column name="contact_email" value="ti@empresab.com"/>
+            <column name="contact_phone" value="+55 21 9876-5432"/>
+            <column name="is_active" valueBoolean="true"/>
+            <column name="is_beta_partner" valueBoolean="false"/>
+            <column name="notes" value="Cliente produção padrão"/>
+        </insert>
+
+        <insert tableName="clients">
+            <column name="client_code" value="EMPRESA_C"/>
+            <column name="company_name" value="Empresa C Corp"/>
+            <column name="contact_email" value="sistemas@empresac.com"/>
+            <column name="contact_phone" value="+55 11 5555-0000"/>
+            <column name="is_active" valueBoolean="true"/>
+            <column name="is_beta_partner" valueBoolean="true"/>
+            <column name="notes" value="Cliente premium com acesso antecipado"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="002-insert-sample-releases" author="system">
+        <insert tableName="releases">
+            <column name="product_name" value="Sistema Principal"/>
+            <column name="version" value="8.5.0"/>
+            <column name="version_type" value="KIT"/>
+            <column name="status" value="DISPONIVEL"/>
+            <column name="branch_name" value="release/8.5.0"/>
+            <column name="commit_hash" value="abc123456789"/>
+            <column name="release_notes" value="Nova versão com recursos avançados de relatórios e dashboard atualizado"/>
+            <column name="prerequisites" value="Java 21, PostgreSQL 14+"/>
+            <column name="created_by" value="sistema"/>
+        </insert>
+        
+        <insert tableName="releases">
+            <column name="product_name" value="Sistema Principal"/>
+            <column name="version" value="8.4.9"/>
+            <column name="version_type" value="PATCH"/>
+            <column name="status" value="DISPONIVEL"/>
+            <column name="branch_name" value="hotfix/8.4.9"/>
+            <column name="commit_hash" value="def987654321"/>
+            <column name="release_notes" value="Correção crítica de segurança"/>
+            <column name="prerequisites" value="Java 21, PostgreSQL 14+"/>
+            <column name="created_by" value="sistema"/>
+        </insert>
+
+        <insert tableName="releases">
+            <column name="product_name" value="Sistema Principal"/>
+            <column name="version" value="9.0.0-beta"/>
+            <column name="version_type" value="KIT"/>
+            <column name="status" value="CONTROLADA"/>
+            <column name="branch_name" value="release/9.0.0-beta"/>
+            <column name="commit_hash" value="ghi456789123"/>
+            <column name="release_notes" value="Versão beta com nova arquitetura de microserviços"/>
+            <column name="prerequisites" value="Java 21, PostgreSQL 15+, Redis"/>
+            <column name="created_by" value="sistema"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="003-insert-sample-client-environments" author="system">
+        <!-- Release 8.5.0 para todos os clientes em produção -->
+        <insert tableName="release_client_environments">
+            <column name="release_id" valueComputed="(SELECT id FROM releases WHERE version = '8.5.0')"/>
+            <column name="client_code" value="EMPRESA_A"/>
+            <column name="environment" value="PRODUCAO"/>
+        </insert>
+        
+        <insert tableName="release_client_environments">
+            <column name="release_id" valueComputed="(SELECT id FROM releases WHERE version = '8.5.0')"/>
+            <column name="client_code" value="EMPRESA_B"/>
+            <column name="environment" value="PRODUCAO"/>
+        </insert>
+
+        <insert tableName="release_client_environments">
+            <column name="release_id" valueComputed="(SELECT id FROM releases WHERE version = '8.5.0')"/>
+            <column name="client_code" value="EMPRESA_C"/>
+            <column name="environment" value="PRODUCAO"/>
+        </insert>
+
+        <!-- Release 8.4.9 para todos os clientes em produção (patch crítico) -->
+        <insert tableName="release_client_environments">
+            <column name="release_id" valueComputed="(SELECT id FROM releases WHERE version = '8.4.9')"/>
+            <column name="client_code" value="EMPRESA_A"/>
+            <column name="environment" value="PRODUCAO"/>
+        </insert>
+        
+        <insert tableName="release_client_environments">
+            <column name="release_id" valueComputed="(SELECT id FROM releases WHERE version = '8.4.9')"/>
+            <column name="client_code" value="EMPRESA_B"/>
+            <column name="environment" value="PRODUCAO"/>
+        </insert>
+
+        <insert tableName="release_client_environments">
+            <column name="release_id" valueComputed="(SELECT id FROM releases WHERE version = '8.4.9')"/>
+            <column name="client_code" value="EMPRESA_C"/>
+            <column name="environment" value="PRODUCAO"/>
+        </insert>
+
+        <!-- Release 9.0.0-beta apenas para parceiros beta em homologação -->
+        <insert tableName="release_client_environments">
+            <column name="release_id" valueComputed="(SELECT id FROM releases WHERE version = '9.0.0-beta')"/>
+            <column name="client_code" value="EMPRESA_A"/>
+            <column name="environment" value="HOMOLOGACAO"/>
+        </insert>
+
+        <insert tableName="release_client_environments">
+            <column name="release_id" valueComputed="(SELECT id FROM releases WHERE version = '9.0.0-beta')"/>
+            <column name="client_code" value="EMPRESA_C"/>
+            <column name="environment" value="HOMOLOGACAO"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

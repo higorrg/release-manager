@@ -1,8 +1,13 @@
-# Compiled class file
+# ========================================
+# Java Backend
+# ========================================
+
+# Compiled class files
 *.class
 
-# Log file
+# Log files
 *.log
+logs/
 
 # BlueJ files
 *.ctxt
@@ -10,7 +15,7 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.nar
@@ -19,17 +24,241 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Virtual machine crash logs
 hs_err_pid*
 replay_pid*
 
-target
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
-# IDE
-.idea
-.settings
+# Gradle
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Spring Boot
+spring-boot-*.log
+application-*.yml
+application-*.yaml
+application-*.properties
+!application.yml
+!application.yaml
+!application.properties
+
+# ========================================
+# Angular Frontend
+# ========================================
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Compiled output
+dist/
+tmp/
+out-tsc/
+bazel-out/
+
+# Node.js Tools for Visual Studio
+.ntvs_analysis.dat
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.development
+.env.production
+
+# Angular specific
+.angular/
+
+# ========================================
+# IDE & Editors
+# ========================================
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Eclipse
 .project
 .classpath
+.settings/
+bin/
+.metadata
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*~
+*.swp
+*.swo
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ========================================
+# OS Generated Files
+# ========================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ========================================
+# Database & Data
+# ========================================
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# H2 Database
+*.h2.db
+*.trace.db
+*.lock.db
 
 # Docker
-data
+data/
+
+# ========================================
+# Security & Secrets
+# ========================================
+
+# Secrets and credentials
+*.pem
+*.key
+*.p12
+*.jks
+secrets.yml
+secrets.yaml
+secrets.properties
+
+# SSL certificates
+*.crt
+*.cer
+
+# ========================================
+# Testing
+# ========================================
+
+# JUnit
+TEST-*.xml
+
+# TestNG
+test-output/
+
+# Karma
+karma.conf.js
+
+# Protractor
+protractor.conf.js
+
+# ========================================
+# Documentation
+# ========================================
+
+# Generated documentation
+javadoc/
+docs/build/
+
+# ========================================
+# Backup & Temporary Files
+# ========================================
+
+*.bak
+*.tmp
+*.temp
+*~
+*.orig

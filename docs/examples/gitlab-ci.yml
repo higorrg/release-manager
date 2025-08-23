@@ -1,0 +1,154 @@
+# Example GitLab CI/CD Pipeline Integration with Release Manager
+# Place this in your project's .gitlab-ci.yml file
+
+stages:
+  - build
+  - test
+  - version
+  - release-register
+  - deploy
+
+variables:
+  RELEASE_MANAGER_API_URL: "http://release-manager-backend:8080"
+  PRODUCT_NAME: "Sistema Principal"
+
+# Build stage
+build:
+  stage: build
+  script:
+    - mvn clean compile
+  artifacts:
+    paths:
+      - target/
+    expire_in: 1 hour
+
+# Test stage
+test:
+  stage: test
+  script:
+    - mvn test
+  coverage: '/Total.*?(\d+\.\d+)%/'
+
+# Version stage (only on version branches)
+create-version:
+  stage: version
+  script:
+    - |
+      if [[ $CI_COMMIT_REF_NAME =~ ^(release|hotfix)/.* ]]; then
+        VERSION=$(echo $CI_COMMIT_REF_NAME | sed 's/.*\///')
+        echo "Creating version: $VERSION"
+        
+        # Build the application
+        mvn clean package -DskipTests
+        
+        # Generate package
+        cp target/*.jar release-package/
+        tar -czf ${PRODUCT_NAME}-${VERSION}.tar.gz release-package/
+        
+        echo "VERSION=$VERSION" > version.env
+        echo "PACKAGE_FILE=${PRODUCT_NAME}-${VERSION}.tar.gz" >> version.env
+      else
+        echo "Not a version branch, skipping version creation"
+      fi
+  artifacts:
+    reports:
+      dotenv: version.env
+    paths:
+      - "*.tar.gz"
+    expire_in: 1 week
+  only:
+    - /^release\/.*$/
+    - /^hotfix\/.*$/
+
+# Register release in Release Manager (after MR approval)
+register-release:
+  stage: release-register
+  script:
+    - |
+      # Determine version type
+      if [[ $CI_COMMIT_REF_NAME =~ ^release/.* ]]; then
+        if [[ $VERSION =~ ^[0-9]+\.0\.0$ ]]; then
+          VERSION_TYPE="KIT"
+        else
+          VERSION_TYPE="SERVICE_PACK"
+        fi
+      elif [[ $CI_COMMIT_REF_NAME =~ ^hotfix/.* ]]; then
+        VERSION_TYPE="PATCH"
+      fi
+      
+      echo "Registering release: $PRODUCT_NAME $VERSION ($VERSION_TYPE)"
+      
+      # Call Release Manager API
+      curl -X POST "$RELEASE_MANAGER_API_URL/api/releases" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $PIPELINE_TOKEN" \
+        -d "{
+          \"productName\": \"$PRODUCT_NAME\",
+          \"version\": \"$VERSION\",
+          \"versionType\": \"$VERSION_TYPE\",
+          \"branchName\": \"$CI_COMMIT_REF_NAME\",
+          \"commitHash\": \"$CI_COMMIT_SHA\"
+        }"
+      
+      echo "Release registered successfully"
+  dependencies:
+    - create-version
+  only:
+    - /^release\/.*$/
+    - /^hotfix\/.*$/
+  when: manual
+
+# Upload package to Release Manager
+upload-package:
+  stage: release-register
+  script:
+    - |
+      echo "Uploading package for $PRODUCT_NAME $VERSION"
+      
+      curl -X POST "$RELEASE_MANAGER_API_URL/api/packages/upload/$PRODUCT_NAME/$VERSION" \
+        -H "Authorization: Bearer $PIPELINE_TOKEN" \
+        -F "file=@$PACKAGE_FILE" \
+        -F "fileName=$PACKAGE_FILE" \
+        -F "fileSize=$(stat -f%z $PACKAGE_FILE 2>/dev/null || stat -c%s $PACKAGE_FILE)"
+      
+      echo "Package uploaded successfully"
+  dependencies:
+    - create-version
+    - register-release
+  only:
+    - /^release\/.*$/
+    - /^hotfix\/.*$/
+  when: manual
+
+# Update status based on deployment results
+update-build-status:
+  stage: deploy
+  script:
+    - |
+      # Update status based on build success/failure
+      if [ "$CI_JOB_STATUS" == "success" ]; then
+        NEW_STATUS="PARA_TESTE_SISTEMA"
+        REASON="Build completed successfully"
+      else
+        NEW_STATUS="FALHA_BUILD_TESTE"
+        REASON="Build failed: $CI_JOB_FAILURE_REASON"
+      fi
+      
+      # Get release ID (you might need to implement a search endpoint)
+      RELEASE_ID=$(curl -s "$RELEASE_MANAGER_API_URL/api/releases/product/$PRODUCT_NAME/version/$VERSION" \
+        -H "Authorization: Bearer $PIPELINE_TOKEN" | jq -r '.id')
+      
+      # Update status
+      curl -X PUT "$RELEASE_MANAGER_API_URL/api/releases/$RELEASE_ID/status" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $PIPELINE_TOKEN" \
+        -d "{
+          \"newStatus\": \"$NEW_STATUS\",
+          \"reason\": \"$REASON\"
+        }"
+  dependencies:
+    - register-release
+  when: always
+  only:
+    - /^release\/.*$/
+    - /^hotfix\/.*$/

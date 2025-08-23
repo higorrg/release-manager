@@ -1,0 +1,88 @@
+quarkus:
+  application:
+    name: release-manager
+  
+  datasource:
+    db-kind: postgresql
+    username: ${DB_USER:releasemanager}
+    password: ${DB_PASSWORD:releasemanager123}
+    jdbc:
+      url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:releasemanager}
+      max-size: 16
+      min-size: 4
+
+  hibernate-orm:
+    database:
+      generation: none
+    log:
+      sql: false
+
+  liquibase:
+    migrate-at-start: true
+    change-log: db/changelog/db.changelog-master.xml
+
+  oidc:
+    auth-server-url: ${KEYCLOAK_URL:http://localhost:8180}/realms/${KEYCLOAK_REALM:releasemanager}
+    client-id: ${KEYCLOAK_CLIENT_ID:release-manager-backend}
+    credentials:
+      secret: ${KEYCLOAK_CLIENT_SECRET:secret}
+    application-type: service
+    
+  http:
+    port: ${PORT:8080}
+    cors:
+      origins: ${CORS_ORIGINS:http://localhost:4200}
+      headers: accept,authorization,content-type,x-requested-with
+      methods: GET,PUT,POST,DELETE,OPTIONS,HEAD
+
+  log:
+    level: INFO
+    category:
+      "com.empresa.releasemanager": DEBUG
+    console:
+      enable: true
+      format: "%d{HH:mm:ss} %-5p [%c{2.}] (%t) %s%e%n"
+      
+  smallrye-openapi:
+    info-title: Release Manager API
+    info-version: 1.0.0
+    info-description: API para gerenciamento do ciclo de vida de releases de software
+    servers: http://localhost:8080
+
+  micrometer:
+    binder-enabled: true
+    registry-enabled-default: true
+    export:
+      prometheus:
+        enabled: true
+
+# Azure Storage
+azure:
+  storage:
+    account-name: ${AZURE_STORAGE_ACCOUNT_NAME:devstorageaccount1}
+    account-key: ${AZURE_STORAGE_ACCOUNT_KEY:Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==}
+    container-name: ${AZURE_STORAGE_CONTAINER:releases}
+
+# Development profile
+"%dev":
+  quarkus:
+    datasource:
+      jdbc:
+        url: jdbc:postgresql://localhost:5432/releasemanager
+    log:
+      category:
+        "com.empresa.releasemanager": DEBUG
+        liquibase: INFO
+
+# Test profile  
+"%test":
+  quarkus:
+    datasource:
+      db-kind: h2
+      username: sa
+      password: sa
+      jdbc:
+        url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    liquibase:
+      migrate-at-start: true
+      clean-at-start: true

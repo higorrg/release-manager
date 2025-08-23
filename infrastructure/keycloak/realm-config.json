@@ -1,0 +1,294 @@
+{
+  "id": "releasemanager",
+  "realm": "releasemanager",
+  "displayName": "Release Manager",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": false,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 30,
+  "defaultRoles": ["offline_access", "uma_authorization"],
+  "requiredCredentials": ["password"],
+  "passwordPolicy": "length(8) and digits(1) and lowerCase(1) and upperCase(1)",
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyInitialCounter": 0,
+  "otpPolicyDigits": 6,
+  "otpPolicyLookAheadWindow": 1,
+  "otpPolicyPeriod": 30,
+  "smtpServer": {},
+  "eventsEnabled": true,
+  "eventsListeners": ["jboss-logging"],
+  "enabledEventTypes": [
+    "SEND_RESET_PASSWORD",
+    "UPDATE_CONSENT_ERROR",
+    "GRANT_CONSENT",
+    "REMOVE_TOTP",
+    "REVOKE_GRANT",
+    "UPDATE_TOTP",
+    "LOGIN_ERROR",
+    "CLIENT_LOGIN",
+    "RESET_PASSWORD_ERROR",
+    "IMPERSONATE_ERROR",
+    "CODE_TO_TOKEN_ERROR",
+    "CUSTOM_REQUIRED_ACTION",
+    "RESTART_AUTHENTICATION",
+    "IMPERSONATE",
+    "UPDATE_PROFILE_ERROR",
+    "LOGIN",
+    "UPDATE_PASSWORD_ERROR",
+    "CLIENT_INITIATED_ACCOUNT_LINKING",
+    "TOKEN_EXCHANGE",
+    "LOGOUT",
+    "REGISTER",
+    "CLIENT_REGISTER",
+    "IDENTITY_PROVIDER_LOGIN",
+    "UPDATE_PASSWORD",
+    "FEDERATED_IDENTITY_LINK",
+    "CLIENT_DELETE",
+    "IDENTITY_PROVIDER_FIRST_LOGIN",
+    "VERIFY_EMAIL",
+    "CLIENT_DELETE_ERROR",
+    "CLIENT_LOGIN_ERROR",
+    "RESTART_AUTHENTICATION_ERROR",
+    "EXECUTE_ACTIONS",
+    "REMOVE_FEDERATED_IDENTITY_ERROR",
+    "TOKEN_EXCHANGE_ERROR",
+    "PERMISSION_TOKEN",
+    "SEND_IDENTITY_PROVIDER_LINK_ERROR",
+    "EXECUTE_ACTION_TOKEN_ERROR",
+    "SEND_VERIFY_EMAIL",
+    "EXECUTE_ACTIONS_ERROR",
+    "REMOVE_FEDERATED_IDENTITY",
+    "IDENTITY_PROVIDER_POST_LOGIN",
+    "IDENTITY_PROVIDER_LINK_ACCOUNT",
+    "UPDATE_EMAIL",
+    "REGISTER_ERROR",
+    "REVOKE_GRANT_ERROR",
+    "LOGOUT_ERROR",
+    "UPDATE_EMAIL_ERROR",
+    "CLIENT_UPDATE_ERROR",
+    "UPDATE_PROFILE",
+    "CLIENT_REGISTER_ERROR",
+    "FEDERATED_IDENTITY_LINK_ERROR",
+    "SEND_IDENTITY_PROVIDER_LINK",
+    "SEND_VERIFY_EMAIL_ERROR",
+    "RESET_PASSWORD",
+    "CLIENT_INITIATED_ACCOUNT_LINKING_ERROR",
+    "UPDATE_CONSENT",
+    "REMOVE_TOTP_ERROR",
+    "VERIFY_EMAIL_ERROR",
+    "SEND_RESET_PASSWORD_ERROR",
+    "CLIENT_UPDATE",
+    "CUSTOM_REQUIRED_ACTION_ERROR",
+    "IDENTITY_PROVIDER_POST_LOGIN_ERROR",
+    "UPDATE_TOTP_ERROR",
+    "CODE_TO_TOKEN",
+    "IDENTITY_PROVIDER_LOGIN_ERROR",
+    "IDENTITY_PROVIDER_LINK_ACCOUNT_ERROR",
+    "PERMISSION_TOKEN_ERROR"
+  ],
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Administrator role"
+      },
+      {
+        "name": "release-manager",
+        "description": "Release Manager role"
+      },
+      {
+        "name": "qa",
+        "description": "QA Team role"
+      },
+      {
+        "name": "dev",
+        "description": "Development Team role"
+      },
+      {
+        "name": "viewer",
+        "description": "View-only access role"
+      },
+      {
+        "name": "pipeline",
+        "description": "Pipeline/System integration role"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "admin",
+      "firstName": "Admin",
+      "lastName": "User",
+      "email": "admin@empresa.com",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["admin", "release-manager"],
+      "clientRoles": {
+        "account": ["manage-account", "view-profile"]
+      }
+    },
+    {
+      "username": "release.manager",
+      "firstName": "Release",
+      "lastName": "Manager",
+      "email": "release.manager@empresa.com",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "manager123",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["release-manager"],
+      "clientRoles": {
+        "account": ["manage-account", "view-profile"]
+      }
+    },
+    {
+      "username": "qa.analyst",
+      "firstName": "QA",
+      "lastName": "Analyst",
+      "email": "qa.analyst@empresa.com",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "qa123",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["qa"],
+      "clientRoles": {
+        "account": ["manage-account", "view-profile"]
+      }
+    },
+    {
+      "username": "developer",
+      "firstName": "Software",
+      "lastName": "Developer", 
+      "email": "developer@empresa.com",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "dev123",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["dev"],
+      "clientRoles": {
+        "account": ["manage-account", "view-profile"]
+      }
+    },
+    {
+      "username": "pipeline",
+      "firstName": "Pipeline",
+      "lastName": "System",
+      "email": "pipeline@empresa.com",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "pipeline123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["pipeline"],
+      "clientRoles": {
+        "account": ["manage-account", "view-profile"]
+      }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "release-manager-backend",
+      "name": "Release Manager Backend",
+      "description": "Backend API for Release Manager",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "fullScopeAllowed": true
+    },
+    {
+      "clientId": "release-manager-frontend",
+      "name": "Release Manager Frontend",
+      "description": "Frontend SPA for Release Manager",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "http://frontend/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200",
+        "http://frontend"
+      ],
+      "defaultRoles": ["viewer"],
+      "fullScopeAllowed": true
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "azure-ad",
+      "providerId": "oidc",
+      "enabled": true,
+      "updateProfileFirstLogin": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${AZURE_AD_CLIENT_ID:your-azure-ad-client-id}",
+        "clientSecret": "${AZURE_AD_CLIENT_SECRET:your-azure-ad-client-secret}",
+        "authorizationUrl": "https://login.microsoftonline.com/${AZURE_AD_TENANT_ID:your-tenant-id}/oauth2/v2.0/authorize",
+        "tokenUrl": "https://login.microsoftonline.com/${AZURE_AD_TENANT_ID:your-tenant-id}/oauth2/v2.0/token",
+        "userInfoUrl": "https://graph.microsoft.com/oidc/userinfo",
+        "jwksUrl": "https://login.microsoftonline.com/${AZURE_AD_TENANT_ID:your-tenant-id}/discovery/v2.0/keys",
+        "issuer": "https://login.microsoftonline.com/${AZURE_AD_TENANT_ID:your-tenant-id}/v2.0",
+        "validateSignature": "true",
+        "useJwksUrl": "true",
+        "guiOrder": "1",
+        "syncMode": "IMPORT"
+      }
+    }
+  ]
+}

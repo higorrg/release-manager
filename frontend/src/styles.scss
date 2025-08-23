@@ -1,0 +1,92 @@
+/* You can add global styles to this file, and also import other style files */
+
+// Custom theme variables for ng-zorro-antd
+:root {
+  --ant-primary-color: #1890ff;
+  --ant-success-color: #52c41a;
+  --ant-warning-color: #faad14;
+  --ant-error-color: #f5222d;
+}
+
+// Global styles
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol';
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.85);
+  background-color: #f0f2f5;
+}
+
+// Layout helpers
+.full-width {
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.mb-16 {
+  margin-bottom: 16px;
+}
+
+.mb-24 {
+  margin-bottom: 24px;
+}
+
+.mt-16 {
+  margin-top: 16px;
+}
+
+.mt-24 {
+  margin-top: 24px;
+}
+
+// Custom components
+.page-header {
+  background: #fff;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e8e8e8;
+  
+  h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.85);
+  }
+}
+
+.content-container {
+  padding: 0 24px;
+  
+  .ant-card {
+    margin-bottom: 24px;
+  }
+}
+
+// Status badges
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  
+  &.status-mr-aprovado { background: #e6f7ff; color: #1890ff; }
+  &.status-falha { background: #fff2f0; color: #f5222d; }
+  &.status-para-teste { background: #f9f0ff; color: #722ed1; }
+  &.status-em-teste { background: #fff7e6; color: #fa8c16; }
+  &.status-reprovada { background: #fff2f0; color: #f5222d; }
+  &.status-aprovada { background: #f6ffed; color: #52c41a; }
+  &.status-controlada { background: #f9f0ff; color: #722ed1; }
+  &.status-disponivel { background: #f6ffed; color: #52c41a; }
+  &.status-revogada { background: #f5f5f5; color: #8c8c8c; }
+}
