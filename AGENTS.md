@@ -8,11 +8,13 @@ Foque nas User Stories detalhadas para entender os fluxos de negócio e dores do
 
 Use as tecnologias obrigatórias listadas e siga a arquitetura especificada.
 
-Crie toda a estrutura:backend Quarkus com APIs REST, frontend Angular 18 responsivo, configuração Keycloak com Azure AD, integração Azure Blob Storage, migrações com Liquibase, containerização com Podman Compose, e exemplos de integração CI/CD na documentação.
+Crie toda a estrutura: backend Quarkus com APIs REST, frontend Angular 18 responsivo, configuração Keycloak com Azure AD, integração Azure Blob Storage, migrações com Liquibase, containerização com Podman Compose, e exemplos de integração CI/CD na documentação.
 
 O sistema deve resolver as dores de negócio descritas nas User Stories, não apenas implementar funcionalidades técnicas.
 
 Documente tudo no arquivo README.md na raiz do projeto para servir de onboarding para desenvolvedores e analistas DevOps.
+
+Compile tudo antes de terminar e certifique-se de que tudo funciona integrado desde o frontend até o banco de dados.
 
 --- 
 
@@ -109,10 +111,12 @@ para **que todas as equipes saibam exatamente em que etapa cada versão está, s
   - MR Aprovado
   - Falha no Build para Teste
   - Para Teste de Sistema
+  - Em Teste de Sistema
   - Reprovada no teste
   - Aprovada no teste
   - Falha no Build para Produção
   - Para Teste Regressivo
+  - Em Teste Regressivo
   - Falha na instalação da Estável
   - Interno
   - Revogada
@@ -433,8 +437,8 @@ src/main/java/com/empresa/app/feature-x/
 
 ## Desenvolvimento do Frontend
 
-- 
 - You are an expert in TypeScript, Angular, and scalable web application development. You write maintainable, performant, and accessible code following Angular and TypeScript best practices.
+- Use NG-Zorro component library based on Ant Design
 
 ### TypeScript Best Practices
 
