@@ -2,12 +2,13 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:17-alpine
-    container_name: release-manager-postgres-dev
+    image: docker.io/library/postgres:17-alpine
+    container_name: release-manager-db
     environment:
       POSTGRES_DB: releasemanager
-      POSTGRES_USER: releasemanager
-      POSTGRES_PASSWORD: releasemanager123
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     ports:
       - "5432:5432"
     volumes:
@@ -34,6 +35,8 @@ services:
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
     ports:
       - "8180:8080"
     volumes:
@@ -41,14 +44,15 @@ services:
     command:
       - start-dev
       - --import-realm
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - --hostname-strict=false
+      - --hostname-strict-https=false
+      - --http-enabled=true
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 60s
     networks:
       - release-manager-dev
 
