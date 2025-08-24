@@ -1,22 +1,16 @@
 # Project Guidelines
 
-## Prompt para geração completa:
+## Prompt
 
-Implemente um sistema chamado ReleaseManager, completo seguindo todas as especificações do arquivo AGENTS.md.
+Implemente um sistema chamado ReleaseManager, completo seguindo todas as especificações do arquivo [AGENTS.md](http://AGENTS.md).
 
 Foque nas User Stories detalhadas para entender os fluxos de negócio e dores dos usuários.
 
 Use as tecnologias obrigatórias listadas e siga a arquitetura especificada.
 
-Crie toda a estrutura: backend Quarkus com APIs REST, frontend Angular 18 responsivo, configuração Keycloak com Azure AD, integração Azure Blob Storage, migrações com Liquibase, containerização com Podman Compose, e exemplos de integração CI/CD na documentação.
+Crie toda a estrutura: backend Quarkus com APIs REST, testes unitários, testes de integração, frontend Angular 18 responsivo, migrações de banco de dados com Liquibase, containerização com Podman Compose e exemplos de integração CI/CD na documentação.
 
-O sistema deve resolver as dores de negócio descritas nas User Stories, não apenas implementar funcionalidades técnicas.
-
-Documente tudo no arquivo README.md na raiz do projeto para servir de onboarding para desenvolvedores e analistas DevOps.
-
-Compile tudo antes de terminar e certifique-se de que tudo funciona integrado desde o frontend até o banco de dados.
-
---- 
+Compile tudo antes de terminar e certifique-se de que o frontend está integrado ao backend e este está integrado ao banco de dados.
 
 ## Contexto do Negócio
 
@@ -43,31 +37,32 @@ O Release Manager é um sistema crítico para gerenciar o ciclo de vida de relea
 
 ## User Stories Detalhadas
 
-### US-01 - Autenticação Corporativa
+### US-01 - Autenticação
 
-**Contexto de Negócio:** A empresa já utiliza Azure AD para todos os sistemas internos. Devemos evitar que as equipes percam tempo gerenciando múltiplas credenciais e há riscos de segurança com senhas fracas ou reutilizadas.
+**Contexto de Negócio:** Por enquanto este sistema fará sua própria gestão de usuários e senhas internamente.
 
 **História:** Como **gestor de releases**,
-eu quero **acessar o sistema usando minhas credenciais corporativas (Azure AD)**,
-para **não precisar gerenciar outra senha e ter acesso baseado no meu perfil da empresa**.
+eu quero **acessar o sistema usando credenciais criadas especificamente neste sistema**,
+para **não precisar realizar integrações de segurança com outros sistemas centrais por enquanto**.
 
 **Regras de Negócio:**
 
-- Apenas funcionários autorizados no Azure AD podem acessar
+- Apenas funcionários autorizados podem acessar
 - Diferentes perfis de acesso (Admin, Read-only, etc.)
 - Session timeout após inatividade
 - Log de acessos para auditoria
 
 **Cenários de Uso:**
 
-- Funcionário tenta acessar → Redireciona para Azure AD → Login automático se já logado no Windows
-- Funcionário sai da empresa → Acesso é revogado automaticamente no Azure AD
-- Funcionário muda de departamento → Perfil de acesso é atualizado automaticamente
+- Funcionário tenta acessar → Sistema solicita usuário e senha ou opção para criar as crerdenciais.
+- Funcionário tenta criar as credenciais → Sistema exige solicita os campos usuário, senha e confirmação de senha.
+- Funcionário sai da empresa → Acesso é revogado manualmente pelo administrador do sistema.
+- Funcionário muda de departamento → Perfil de acesso é atualizado manualmente pelo administrador do sistema.
 
 **Critérios de Aceitação:**
 
-- A tela de login deve redirecionar o usuário para autenticação via AzureAD.
-- Apenas usuários autorizados no AzureAD devem conseguir acessar o sistema.
+- Apenas usuários autorizados devem conseguir acessar o sistema.
+- Novas credenciais devem exigir que o usuário pertençar ao domínio @empresa.com.br e que as senhas sejam no mínimo 16 caracteres
 - Após login bem-sucedido, o usuário deve ser redirecionado automaticamente à tela principal da aplicação.
 
 ---
@@ -295,7 +290,7 @@ para **atualizar meu ambiente**.
 
 - O sistema deve disponibilizar o pacote da versão (ex: `.zip`, `.tar.gz`) para download.
 - O pacote deve conter o produto completo e seus componentes.
-- Os pacotes deverão ser armazenados no blob storage da Azure.
+- Os pacotes deverão ser armazenados localmente.
 
 ---
 
@@ -306,22 +301,12 @@ para **atualizar meu ambiente**.
 - **Backend**: Java 21 + Quarkus 3.24.3.
 - **Liquibase**: Disponível no Quarkus.
 - **Frontend**: Angular 18+ com Standalone Components.
-- **Autenticação**: Keycloak + Azure AD.
-- **Storage**: Azure Blob Storage.
 - **Database**: PostgreSQL 17.
 - **Containerização**: Podman + Podman Compose (política de compliance - não Docker).
 
 ### Integrações
 
-- **Azure Blob Storage**: Container "releases".
-- **Keycloak**: Criar realm novo com importação automática. 
 - **Pipeline CI/CD**: Viabilizar Gitlab CI e scrips groovy e bash.
-
-### Autenticação
-
-* A autenticação deverá ser realizada por Keycloak.
-* Criar todos os artefatos necessários para configurar o Keycloak.
-* A URL do AzureAD para o keycloak é: https://example.com
 
 ### Compliance e Segurança
 
@@ -332,7 +317,7 @@ para **atualizar meu ambiente**.
 
 ### Ambiente de Desenvolvimento
 
-- Apenas PostgreSQL + Keycloak em containers
+- Apenas PostgreSQL em containers
 - Backend e Frontend executam nativamente
 - Hot reload habilitado
 
