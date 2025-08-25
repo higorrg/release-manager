@@ -212,12 +212,22 @@ export class ReleaseHistoryService {
 
   private getStatusDisplayText(status: string): string {
     const statusDisplayTexts: Record<string, string> = {
-      'PENDING': 'Pendente',
-      'IN_PROGRESS': 'Em Progresso',
-      'TESTING': 'Em Teste',
-      'COMPLETED': 'Concluído',
-      'CANCELLED': 'Cancelado',
-      'ON_HOLD': 'Em Espera'
+      'MR_APROVADO': 'MR Aprovado',
+      'FALHA_BUILD_TESTE': 'Falha no Build para Teste',
+      'PARA_TESTE_SISTEMA': 'Para Teste de Sistema',
+      'EM_TESTE_SISTEMA': 'Em Teste de Sistema',
+      'REPROVADA_TESTE': 'Reprovada no teste',
+      'APROVADA_TESTE': 'Aprovada no teste',
+      'FALHA_BUILD_PRODUCAO': 'Falha no Build para Produção',
+      'PARA_TESTE_REGRESSIVO': 'Para Teste Regressivo',
+      'EM_TESTE_REGRESSIVO': 'Em Teste Regressivo',
+      'FALHA_INSTALACAO_ESTAVEL': 'Falha na instalação da Estável',
+      'INTERNO': 'Interno',
+      'REVOGADA': 'Revogada',
+      'REPROVADA_TESTE_REGRESSIVO': 'Reprovada no teste regressivo',
+      'APROVADA_TESTE_REGRESSIVO': 'Aprovada no teste regressivo',
+      'CONTROLADA': 'Controlada',
+      'DISPONIVEL': 'Disponível'
     };
     return statusDisplayTexts[status] || status;
   }

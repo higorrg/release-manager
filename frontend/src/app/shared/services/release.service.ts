@@ -12,7 +12,8 @@ import {
   ReleasePackage,
   ReleaseStatistics,
   ReleaseFilter,
-  ReleaseStatus
+  ReleaseStatus,
+  ReleaseStatusDisplayNames
 } from '../models/release.model';
 
 @Injectable({
@@ -90,7 +91,7 @@ export class ReleaseService {
   }
 
   // GET release by ID
-  getReleaseById(id: number): Observable<Release> {
+  getReleaseById(id: string): Observable<Release> {
     this.isLoadingSignal.set(true);
     
     return this.http.get<Release>(`${this.API_URL}/releases/${id}`)
@@ -129,7 +130,7 @@ export class ReleaseService {
   }
 
   // UPDATE release
-  updateRelease(id: number, updateData: UpdateReleaseRequest): Observable<Release> {
+  updateRelease(id: string, updateData: UpdateReleaseRequest): Observable<Release> {
     this.isLoadingSignal.set(true);
     
     return this.http.put<Release>(`${this.API_URL}/releases/${id}`, updateData)
@@ -155,7 +156,7 @@ export class ReleaseService {
   }
 
   // UPDATE release status
-  updateReleaseStatus(id: number, statusUpdate: UpdateReleaseStatusRequest): Observable<Release> {
+  updateReleaseStatus(id: string, statusUpdate: UpdateReleaseStatusRequest): Observable<Release> {
     this.isLoadingSignal.set(true);
     
     return this.http.put<Release>(`${this.API_URL}/releases/${id}/status`, statusUpdate)
@@ -181,7 +182,7 @@ export class ReleaseService {
   }
 
   // DELETE release
-  deleteRelease(id: number): Observable<void> {
+  deleteRelease(id: string): Observable<void> {
     this.isLoadingSignal.set(true);
     
     return this.http.delete<void>(`${this.API_URL}/releases/${id}`)
@@ -204,7 +205,7 @@ export class ReleaseService {
   }
 
   // GET release packages
-  getReleasePackages(releaseId: number): Observable<ReleasePackage[]> {
+  getReleasePackages(releaseId: string): Observable<ReleasePackage[]> {
     return this.http.get<ReleasePackage[]>(`${this.API_URL}/releases/${releaseId}/packages`)
       .pipe(
         catchError(error => {
@@ -215,7 +216,7 @@ export class ReleaseService {
   }
 
   // UPLOAD release package
-  uploadReleasePackage(releaseId: number, file: File): Observable<ReleasePackage> {
+  uploadReleasePackage(releaseId: string, file: File): Observable<ReleasePackage> {
     const formData = new FormData();
     formData.append('file', file);
     
@@ -232,7 +233,7 @@ export class ReleaseService {
   }
 
   // DOWNLOAD release package
-  downloadReleasePackage(releaseId: number, packageId: number): Observable<Blob> {
+  downloadReleasePackage(releaseId: string, packageId: number): Observable<Blob> {
     return this.http.get(`${this.API_URL}/releases/${releaseId}/packages/${packageId}/download`, {
       responseType: 'blob'
     }).pipe(
@@ -260,26 +261,28 @@ export class ReleaseService {
   // Utility methods
   getStatusColor(status: ReleaseStatus): string {
     const statusColors = {
-      [ReleaseStatus.PENDING]: 'gold',
-      [ReleaseStatus.IN_PROGRESS]: 'blue',
-      [ReleaseStatus.TESTING]: 'purple',
-      [ReleaseStatus.COMPLETED]: 'green',
-      [ReleaseStatus.CANCELLED]: 'red',
-      [ReleaseStatus.ON_HOLD]: 'default'
+      [ReleaseStatus.MR_APROVADO]: '#1890ff',
+      [ReleaseStatus.FALHA_BUILD_TESTE]: '#f5222d',
+      [ReleaseStatus.PARA_TESTE_SISTEMA]: '#faad14',
+      [ReleaseStatus.EM_TESTE_SISTEMA]: '#722ed1',
+      [ReleaseStatus.REPROVADA_TESTE]: '#f5222d',
+      [ReleaseStatus.APROVADA_TESTE]: '#52c41a',
+      [ReleaseStatus.FALHA_BUILD_PRODUCAO]: '#f5222d',
+      [ReleaseStatus.PARA_TESTE_REGRESSIVO]: '#faad14',
+      [ReleaseStatus.EM_TESTE_REGRESSIVO]: '#722ed1',
+      [ReleaseStatus.FALHA_INSTALACAO_ESTAVEL]: '#f5222d',
+      [ReleaseStatus.INTERNO]: '#d9d9d9',
+      [ReleaseStatus.REVOGADA]: '#f5222d',
+      [ReleaseStatus.REPROVADA_TESTE_REGRESSIVO]: '#f5222d',
+      [ReleaseStatus.APROVADA_TESTE_REGRESSIVO]: '#52c41a',
+      [ReleaseStatus.CONTROLADA]: '#a0d911',
+      [ReleaseStatus.DISPONIVEL]: '#52c41a'
     };
-    return statusColors[status];
+    return statusColors[status] || '#d9d9d9';
   }
 
   getStatusText(status: ReleaseStatus): string {
-    const statusTexts = {
-      [ReleaseStatus.PENDING]: 'Pendente',
-      [ReleaseStatus.IN_PROGRESS]: 'Em Progresso',
-      [ReleaseStatus.TESTING]: 'Em Teste',
-      [ReleaseStatus.COMPLETED]: 'Concluído',
-      [ReleaseStatus.CANCELLED]: 'Cancelado',
-      [ReleaseStatus.ON_HOLD]: 'Em Espera'
-    };
-    return statusTexts[status];
+    return ReleaseStatusDisplayNames[status];
   }
 
   // Clear current release

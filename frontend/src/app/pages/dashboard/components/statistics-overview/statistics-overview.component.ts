@@ -143,11 +143,14 @@ export class StatisticsOverviewComponent {
   keyMetrics = computed(() => {
     if (!this.releaseStats || !this.clientStats) return [];
 
-    const activeReleases = (this.releaseStats.releasesByStatus[ReleaseStatus.IN_PROGRESS] || 0) + 
-                          (this.releaseStats.releasesByStatus[ReleaseStatus.TESTING] || 0);
+    const activeReleases = (this.releaseStats.releasesByStatus[ReleaseStatus.EM_TESTE_SISTEMA] || 0) + 
+                          (this.releaseStats.releasesByStatus[ReleaseStatus.EM_TESTE_REGRESSIVO] || 0) +
+                          (this.releaseStats.releasesByStatus[ReleaseStatus.PARA_TESTE_SISTEMA] || 0) +
+                          (this.releaseStats.releasesByStatus[ReleaseStatus.PARA_TESTE_REGRESSIVO] || 0);
     
     const completionRate = this.releaseStats.totalReleases > 0 ? 
-                          Math.round(((this.releaseStats.releasesByStatus[ReleaseStatus.COMPLETED] || 0) / this.releaseStats.totalReleases) * 100) : 0;
+                          Math.round((((this.releaseStats.releasesByStatus[ReleaseStatus.CONTROLADA] || 0) + 
+                                      (this.releaseStats.releasesByStatus[ReleaseStatus.DISPONIVEL] || 0)) / this.releaseStats.totalReleases) * 100) : 0;
 
     const clientActivationRate = this.clientStats.totalClients > 0 ? 
                                  Math.round((this.clientStats.activeClients / this.clientStats.totalClients) * 100) : 0;
@@ -187,9 +190,13 @@ export class StatisticsOverviewComponent {
     if (!this.releaseStats) return null;
 
     const total = this.releaseStats.totalReleases;
-    const completed = this.releaseStats.releasesByStatus[ReleaseStatus.COMPLETED] || 0;
-    const inProgress = this.releaseStats.releasesByStatus[ReleaseStatus.IN_PROGRESS] || 0;
-    const pending = this.releaseStats.releasesByStatus[ReleaseStatus.PENDING] || 0;
+    const completed = (this.releaseStats.releasesByStatus[ReleaseStatus.CONTROLADA] || 0) + 
+                     (this.releaseStats.releasesByStatus[ReleaseStatus.DISPONIVEL] || 0);
+    const inProgress = (this.releaseStats.releasesByStatus[ReleaseStatus.EM_TESTE_SISTEMA] || 0) + 
+                      (this.releaseStats.releasesByStatus[ReleaseStatus.EM_TESTE_REGRESSIVO] || 0);
+    const pending = (this.releaseStats.releasesByStatus[ReleaseStatus.MR_APROVADO] || 0) + 
+                   (this.releaseStats.releasesByStatus[ReleaseStatus.PARA_TESTE_SISTEMA] || 0) +
+                   (this.releaseStats.releasesByStatus[ReleaseStatus.PARA_TESTE_REGRESSIVO] || 0);
     
     return {
       efficiency: total > 0 ? Math.round((completed / total) * 100) : 0,
@@ -216,16 +223,20 @@ export class StatisticsOverviewComponent {
     if (!this.releaseStats || !this.clientStats) return 0;
     
     const completionRate = this.releaseStats.totalReleases > 0 ? 
-                          (this.releaseStats.releasesByStatus[ReleaseStatus.COMPLETED] || 0) / this.releaseStats.totalReleases : 0;
+                          ((this.releaseStats.releasesByStatus[ReleaseStatus.CONTROLADA] || 0) + 
+                           (this.releaseStats.releasesByStatus[ReleaseStatus.DISPONIVEL] || 0)) / this.releaseStats.totalReleases : 0;
     
     const activationRate = this.clientStats.totalClients > 0 ? 
                           this.clientStats.activeClients / this.clientStats.totalClients : 0;
     
-    const cancelledRate = this.releaseStats.totalReleases > 0 ? 
-                         (this.releaseStats.releasesByStatus[ReleaseStatus.CANCELLED] || 0) / this.releaseStats.totalReleases : 0;
+    const failureRate = this.releaseStats.totalReleases > 0 ? 
+                       ((this.releaseStats.releasesByStatus[ReleaseStatus.REVOGADA] || 0) + 
+                        (this.releaseStats.releasesByStatus[ReleaseStatus.FALHA_BUILD_TESTE] || 0) +
+                        (this.releaseStats.releasesByStatus[ReleaseStatus.FALHA_BUILD_PRODUCAO] || 0) +
+                        (this.releaseStats.releasesByStatus[ReleaseStatus.FALHA_INSTALACAO_ESTAVEL] || 0)) / this.releaseStats.totalReleases : 0;
     
-    // Health score algorithm: completion and activation rates positive, cancellation rate negative
-    const healthScore = ((completionRate * 40) + (activationRate * 40) - (cancelledRate * 20)) * 100;
+    // Health score algorithm: completion and activation rates positive, failure rate negative
+    const healthScore = ((completionRate * 40) + (activationRate * 40) - (failureRate * 20)) * 100;
     
     return Math.max(0, Math.min(100, Math.round(healthScore)));
   }

@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { ReleaseService } from '../../../shared/services/release.service';
+import { Release } from '../../../shared/models/release.model';
 
 @Component({
   selector: 'app-release-detail',
@@ -16,13 +18,13 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
     <div class="header" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <h2 style="margin: 0 0 5px 0; color: #333;">{{ release.name || 'Release ' + releaseId }}</h2>
-          <p style="margin: 0; color: #666; font-size: 14px;">Versão {{ release.version || '1.0.0' }} • Produto: {{ release.product || 'Sistema Principal' }}</p>
+          <h2 style="margin: 0 0 5px 0; color: #333;">{{ (release?.product || 'Release ') + (release?.version || releaseId) }}</h2>
+          <p style="margin: 0; color: #666; font-size: 14px;">Versão {{ release?.version || '1.0.0' }} • Produto: {{ release?.product || 'Sistema Principal' }}</p>
         </div>
         <span class="status-badge" 
-              [style.background-color]="getStatusColor(release.status)"
+              [style.background-color]="getStatusColor(release?.status)"
               style="padding: 8px 16px; border-radius: 16px; color: white; font-size: 14px; font-weight: 500;">
-          {{ getStatusText(release.status) }}
+          {{ getStatusText(release?.status) }}
         </span>
       </div>
     </div>
@@ -63,80 +65,111 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 
     <!-- Status Tab -->
     <div *ngIf="activeTab === 'status'" class="status-tab">
-      <div class="status-control" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <h3 style="margin: 0 0 20px 0; color: #333;">🔄 Alterar Status</h3>
+      <div class="status-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         
-        <form [formGroup]="statusForm" (ngSubmit)="updateStatus()">
-          <div class="form-group" style="margin-bottom: 20px;">
-            <label for="status" style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">Novo Status:</label>
-            <select id="status" 
-                    formControlName="status" 
-                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; background: white;">
-              <option value="">Selecione o status...</option>
-              <option *ngFor="let status of availableStatuses" [value]="status.value">
-                {{ status.label }}
-              </option>
-            </select>
+        <!-- Alterar Status Section -->
+        <div class="status-control" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <h3 style="margin: 0 0 20px 0; color: #333;">🔄 Alterar Status</h3>
+          
+          <form [formGroup]="statusForm" (ngSubmit)="updateStatus()">
+            <div class="form-group" style="margin-bottom: 20px;">
+              <label for="status" style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">Novo Status:</label>
+              <select id="status" 
+                      formControlName="status" 
+                      style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; background: white;">
+                <option value="">Selecione o status...</option>
+                <option *ngFor="let status of availableStatuses" [value]="status.value">
+                  {{ status.label }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 30px;">
+              <label for="observation" style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">Observação (opcional):</label>
+              <textarea id="observation" 
+                        formControlName="observation" 
+                        placeholder="Digite uma observação sobre a mudança..."
+                        rows="4"
+                        style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical; box-sizing: border-box;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="submit" 
+                      [disabled]="statusForm.invalid || isLoading"
+                      style="padding: 12px 20px; background: #52c41a; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; flex: 1; min-width: 120px;"
+                      [style.background]="statusForm.invalid || isLoading ? '#ccc' : '#52c41a'"
+                      [style.cursor]="statusForm.invalid || isLoading ? 'not-allowed' : 'pointer'">
+                <span *ngIf="!isLoading">💾 Salvar</span>
+                <span *ngIf="isLoading">⏳ Salvando...</span>
+              </button>
+              
+              <button type="button" 
+                      (click)="cancelEdit()"
+                      style="padding: 12px 20px; background: #f5f5f5; color: #666; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer; font-size: 14px; flex: 1; min-width: 100px; transition: all 0.3s ease;"
+                      onmouseover="this.style.backgroundColor='#e6f7ff'; this.style.borderColor='#1890ff'; this.style.color='#1890ff'"
+                      onmouseout="this.style.backgroundColor='#f5f5f5'; this.style.borderColor='#d9d9d9'; this.style.color='#666'">
+                ❌ Cancelar
+              </button>
+            </div>
+          </form>
+
+          <div *ngIf="successMessage" style="margin-top: 20px; padding: 12px; background: #e6ffe6; color: #00b894; border-radius: 6px; font-size: 14px;">
+            ✅ {{ successMessage }}
           </div>
 
-          <div class="form-group" style="margin-bottom: 30px;">
-            <label for="observation" style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">Observação (opcional):</label>
-            <textarea id="observation" 
-                      formControlName="observation" 
-                      placeholder="Digite uma observação sobre a mudança..."
-                      rows="4"
-                      style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical; box-sizing: border-box;"></textarea>
+          <div *ngIf="errorMessage" style="margin-top: 20px; padding: 12px; background: #ffe6e6; color: #d63031; border-radius: 6px; font-size: 14px;">
+            ⚠️ {{ errorMessage }}
           </div>
+        </div>
 
-          <div style="display: flex; gap: 10px;">
-            <button type="submit" 
-                    [disabled]="statusForm.invalid || isLoading"
-                    style="padding: 12px 24px; background: #52c41a; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;"
-                    [style.background]="statusForm.invalid || isLoading ? '#ccc' : '#52c41a'"
-                    [style.cursor]="statusForm.invalid || isLoading ? 'not-allowed' : 'pointer'">
-              <span *ngIf="!isLoading">💾 Salvar Status</span>
-              <span *ngIf="isLoading">⏳ Salvando...</span>
-            </button>
+        <!-- Current Status Info Section -->
+        <div class="current-status" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <h3 style="margin: 0 0 20px 0; color: #333;">📋 Informações Atuais</h3>
+          
+          <div class="status-info-grid" style="display: grid; gap: 20px;">
+            <div class="info-item">
+              <label style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">Status Atual</label>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="status-badge" 
+                      [style.background-color]="getStatusColor(release?.status)"
+                      style="padding: 6px 12px; border-radius: 12px; color: white; font-size: 12px; font-weight: 500;">
+                  {{ getStatusText(release?.status) }}
+                </span>
+              </div>
+            </div>
             
-            <button type="button" 
-                    (click)="cancelEdit()"
-                    style="padding: 12px 24px; background: #d9d9d9; color: #666; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
-              ❌ Cancelar
-            </button>
-          </div>
-        </form>
-
-        <div *ngIf="successMessage" style="margin-top: 20px; padding: 12px; background: #e6ffe6; color: #00b894; border-radius: 6px; font-size: 14px;">
-          ✅ {{ successMessage }}
-        </div>
-
-        <div *ngIf="errorMessage" style="margin-top: 20px; padding: 12px; background: #ffe6e6; color: #d63031; border-radius: 6px; font-size: 14px;">
-          ⚠️ {{ errorMessage }}
-        </div>
-      </div>
-
-      <!-- Current Status Info -->
-      <div class="current-status" style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <h4 style="margin: 0 0 15px 0; color: #333;">📋 Informações Atuais</h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-          <div>
-            <label style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Status Atual</label>
-            <p style="margin: 5px 0 0 0; font-weight: 500; color: #333;">{{ getStatusText(release.status) }}</p>
-          </div>
-          <div>
-            <label style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Última Atualização</label>
-            <p style="margin: 5px 0 0 0; font-weight: 500; color: #333;">{{ formatDate(release.updatedAt) }}</p>
-          </div>
-          <div>
-            <label style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Responsável</label>
-            <p style="margin: 5px 0 0 0; font-weight: 500; color: #333;">{{ release.updatedBy || 'Sistema' }}</p>
-          </div>
-          <div>
-            <label style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Criado em</label>
-            <p style="margin: 5px 0 0 0; font-weight: 500; color: #333;">{{ formatDate(release.createdAt) }}</p>
+            <div class="info-item">
+              <label style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">Última Atualização</label>
+              <p style="margin: 0; font-weight: 500; color: #333;">{{ formatDate(release?.updatedAt) }}</p>
+            </div>
+            
+            <div class="info-item">
+              <label style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">Criado em</label>
+              <p style="margin: 0; font-weight: 500; color: #333;">{{ formatDate(release?.createdAt) }}</p>
+            </div>
+            
+            <div class="info-item">
+              <label style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">Versão</label>
+              <p style="margin: 0; font-weight: 500; color: #333;">{{ release?.version }}</p>
+            </div>
+            
+            <div class="info-item">
+              <label style="font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">Produto</label>
+              <p style="margin: 0; font-weight: 500; color: #333;">{{ release?.product }}</p>
+            </div>
           </div>
         </div>
       </div>
+      
+      <!-- Responsive Layout for smaller screens -->
+      <style>
+        @media (max-width: 1024px) {
+          .status-layout {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+          }
+        }
+      </style>
     </div>
 
     <!-- Other tabs content placeholders -->
@@ -330,6 +363,7 @@ export class ReleaseDetailComponent implements OnInit {
   isLoading = false;
   successMessage = '';
   errorMessage = '';
+  release: Release | null = null;
   
   // Package management properties (US-07)
   selectedFile: File | null = null;
@@ -377,42 +411,32 @@ export class ReleaseDetailComponent implements OnInit {
     }
   ];
 
-  // Mock release data
-  release = {
-    id: 1,
-    name: 'Release 1.2.3',
-    version: '1.2.3',
-    product: 'Sistema Principal',
-    status: 'IN_PROGRESS',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    updatedBy: 'João Silva'
-  };
 
   // All available statuses from US-02
   availableStatuses = [
-    { value: 'MR_APPROVED', label: 'MR Aprovado' },
-    { value: 'BUILD_FAILED_TEST', label: 'Falha no Build para Teste' },
-    { value: 'READY_FOR_SYSTEM_TEST', label: 'Para Teste de Sistema' },
-    { value: 'IN_SYSTEM_TEST', label: 'Em Teste de Sistema' },
-    { value: 'FAILED_SYSTEM_TEST', label: 'Reprovada no teste' },
-    { value: 'APPROVED_SYSTEM_TEST', label: 'Aprovada no teste' },
-    { value: 'BUILD_FAILED_PRODUCTION', label: 'Falha no Build para Produção' },
-    { value: 'READY_FOR_REGRESSION_TEST', label: 'Para Teste Regressivo' },
-    { value: 'IN_REGRESSION_TEST', label: 'Em Teste Regressivo' },
-    { value: 'FAILED_STABLE_INSTALL', label: 'Falha na instalação da Estável' },
-    { value: 'INTERNAL', label: 'Interno' },
-    { value: 'REVOKED', label: 'Revogada' },
-    { value: 'FAILED_REGRESSION_TEST', label: 'Reprovada no teste regressivo' },
-    { value: 'APPROVED_REGRESSION_TEST', label: 'Aprovada no teste regressivo' },
-    { value: 'CONTROLLED', label: 'Controlada' },
-    { value: 'AVAILABLE', label: 'Disponível' }
+    { value: 'MR_APROVADO', label: 'MR Aprovado' },
+    { value: 'FALHA_BUILD_TESTE', label: 'Falha no Build para Teste' },
+    { value: 'PARA_TESTE_SISTEMA', label: 'Para Teste de Sistema' },
+    { value: 'EM_TESTE_SISTEMA', label: 'Em Teste de Sistema' },
+    { value: 'REPROVADA_TESTE', label: 'Reprovada no teste' },
+    { value: 'APROVADA_TESTE', label: 'Aprovada no teste' },
+    { value: 'FALHA_BUILD_PRODUCAO', label: 'Falha no Build para Produção' },
+    { value: 'PARA_TESTE_REGRESSIVO', label: 'Para Teste Regressivo' },
+    { value: 'EM_TESTE_REGRESSIVO', label: 'Em Teste Regressivo' },
+    { value: 'FALHA_INSTALACAO_ESTAVEL', label: 'Falha na instalação da Estável' },
+    { value: 'INTERNO', label: 'Interno' },
+    { value: 'REVOGADA', label: 'Revogada' },
+    { value: 'REPROVADA_TESTE_REGRESSIVO', label: 'Reprovada no teste regressivo' },
+    { value: 'APROVADA_TESTE_REGRESSIVO', label: 'Aprovada no teste regressivo' },
+    { value: 'CONTROLADA', label: 'Controlada' },
+    { value: 'DISPONIVEL', label: 'Disponível' }
   ];
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private releaseService: ReleaseService
   ) {}
 
   ngOnInit(): void {
@@ -429,38 +453,47 @@ export class ReleaseDetailComponent implements OnInit {
   }
 
   private loadReleaseData(): void {
-    // Simulate API call to load release data
-    // In real implementation, call backend API
-    this.release.id = parseInt(this.releaseId) || 1;
+    if (this.releaseId) {
+      this.releaseService.getReleaseById(this.releaseId).subscribe({
+        next: (release) => {
+          this.release = release;
+        },
+        error: (error) => {
+          console.error('Erro ao carregar release:', error);
+          this.errorMessage = 'Erro ao carregar dados da release';
+        }
+      });
+    }
   }
 
   updateStatus(): void {
-    if (this.statusForm.valid) {
+    if (this.statusForm.valid && this.release) {
       this.isLoading = true;
       this.errorMessage = '';
       this.successMessage = '';
 
-      const statusData = {
-        releaseId: this.releaseId,
-        newStatus: this.statusForm.value.status,
-        observation: this.statusForm.value.observation,
-        updatedBy: 'Usuário Atual'
+      const statusUpdate = {
+        status: this.statusForm.value.status,
+        observation: this.statusForm.value.observation
       };
 
-      // Simulate API call
-      setTimeout(() => {
-        this.isLoading = false;
-        this.release.status = statusData.newStatus;
-        this.release.updatedAt = new Date();
-        this.release.updatedBy = statusData.updatedBy;
-        
-        this.successMessage = 'Status atualizado com sucesso!';
-        this.statusForm.reset();
-        
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 3000);
-      }, 1000);
+      this.releaseService.updateReleaseStatus(this.release.id, statusUpdate).subscribe({
+        next: (updatedRelease) => {
+          this.release = updatedRelease;
+          this.isLoading = false;
+          this.successMessage = 'Status atualizado com sucesso!';
+          this.statusForm.reset();
+          
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
+        },
+        error: (error) => {
+          console.error('Erro ao atualizar status:', error);
+          this.isLoading = false;
+          this.errorMessage = 'Erro ao atualizar status da release';
+        }
+      });
     }
   }
 
@@ -470,59 +503,20 @@ export class ReleaseDetailComponent implements OnInit {
     this.successMessage = '';
   }
 
-  getStatusColor(status: string): string {
-    const statusColors: { [key: string]: string } = {
-      'MR_APPROVED': '#108ee9',
-      'BUILD_FAILED_TEST': '#ff4d4f',
-      'READY_FOR_SYSTEM_TEST': '#1890ff',
-      'IN_SYSTEM_TEST': '#722ed1',
-      'FAILED_SYSTEM_TEST': '#ff4d4f',
-      'APPROVED_SYSTEM_TEST': '#52c41a',
-      'BUILD_FAILED_PRODUCTION': '#ff4d4f',
-      'READY_FOR_REGRESSION_TEST': '#1890ff',
-      'IN_REGRESSION_TEST': '#722ed1',
-      'FAILED_STABLE_INSTALL': '#ff4d4f',
-      'INTERNAL': '#fa8c16',
-      'REVOKED': '#8c8c8c',
-      'FAILED_REGRESSION_TEST': '#ff4d4f',
-      'APPROVED_REGRESSION_TEST': '#52c41a',
-      'CONTROLLED': '#13c2c2',
-      'AVAILABLE': '#52c41a',
-      'IN_PROGRESS': '#1890ff',
-      'COMPLETED': '#52c41a',
-      'TESTING': '#fa8c16',
-      'PENDING': '#d9d9d9'
-    };
-    return statusColors[status] || '#d9d9d9';
+  getStatusColor(status: string | undefined): string {
+    if (!status) return '#d9d9d9';
+    
+    return this.releaseService.getStatusColor(status as any);
   }
 
-  getStatusText(status: string): string {
-    const statusTexts: { [key: string]: string } = {
-      'MR_APPROVED': 'MR Aprovado',
-      'BUILD_FAILED_TEST': 'Falha no Build para Teste',
-      'READY_FOR_SYSTEM_TEST': 'Para Teste de Sistema',
-      'IN_SYSTEM_TEST': 'Em Teste de Sistema',
-      'FAILED_SYSTEM_TEST': 'Reprovada no teste',
-      'APPROVED_SYSTEM_TEST': 'Aprovada no teste',
-      'BUILD_FAILED_PRODUCTION': 'Falha no Build para Produção',
-      'READY_FOR_REGRESSION_TEST': 'Para Teste Regressivo',
-      'IN_REGRESSION_TEST': 'Em Teste Regressivo',
-      'FAILED_STABLE_INSTALL': 'Falha na instalação da Estável',
-      'INTERNAL': 'Interno',
-      'REVOKED': 'Revogada',
-      'FAILED_REGRESSION_TEST': 'Reprovada no teste regressivo',
-      'APPROVED_REGRESSION_TEST': 'Aprovada no teste regressivo',
-      'CONTROLLED': 'Controlada',
-      'AVAILABLE': 'Disponível',
-      'IN_PROGRESS': 'Em Progresso',
-      'COMPLETED': 'Concluído',
-      'TESTING': 'Em Teste',
-      'PENDING': 'Pendente'
-    };
-    return statusTexts[status] || status;
+  getStatusText(status: string | undefined): string {
+    if (!status) return '';
+    
+    return this.releaseService.getStatusText(status as any);
   }
 
-  formatDate(date: Date | string): string {
+  formatDate(date: Date | string | undefined): string {
+    if (!date) return '-';
     return new Date(date).toLocaleString('pt-BR');
   }
 

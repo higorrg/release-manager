@@ -58,9 +58,9 @@ import { RouterModule } from '@angular/router';
 })
 export class ReleaseListComponent implements OnInit {
   releases = [
-    { id: 1, name: 'Release 1.2.3', version: '1.2.3', product: 'Sistema Principal', status: 'IN_PROGRESS', createdAt: new Date() },
-    { id: 2, name: 'Release 1.2.2', version: '1.2.2', product: 'Sistema Principal', status: 'COMPLETED', createdAt: new Date() },
-    { id: 3, name: 'Release 1.2.1', version: '1.2.1', product: 'Sistema Principal', status: 'TESTING', createdAt: new Date() }
+    { id: 1, name: 'Release 1.2.3', version: '1.2.3', product: 'Sistema Principal', status: 'EM_TESTE_SISTEMA', createdAt: new Date() },
+    { id: 2, name: 'Release 1.2.2', version: '1.2.2', product: 'Sistema Principal', status: 'DISPONIVEL', createdAt: new Date() },
+    { id: 3, name: 'Release 1.2.1', version: '1.2.1', product: 'Sistema Principal', status: 'CONTROLADA', createdAt: new Date() }
   ];
 
   constructor() {}
@@ -71,20 +71,44 @@ export class ReleaseListComponent implements OnInit {
 
   getStatusColor(status: string): string {
     switch(status) {
-      case 'COMPLETED': return '#52c41a';
-      case 'IN_PROGRESS': return '#1890ff';
-      case 'TESTING': return '#fa8c16';
-      case 'PENDING': return '#d9d9d9';
+      case 'MR_APROVADO': return '#1890ff';
+      case 'FALHA_BUILD_TESTE': return '#f5222d';
+      case 'PARA_TESTE_SISTEMA': return '#faad14';
+      case 'EM_TESTE_SISTEMA': return '#722ed1';
+      case 'REPROVADA_TESTE': return '#f5222d';
+      case 'APROVADA_TESTE': return '#52c41a';
+      case 'FALHA_BUILD_PRODUCAO': return '#f5222d';
+      case 'PARA_TESTE_REGRESSIVO': return '#faad14';
+      case 'EM_TESTE_REGRESSIVO': return '#722ed1';
+      case 'FALHA_INSTALACAO_ESTAVEL': return '#f5222d';
+      case 'INTERNO': return '#d9d9d9';
+      case 'REVOGADA': return '#f5222d';
+      case 'REPROVADA_TESTE_REGRESSIVO': return '#f5222d';
+      case 'APROVADA_TESTE_REGRESSIVO': return '#52c41a';
+      case 'CONTROLADA': return '#a0d911';
+      case 'DISPONIVEL': return '#52c41a';
       default: return '#d9d9d9';
     }
   }
 
   getStatusText(status: string): string {
     switch(status) {
-      case 'COMPLETED': return 'Concluído';
-      case 'IN_PROGRESS': return 'Em Progresso';
-      case 'TESTING': return 'Em Teste';
-      case 'PENDING': return 'Pendente';
+      case 'MR_APROVADO': return 'MR Aprovado';
+      case 'FALHA_BUILD_TESTE': return 'Falha no Build para Teste';
+      case 'PARA_TESTE_SISTEMA': return 'Para Teste de Sistema';
+      case 'EM_TESTE_SISTEMA': return 'Em Teste de Sistema';
+      case 'REPROVADA_TESTE': return 'Reprovada no teste';
+      case 'APROVADA_TESTE': return 'Aprovada no teste';
+      case 'FALHA_BUILD_PRODUCAO': return 'Falha no Build para Produção';
+      case 'PARA_TESTE_REGRESSIVO': return 'Para Teste Regressivo';
+      case 'EM_TESTE_REGRESSIVO': return 'Em Teste Regressivo';
+      case 'FALHA_INSTALACAO_ESTAVEL': return 'Falha na instalação da Estável';
+      case 'INTERNO': return 'Interno';
+      case 'REVOGADA': return 'Revogada';
+      case 'REPROVADA_TESTE_REGRESSIVO': return 'Reprovada no teste regressivo';
+      case 'APROVADA_TESTE_REGRESSIVO': return 'Aprovada no teste regressivo';
+      case 'CONTROLADA': return 'Controlada';
+      case 'DISPONIVEL': return 'Disponível';
       default: return 'Desconhecido';
     }
   }

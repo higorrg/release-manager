@@ -95,7 +95,7 @@
         nzSize="small" 
         nzType="default"
         [routerLink]="['/releases']"
-        [queryParams]="{ status: 'IN_PROGRESS,TESTING' }">
+        [queryParams]="{ status: 'EM_TESTE_SISTEMA,EM_TESTE_REGRESSIVO,PARA_TESTE_SISTEMA,PARA_TESTE_REGRESSIVO' }">
         <nz-icon nzType="loading"></nz-icon>
         Ativos
       </button>
@@ -106,7 +106,7 @@
         nzSize="small" 
         nzType="default"
         [routerLink]="['/releases']"
-        [queryParams]="{ status: 'PENDING' }">
+        [queryParams]="{ status: 'MR_APROVADO,PARA_TESTE_SISTEMA,PARA_TESTE_REGRESSIVO' }">
         <nz-icon nzType="clock-circle"></nz-icon>
         Pendentes
       </button>
