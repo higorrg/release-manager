@@ -127,9 +127,9 @@ import { RouterModule } from '@angular/router';
         Os clientes podem usar esta API para verificar suas releases disponíveis:
       </p>
       <div style="font-family: 'Monaco', 'Courier New', monospace; background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 4px; font-size: 12px; overflow-x: auto;">
-        <div style="color: #68d391; margin-bottom: 5px;">GET /api/v1/clients/{clientCode}/releases?environment=producao</div>
+        <div style="color: #68d391; margin-bottom: 5px;">GET /api/v1/clients/&#123;clientCode&#125;/releases?environment=producao</div>
         <div style="color: #fbb6ce;">Retorna: releases disponíveis para o cliente específico</div>
-        <div style="margin-top: 10px; color: #68d391;">GET /api/v1/releases?client={clientCode}&environment={env}</div>
+        <div style="margin-top: 10px; color: #68d391;">GET /api/v1/releases?client=&#123;clientCode&#125;&environment=&#123;env&#125;</div>
         <div style="color: #fbb6ce;">Filtro: releases por cliente e ambiente</div>
       </div>
     </div>

@@ -158,10 +158,10 @@ import { RouterModule, ActivatedRoute } from '@angular/router';
     <div class="api-info" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #e8e8e8;">
       <h4 style="margin: 0 0 15px 0; color: #333;">🔌 Integração com API</h4>
       <div style="font-family: 'Monaco', 'Courier New', monospace; background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 4px; font-size: 12px; overflow-x: auto;">
-        <div style="color: #68d391; margin-bottom: 5px;">GET /api/v1/releases/{{ releaseId }}/clients</div>
+        <div style="color: #68d391; margin-bottom: 5px;">GET /api/v1/releases/&#123;&#123; releaseId &#125;&#125;/clients</div>
         <div style="color: #fbb6ce;">Response: Lista de clientes autorizados para esta release</div>
-        <div style="margin-top: 10px; color: #68d391;">POST /api/v1/releases/{{ releaseId }}/clients</div>
-        <div style="color: #fbb6ce;">Body: {"{ clientCode: 'CLI001', environment: 'producao' }"}</div>
+        <div style="margin-top: 10px; color: #68d391;">POST /api/v1/releases/&#123;&#123; releaseId &#125;&#125;/clients</div>
+        <div style="color: #fbb6ce;">Body: &#123;"clientCode": "CLI001", "environment": "producao"&#125;</div>
       </div>
     </div>
   </div>`

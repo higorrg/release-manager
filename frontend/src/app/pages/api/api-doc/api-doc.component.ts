@@ -87,13 +87,13 @@ import { RouterModule } from '@angular/router';
         <div class="response-example">
           <h5 style="margin: 0 0 10px 0; color: #333;">Resposta (200 OK):</h5>
           <div style="font-family: 'Monaco', 'Courier New', monospace; background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 4px; font-size: 11px; overflow-x: auto;">
-            <pre style="margin: 0; color: inherit;">{
-  "client": {
+            <pre style="margin: 0; color: inherit;">&#123;
+  "client": &#123;
     "code": "CLI001",
     "environment": "producao"
-  },
+  &#125;,
   "releases": [
-    {
+    &#123;
       "version": "1.2.3",
       "product": "Sistema Principal",
       "status": "AVAILABLE",
@@ -107,13 +107,13 @@ import { RouterModule } from '@angular/router';
       "checksum": "sha256:a1b2c3d4e5f6...",
       "size": "245MB",
       "releaseDate": "2024-01-15T10:30:00Z"
-    }
+    &#125;
   ],
-  "metadata": {
+  "metadata": &#123;
     "totalReleases": 1,
     "lastUpdate": "2024-01-16T14:20:00Z"
-  }
-}</pre>
+  &#125;
+&#125;</pre>
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@ import { RouterModule } from '@angular/router';
       <div class="endpoint" style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
           <span style="padding: 6px 12px; background: #52c41a; color: white; border-radius: 4px; font-weight: 500; font-size: 12px;">GET</span>
-          <h4 style="margin: 0; color: #333; font-size: 18px;">/releases/{version}</h4>
+          <h4 style="margin: 0; color: #333; font-size: 18px;">/releases/&#123;version&#125;</h4>
         </div>
         
         <p style="margin-bottom: 20px; color: #666;">
@@ -159,18 +159,18 @@ import { RouterModule } from '@angular/router';
         <div class="request-body" style="margin-bottom: 20px;">
           <h5 style="margin: 0 0 10px 0; color: #333;">Request Body:</h5>
           <div style="font-family: 'Monaco', 'Courier New', monospace; background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 4px; font-size: 11px;">
-            <pre style="margin: 0; color: inherit;">{
+            <pre style="margin: 0; color: inherit;">&#123;
   "product": "Sistema Principal",
   "version": "1.2.4",
   "branch": "release/1.2.4",
   "commitHash": "a1b2c3d4e5f6789...",
   "releaseType": "patch",
-  "metadata": {
+  "metadata": &#123;
     "mrId": "1234",
-    "approvedBy": "joao.silva@empresa.com.br",
+    "approvedBy": "joao.silva&#64;empresa.com.br",
     "buildNumber": "2024.15.001"
-  }
-}</pre>
+  &#125;
+&#125;</pre>
           </div>
         </div>
       </div>
@@ -179,7 +179,7 @@ import { RouterModule } from '@angular/router';
       <div class="endpoint" style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
           <span style="padding: 6px 12px; background: #52c41a; color: white; border-radius: 4px; font-weight: 500; font-size: 12px;">GET</span>
-          <h4 style="margin: 0; color: #333; font-size: 18px;">/releases/{version}/download</h4>
+          <h4 style="margin: 0; color: #333; font-size: 18px;">/releases/&#123;version&#125;/download</h4>
         </div>
         
         <p style="margin-bottom: 20px; color: #666;">
@@ -230,15 +230,15 @@ import { RouterModule } from '@angular/router';
           <pre style="margin: 0; color: inherit;">import requests
 
 def get_available_releases(client_code, environment, token):
-    headers = {
-        'Authorization': f'Bearer {token}',
+    headers = &#123;
+        'Authorization': f'Bearer &#123;token&#125;',
         'Content-Type': 'application/json'
-    }
+    &#125;
     
-    params = {
+    params = &#123;
         'clientCode': client_code,
         'environment': environment
-    }
+    &#125;
     
     response = requests.get(
         'https://api.releasemanager.empresa.com.br/v1/releases/available',
@@ -259,10 +259,10 @@ HttpHeaders headers = new HttpHeaders();
 headers.set("Authorization", "Bearer " + token);
 
 String url = "https://api.releasemanager.empresa.com.br/v1/releases/available"
-    + "?clientCode={clientCode}&environment={environment}";
+    + "?clientCode=&#123;clientCode&#125;&environment=&#123;environment&#125;";
 
-HttpEntity<?> entity = new HttpEntity<>(headers);
-ResponseEntity<String> response = restTemplate.exchange(
+HttpEntity&lt;?&gt; entity = new HttpEntity&lt;&gt;(headers);
+ResponseEntity&lt;String&gt; response = restTemplate.exchange(
     url, HttpMethod.GET, entity, String.class, clientCode, environment
 );</pre>
         </div>
@@ -271,19 +271,19 @@ ResponseEntity<String> response = restTemplate.exchange(
       <div>
         <h4 style="margin: 0 0 10px 0; color: #333;">🌐 JavaScript/Node.js</h4>
         <div style="font-family: 'Monaco', 'Courier New', monospace; background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 4px; font-size: 11px; overflow-x: auto;">
-          <pre style="margin: 0; color: inherit;">async function getAvailableReleases(clientCode, environment, token) {
+          <pre style="margin: 0; color: inherit;">async function getAvailableReleases(clientCode, environment, token) &#123;
     const response = await fetch(
-        \`https://api.releasemanager.empresa.com.br/v1/releases/available?clientCode=\${clientCode}&environment=\${environment}\`,
-        {
-            headers: {
-                'Authorization': \`Bearer \${token}\`,
+        \`https://api.releasemanager.empresa.com.br/v1/releases/available?clientCode=\$&#123;clientCode&#125;&environment=\$&#123;environment&#125;\`,
+        &#123;
+            headers: &#123;
+                'Authorization': \`Bearer \$&#123;token&#125;\`,
                 'Content-Type': 'application/json'
-            }
-        }
+            &#125;
+        &#125;
     );
     
     return await response.json();
-}</pre>
+&#125;</pre>
         </div>
       </div>
     </div>
@@ -295,7 +295,7 @@ ResponseEntity<String> response = restTemplate.exchange(
         Para dúvidas sobre a API ou solicitação de tokens de acesso, entre em contato:
       </p>
       <ul style="margin: 0; padding-left: 20px; color: #666;">
-        <li>📧 Email: <strong>api-support@empresa.com.br</strong></li>
+        <li>📧 Email: <strong>api-support&#64;empresa.com.br</strong></li>
         <li>💬 Slack: <strong>#release-manager-api</strong></li>
         <li>📋 Issues: <strong>GitHub Enterprise</strong></li>
       </ul>

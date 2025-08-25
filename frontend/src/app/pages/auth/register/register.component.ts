@@ -42,7 +42,7 @@ import { RouterModule, Router } from '@angular/router';
         </div>
 
         <div class="form-group" style="margin-bottom: 20px;">
-          <label for="email" style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">📧 Email (@empresa.com.br):</label>
+          <label for="email" style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">📧 Email (&#64;empresa.com.br):</label>
           <input 
             id="email" 
             type="email" 
@@ -104,7 +104,7 @@ import { RouterModule, Router } from '@angular/router';
         <h4 style="color: #666; font-size: 14px; margin-bottom: 15px;">📋 Requisitos da Senha</h4>
         <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; font-size: 12px; color: #666; text-align: left;">
           <p style="margin: 2px 0;">• Mínimo de 16 caracteres</p>
-          <p style="margin: 2px 0;">• Email deve terminar com @empresa.com.br</p>
+          <p style="margin: 2px 0;">• Email deve terminar com &#64;empresa.com.br</p>
           <p style="margin: 2px 0;">• Senha e confirmação devem ser iguais</p>
         </div>
       </div>

@@ -60,7 +60,7 @@ import { RouterModule, ActivatedRoute } from '@angular/router';
                 <span class="status-badge" 
                       [style.background-color]="getStatusColor(entry.previousStatus)"
                       style="padding: 4px 8px; border-radius: 12px; color: white; font-size: 11px; font-weight: 500;">
-                  {{ getStatusText(entry.previousStatus) || 'Inicial' }}
+                  {{ getStatusText(entry.previousStatus || '') || 'Inicial' }}
                 </span>
                 <span style="color: #666; font-size: 14px;">→</span>
                 <span class="status-badge" 
