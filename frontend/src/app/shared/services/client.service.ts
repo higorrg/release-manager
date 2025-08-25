@@ -21,7 +21,7 @@ import {
   providedIn: 'root'
 })
 export class ClientService {
-  private readonly API_URL = 'http://localhost:8080/api/v1';
+  private readonly API_URL = 'http://localhost:8081/api/v1';
 
   // Signals for reactive state management
   private clientsSignal = signal<Client[]>([]);

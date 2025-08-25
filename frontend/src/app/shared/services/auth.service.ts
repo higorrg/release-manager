@@ -17,7 +17,7 @@ import {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:8080/api/v1';
+  private readonly API_URL = 'http://localhost:8081/api/v1';
   private readonly TOKEN_KEY = 'release-manager-token';
   private readonly USER_KEY = 'release-manager-user';
 
