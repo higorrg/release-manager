@@ -12,6 +12,7 @@
       "Bash(rm:*)",
       "Bash(mv:*)",
       "Read(~/.zshrc)",
+      "Bash(chmod:*)"
       "Bash(chmod:*)",
       "Bash(cat:*)",
       "Bash(openssl genrsa:*)",
@@ -25,6 +26,9 @@
       "Bash(curl:*)",
       "Bash(pkill:*)",
       "Bash(fuser:*)",
+      "Bash(git:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
       "Bash(export TESTCONTAINERS_CHECKS_DISABLE=true)"
     ],
     "deny": [],
