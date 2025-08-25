@@ -74,12 +74,24 @@ import { RouterModule } from '@angular/router';
       </div>
 
       <!-- Action Buttons -->
-      <div class="action-buttons" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #f0f0f0;">
+      <div class="action-buttons" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #f0f0f0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
         <button routerLink="/dashboard/releases" 
-                style="background: #1890ff; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; margin-right: 10px; font-size: 14px;">
-          📋 Ver Todas as Releases
+                style="background: #1890ff; color: white; border: none; padding: 12px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+          📋 Releases
         </button>
-        <button style="background: #52c41a; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+        <button routerLink="/dashboard/clients" 
+                style="background: #722ed1; color: white; border: none; padding: 12px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+          👥 Clientes
+        </button>
+        <button routerLink="/dashboard/pipeline" 
+                style="background: #fa8c16; color: white; border: none; padding: 12px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+          🔗 Pipeline
+        </button>
+        <button routerLink="/dashboard/api" 
+                style="background: #13c2c2; color: white; border: none; padding: 12px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+          🔌 API Docs
+        </button>
+        <button style="background: #52c41a; color: white; border: none; padding: 12px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">
           ➕ Nova Release
         </button>
       </div>

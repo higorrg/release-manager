@@ -8,6 +8,7 @@ import { ReleaseHistoryComponent } from './pages/releases/release-history/releas
 import { ReleaseClientsComponent } from './pages/releases/release-clients/release-clients.component';
 import { ClientListComponent } from './pages/clients/client-list/client-list.component';
 import { ApiDocComponent } from './pages/api/api-doc/api-doc.component';
+import { PipelineIntegrationComponent } from './pages/pipeline/pipeline-integration/pipeline-integration.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -23,6 +24,7 @@ export const routes: Routes = [
       { path: 'releases/:id/history', component: ReleaseHistoryComponent },
       { path: 'releases/:id/clients', component: ReleaseClientsComponent },
       { path: 'clients', component: ClientListComponent },
+      { path: 'pipeline', component: PipelineIntegrationComponent },
       { path: 'api', component: ApiDocComponent }
     ]
   },
