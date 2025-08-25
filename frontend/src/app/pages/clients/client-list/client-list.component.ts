@@ -1,234 +1,452 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
+import { ClientService } from '../../../shared/services/client.service';
+import { Client, CreateClientRequest, UpdateClientRequest } from '../../../shared/models/client.model';
 
 @Component({
   selector: 'app-client-list',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule
+    ReactiveFormsModule,
+    HttpClientModule
   ],
-  template: `<div class="client-list-container" style="padding: 20px;">
-    <!-- Header -->
-    <div class="header" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-      <h2 style="margin: 0 0 10px 0; color: #333;">👥 Gestão de Clientes</h2>
-      <p style="margin: 0; color: #666;">Visualize todos os clientes e seus ambientes configurados</p>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
-      <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-        <div style="font-size: 32px; color: #1890ff; margin-bottom: 10px;">👥</div>
-        <h3 style="margin: 0; font-size: 24px; color: #333;">{{ getTotalClients() }}</h3>
-        <p style="margin: 5px 0 0 0; color: #666;">Total de Clientes</p>
+  template: `
+    <div class="client-list-container">
+      <!-- Header -->
+      <div class="page-header" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h1 style="margin: 0; color: #333; font-size: 24px;">👥 Gerenciamento de Clientes</h1>
+          <p style="margin: 5px 0 0 0; color: #666;">Cadastre e gerencie os clientes do sistema</p>
+        </div>
+        <button 
+          (click)="openCreateModal()" 
+          style="background: #52c41a; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+          ➕ Novo Cliente
+        </button>
       </div>
 
-      <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-        <div style="font-size: 32px; color: #52c41a; margin-bottom: 10px;">🚀</div>
-        <h3 style="margin: 0; font-size: 24px; color: #333;">{{ getProductionClients() }}</h3>
-        <p style="margin: 5px 0 0 0; color: #666;">Em Produção</p>
-      </div>
-
-      <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-        <div style="font-size: 32px; color: #1890ff; margin-bottom: 10px;">🧪</div>
-        <h3 style="margin: 0; font-size: 24px; color: #333;">{{ getHomologationClients() }}</h3>
-        <p style="margin: 5px 0 0 0; color: #666;">Em Homologação</p>
-      </div>
-
-      <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-        <div style="font-size: 32px; color: #722ed1; margin-bottom: 10px;">📋</div>
-        <h3 style="margin: 0; font-size: 24px; color: #333;">{{ getActiveAssignments() }}</h3>
-        <p style="margin: 5px 0 0 0; color: #666;">Atribuições Ativas</p>
-      </div>
-    </div>
-
-    <!-- Client List -->
-    <div class="clients-grid" style="display: grid; gap: 20px;">
-      <div *ngFor="let client of clients" 
-           class="client-card" 
-           style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+      <!-- Stats Card -->
+      <div class="stats-card" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; text-align: center;">
           <div>
-            <h3 style="margin: 0 0 5px 0; color: #333; font-size: 20px;">{{ client.code }}</h3>
-            <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">{{ client.name }}</p>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <span *ngFor="let env of client.environments" 
-                    class="env-badge" 
-                    [style.background-color]="getEnvironmentColor(env)"
-                    style="padding: 4px 8px; border-radius: 12px; color: white; font-size: 11px; font-weight: 500;">
-                {{ getEnvironmentText(env) }}
-              </span>
+            <div style="font-size: 24px; color: #1890ff; margin-bottom: 5px;">{{ clients.length }}</div>
+            <div style="color: #666; font-size: 14px;">Total de Clientes</div>
+          </div>
+          <div>
+            <div style="font-size: 24px; color: #52c41a; margin-bottom: 5px;">{{ getActiveClients() }}</div>
+            <div style="color: #666; font-size: 14px;">Ativos</div>
+          </div>
+          <div>
+            <div style="font-size: 24px; color: #ff4d4f; margin-bottom: 5px;">{{ getInactiveClients() }}</div>
+            <div style="color: #666; font-size: 14px;">Inativos</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clients Table -->
+      <div class="clients-table" style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead style="background: #fafafa; border-bottom: 1px solid #f0f0f0;">
+            <tr>
+              <th style="padding: 16px; text-align: left; font-weight: 500; color: #333;">Código</th>
+              <th style="padding: 16px; text-align: left; font-weight: 500; color: #333;">Nome</th>
+              <th style="padding: 16px; text-align: left; font-weight: 500; color: #333;">Criado em</th>
+              <th style="padding: 16px; text-align: center; font-weight: 500; color: #333;">Status</th>
+              <th style="padding: 16px; text-align: center; font-weight: 500; color: #333;">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let client of clients; let i = index" style="border-bottom: 1px solid #f0f0f0;">
+              <td style="padding: 16px; font-weight: 500; color: #333;">{{ client.code }}</td>
+              <td style="padding: 16px; color: #333;">{{ client.name }}</td>
+              <td style="padding: 16px; color: #666;">{{ client.createdAt | date:'short' }}</td>
+              <td style="padding: 16px; text-align: center;">
+                <span 
+                  [style.background-color]="client.active ? '#f6ffed' : '#fff2f0'"
+                  [style.color]="client.active ? '#52c41a' : '#ff4d4f'"
+                  style="padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500;">
+                  {{ client.active ? 'Ativo' : 'Inativo' }}
+                </span>
+              </td>
+              <td style="padding: 16px; text-align: center;">
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                  <button 
+                    (click)="editClient(i)"
+                    style="background: #1890ff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    ✏️ Editar
+                  </button>
+                  <button 
+                    (click)="deleteClient(i)"
+                    style="background: #ff4d4f; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    🗑️ Excluir
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="clients.length === 0" style="text-align: center; padding: 60px 20px; color: #666; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="font-size: 48px; margin-bottom: 20px;">👥</div>
+        <h3 style="color: #666; margin-bottom: 10px;">Nenhum cliente cadastrado</h3>
+        <p style="margin-bottom: 20px;">Adicione o primeiro cliente para começar.</p>
+        <button 
+          (click)="openCreateModal()"
+          style="background: #52c41a; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+          ➕ Adicionar Cliente
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div *ngIf="showModal" 
+         style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;"
+         (click)="closeModal()">
+      <div style="background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);"
+           (click)="$event.stopPropagation()">
+        <h2 style="margin: 0 0 20px 0; color: #333;">{{ isEditMode ? '✏️ Editar Cliente' : '➕ Novo Cliente' }}</h2>
+        
+        <form [formGroup]="clientForm" (ngSubmit)="onSubmit()">
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Código *</label>
+            <input 
+              type="text" 
+              formControlName="code"
+              placeholder="Ex: CLI001"
+              [readonly]="isEditMode"
+              style="width: 100%; padding: 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px;"
+              [style.border-color]="clientForm.get('code')?.errors && clientForm.get('code')?.touched ? '#ff4757' : '#d9d9d9'"
+              [style.background-color]="isEditMode ? '#f5f5f5' : 'white'"
+              [style.cursor]="isEditMode ? 'not-allowed' : 'text'">
+            <div *ngIf="clientForm.get('code')?.errors && clientForm.get('code')?.touched" 
+                 style="color: #ff4757; font-size: 12px; margin-top: 5px;">
+              Código é obrigatório
             </div>
           </div>
-          <div style="text-align: right;">
-            <div style="font-size: 12px; color: #888; margin-bottom: 5px;">Última Atualização</div>
-            <div style="font-size: 14px; color: #333; font-weight: 500;">{{ formatDate(client.lastUpdate) }}</div>
-          </div>
-        </div>
 
-        <div class="client-details" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
-          <div>
-            <label style="font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Tipo</label>
-            <p style="margin: 3px 0 0 0; font-weight: 500; color: #333;">{{ client.type }}</p>
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Nome *</label>
+            <input 
+              type="text" 
+              formControlName="name"
+              placeholder="Nome da empresa"
+              style="width: 100%; padding: 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px;"
+              [style.border-color]="clientForm.get('name')?.errors && clientForm.get('name')?.touched ? '#ff4757' : '#d9d9d9'">
+            <div *ngIf="clientForm.get('name')?.errors && clientForm.get('name')?.touched" 
+                 style="color: #ff4757; font-size: 12px; margin-top: 5px;">
+              Nome é obrigatório
+            </div>
           </div>
-          <div>
-            <label style="font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Status</label>
-            <p style="margin: 3px 0 0 0; font-weight: 500; color: #333;">
-              <span [style.color]="getStatusColor(client.status)">{{ client.status }}</span>
-            </p>
-          </div>
-          <div>
-            <label style="font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Releases Ativas</label>
-            <p style="margin: 3px 0 0 0; font-weight: 500; color: #333;">{{ client.activeReleases }}</p>
-          </div>
-          <div>
-            <label style="font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Contato</label>
-            <p style="margin: 3px 0 0 0; font-weight: 500; color: #333;">{{ client.contact }}</p>
-          </div>
-        </div>
 
-        <div class="recent-releases" style="margin-bottom: 20px;">
-          <h4 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">📦 Releases Recentes</h4>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <span *ngFor="let release of client.recentReleases" 
-                  style="padding: 4px 8px; background: #e6f7ff; color: #1890ff; border-radius: 4px; font-size: 12px; font-weight: 500;">
-              v{{ release }}
-            </span>
+          <div style="margin-bottom: 24px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Status</label>
+            <select 
+              formControlName="active"
+              style="width: 100%; padding: 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px;">
+              <option [value]="true">Ativo</option>
+              <option [value]="false">Inativo</option>
+            </select>
           </div>
-        </div>
 
-        <div class="actions" style="display: flex; gap: 10px; border-top: 1px solid #f0f0f0; padding-top: 15px;">
-          <button style="flex: 1; padding: 10px; background: #1890ff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
-            📊 Ver Releases
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button 
+              type="button" 
+              (click)="closeModal()"
+              style="background: #f5f5f5; color: #333; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+              Cancelar
+            </button>
+            <button 
+              type="submit" 
+              [disabled]="!clientForm.valid"
+              style="background: #52c41a; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;"
+              [style.background]="!clientForm.valid ? '#d9d9d9' : '#52c41a'">
+              {{ isEditMode ? '💾 Salvar' : '➕ Criar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div *ngIf="showDeleteModal" 
+         style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001;"
+         (click)="closeDeleteModal()">
+      <div style="background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center;"
+           (click)="$event.stopPropagation()">
+        
+        <div style="font-size: 48px; color: #ff4d4f; margin-bottom: 20px;">⚠️</div>
+        
+        <h2 style="margin: 0 0 15px 0; color: #333; font-size: 20px;">Confirmar Exclusão</h2>
+        
+        <p style="margin: 0 0 25px 0; color: #666; line-height: 1.5;">
+          Tem certeza que deseja excluir o cliente <br>
+          <strong style="color: #333;">"{{ clientToDelete?.name }}"</strong>?
+        </p>
+        
+        <div style="border: 1px solid #ffe7e7; background: #fff2f2; padding: 12px; border-radius: 6px; margin-bottom: 25px;">
+          <p style="margin: 0; color: #d32029; font-size: 14px;">
+            ⚠️ Esta ação não pode ser desfeita!
+          </p>
+        </div>
+        
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button 
+            (click)="closeDeleteModal()"
+            style="background: #f5f5f5; color: #333; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; min-width: 100px;">
+            Cancelar
           </button>
-          <button style="flex: 1; padding: 10px; background: #52c41a; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
-            🔧 Configurar
-          </button>
-          <button style="flex: 1; padding: 10px; background: #722ed1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
-            📈 Histórico
+          <button 
+            (click)="confirmDelete()"
+            style="background: #ff4d4f; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; min-width: 100px;">
+            🗑️ Excluir
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Empty State -->
-    <div *ngIf="clients.length === 0" style="text-align: center; padding: 60px 20px; color: #666; background: white; border-radius: 8px;">
-      <div style="font-size: 48px; margin-bottom: 20px;">👥</div>
-      <h3 style="color: #666; margin-bottom: 10px;">Nenhum cliente encontrado</h3>
-      <p>Os clientes serão listados automaticamente conforme as atribuições de releases.</p>
-    </div>
-
-    <!-- API Info -->
-    <div class="api-integration" style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-      <h4 style="margin: 0 0 15px 0; color: #333;">🔌 API para Consulta de Clientes</h4>
-      <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
-        Os clientes podem usar esta API para verificar suas releases disponíveis:
-      </p>
-      <div style="font-family: 'Monaco', 'Courier New', monospace; background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 4px; font-size: 12px; overflow-x: auto;">
-        <div style="color: #68d391; margin-bottom: 5px;">GET /api/v1/clients/&#123;clientCode&#125;/releases?environment=producao</div>
-        <div style="color: #fbb6ce;">Retorna: releases disponíveis para o cliente específico</div>
-        <div style="margin-top: 10px; color: #68d391;">GET /api/v1/releases?client=&#123;clientCode&#125;&environment=&#123;env&#125;</div>
-        <div style="color: #fbb6ce;">Filtro: releases por cliente e ambiente</div>
+    <!-- Notifications Container -->
+    <div class="notifications-container" style="position: fixed; top: 20px; right: 20px; z-index: 1100; display: flex; flex-direction: column; gap: 10px;">
+      <div *ngFor="let notification of notifications" 
+           [attr.data-notification-id]="notification.id"
+           class="notification"
+           [ngClass]="'notification-' + notification.type"
+           style="min-width: 300px; max-width: 400px; padding: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; animation: slideInRight 0.3s ease-out; position: relative; overflow: hidden;">
+        
+        <!-- Icon based on type -->
+        <div class="notification-icon" style="font-size: 20px; flex-shrink: 0;">
+          <span *ngIf="notification.type === 'success'">✅</span>
+          <span *ngIf="notification.type === 'error'">❌</span>
+          <span *ngIf="notification.type === 'info'">ℹ️</span>
+        </div>
+        
+        <!-- Message -->
+        <div class="notification-message" style="flex: 1; font-size: 14px; font-weight: 500;">
+          {{ notification.message }}
+        </div>
+        
+        <!-- Close button -->
+        <button (click)="removeNotification(notification.id)"
+                style="background: none; border: none; cursor: pointer; font-size: 18px; opacity: 0.7; padding: 0; line-height: 1;"
+                onmouseover="this.style.opacity='1'" 
+                onmouseout="this.style.opacity='0.7'">
+          ×
+        </button>
+        
+        <!-- Progress bar for auto-dismiss -->
+        <div class="progress-bar" 
+             style="position: absolute; bottom: 0; left: 0; height: 3px; background: rgba(255,255,255,0.3); animation: progressBar 4s linear;">
+        </div>
       </div>
     </div>
-  </div>`
+
+    <style>
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      
+      @keyframes progressBar {
+        from {
+          width: 100%;
+        }
+        to {
+          width: 0%;
+        }
+      }
+      
+      .notification-success {
+        background: #f6ffed;
+        border: 1px solid #b7eb8f;
+        color: #52c41a;
+      }
+      
+      .notification-error {
+        background: #fff2f0;
+        border: 1px solid #ffccc7;
+        color: #ff4d4f;
+      }
+      
+      .notification-info {
+        background: #e6f7ff;
+        border: 1px solid #91d5ff;
+        color: #1890ff;
+      }
+    </style>
+  `
 })
 export class ClientListComponent implements OnInit {
-  
-  // Mock client data derived from release assignments
-  clients = [
-    {
-      code: 'CLI001',
-      name: 'Empresa Premium LTDA',
-      type: 'Corporativo',
-      status: 'Ativo',
-      environments: ['producao', 'homologacao'],
-      activeReleases: 3,
-      contact: 'contato@premium.com.br',
-      lastUpdate: new Date('2024-01-16T14:30:00'),
-      recentReleases: ['1.2.3', '1.2.2', '1.1.5']
-    },
-    {
-      code: 'CLI002',
-      name: 'StartUp Inovadora',
-      type: 'Startup',
-      status: 'Ativo',
-      environments: ['homologacao'],
-      activeReleases: 1,
-      contact: 'dev@startup.com.br',
-      lastUpdate: new Date('2024-01-15T16:20:00'),
-      recentReleases: ['1.2.3-beta', '1.2.1']
-    },
-    {
-      code: 'CLI003',
-      name: 'Corporação Industrial',
-      type: 'Enterprise',
-      status: 'Ativo',
-      environments: ['producao'],
-      activeReleases: 5,
-      contact: 'ti@corporacao.com.br',
-      lastUpdate: new Date('2024-01-16T11:45:00'),
-      recentReleases: ['1.2.3', '1.2.2', '1.2.1', '1.1.8']
-    },
-    {
-      code: 'CLI004',
-      name: 'Cliente Teste',
-      type: 'Parceiro',
-      status: 'Inativo',
-      environments: ['homologacao'],
-      activeReleases: 0,
-      contact: 'teste@parceiro.com.br',
-      lastUpdate: new Date('2024-01-10T09:15:00'),
-      recentReleases: ['1.1.9']
-    }
-  ];
+  clientForm: FormGroup;
+  showModal = false;
+  isEditMode = false;
+  editingIndex = -1;
+  showDeleteModal = false;
+  clientToDelete: Client | null = null;
+  deleteIndex = -1;
+  notifications: Array<{id: number, message: string, type: 'success' | 'error' | 'info'}> = [];
+  clients: Client[] = [];
+  isLoading = false;
 
-  constructor() {}
+  constructor(
+    private fb: FormBuilder,
+    private clientService: ClientService
+  ) {
+    this.clientForm = this.fb.group({
+      code: ['', Validators.required],
+      name: ['', Validators.required],
+      active: [true]
+    });
+  }
 
   ngOnInit(): void {
-    // In real implementation, load clients from backend API
+    this.loadClients();
   }
 
-  getTotalClients(): number {
-    return this.clients.length;
+  loadClients(): void {
+    this.isLoading = true;
+    this.clientService.getClients().subscribe({
+      next: (clients) => {
+        this.clients = clients;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar clientes:', error);
+        this.showNotification('Erro ao carregar clientes', 'error');
+        this.isLoading = false;
+      }
+    });
   }
 
-  getProductionClients(): number {
-    return this.clients.filter(client => 
-      client.environments.includes('producao')
-    ).length;
+  getActiveClients(): number {
+    return this.clients.filter(client => client.active).length;
   }
 
-  getHomologationClients(): number {
-    return this.clients.filter(client => 
-      client.environments.includes('homologacao')
-    ).length;
+  getInactiveClients(): number {
+    return this.clients.filter(client => !client.active).length;
   }
 
-  getActiveAssignments(): number {
-    return this.clients.reduce((total, client) => total + client.activeReleases, 0);
+  openCreateModal(): void {
+    this.isEditMode = false;
+    this.editingIndex = -1;
+    this.clientForm.reset({
+      code: '',
+      name: '',
+      active: true
+    });
+    this.showModal = true;
   }
 
-  getEnvironmentColor(environment: string): string {
-    return environment === 'producao' ? '#52c41a' : '#1890ff';
+  editClient(index: number): void {
+    this.isEditMode = true;
+    this.editingIndex = index;
+    const client = this.clients[index];
+    this.clientForm.patchValue({
+      code: client.code,
+      name: client.name,
+      active: client.active
+    });
+    this.showModal = true;
   }
 
-  getEnvironmentText(environment: string): string {
-    return environment === 'producao' ? 'Produção' : 'Homologação';
+  deleteClient(index: number): void {
+    this.clientToDelete = this.clients[index];
+    this.deleteIndex = index;
+    this.showDeleteModal = true;
   }
 
-  getStatusColor(status: string): string {
-    const colors: { [key: string]: string } = {
-      'Ativo': '#52c41a',
-      'Inativo': '#ff4d4f',
-      'Suspenso': '#fa8c16'
-    };
-    return colors[status] || '#d9d9d9';
+  confirmDelete(): void {
+    if (this.clientToDelete) {
+      const clientName = this.clientToDelete.name;
+      this.clientService.deleteClient(this.clientToDelete.id).subscribe({
+        next: () => {
+          this.showNotification(`Cliente "${clientName}" excluído com sucesso!`, 'success');
+          this.loadClients(); // Reload the list
+          this.closeDeleteModal();
+        },
+        error: (error) => {
+          console.error('Erro ao excluir cliente:', error);
+          this.showNotification('Erro ao excluir cliente', 'error');
+          this.closeDeleteModal();
+        }
+      });
+    }
   }
 
-  formatDate(date: Date): string {
-    return date.toLocaleString('pt-BR');
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.clientToDelete = null;
+    this.deleteIndex = -1;
+  }
+
+  onSubmit(): void {
+    if (this.clientForm.valid) {
+      const formData = this.clientForm.value;
+      
+      if (this.isEditMode && this.editingIndex >= 0) {
+        const client = this.clients[this.editingIndex];
+        const updateData: UpdateClientRequest = {
+          name: formData.name,
+          active: formData.active
+        };
+        
+        this.clientService.updateClient(client.id, updateData).subscribe({
+          next: () => {
+            this.showNotification(`Cliente "${formData.name}" atualizado com sucesso!`, 'success');
+            this.loadClients(); // Reload the list
+            this.closeModal();
+          },
+          error: (error) => {
+            console.error('Erro ao atualizar cliente:', error);
+            this.showNotification('Erro ao atualizar cliente', 'error');
+          }
+        });
+      } else {
+        const createData: CreateClientRequest = {
+          code: formData.code,
+          name: formData.name
+        };
+        
+        this.clientService.createClient(createData).subscribe({
+          next: () => {
+            this.showNotification(`Cliente "${formData.name}" criado com sucesso!`, 'success');
+            this.loadClients(); // Reload the list
+            this.closeModal();
+          },
+          error: (error) => {
+            console.error('Erro ao criar cliente:', error);
+            this.showNotification('Erro ao criar cliente', 'error');
+          }
+        });
+      }
+    }
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+    this.clientForm.reset();
+  }
+
+  showNotification(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
+    const id = Date.now();
+    this.notifications.push({ id, message, type });
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+      this.removeNotification(id);
+    }, 4000);
+  }
+
+  removeNotification(id: number): void {
+    this.notifications = this.notifications.filter(n => n.id !== id);
   }
 }

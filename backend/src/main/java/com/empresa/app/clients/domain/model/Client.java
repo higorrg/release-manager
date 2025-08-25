@@ -7,7 +7,7 @@ public class Client {
     
     private final ClientId id;
     private final ClientCode code;
-    private final String name;
+    private String name;
     private final LocalDateTime createdAt;
     private boolean active;
     
@@ -34,6 +34,10 @@ public class Client {
     
     public void activate() {
         this.active = true;
+    }
+    
+    public void updateName(String name) {
+        this.name = Objects.requireNonNull(name, "Name cannot be null");
     }
     
     public ClientId getId() {

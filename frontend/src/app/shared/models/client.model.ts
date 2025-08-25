@@ -1,42 +1,19 @@
 export interface Client {
-  id: number;
+  id: string;
+  code: string;
   name: string;
-  email: string;
-  company: string;
-  phone?: string;
-  address?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  notes?: string;
-  clientType: ClientType;
-  region?: string;
-  priority: ClientPriority;
+  active: boolean;
+  createdAt: string;
 }
 
 export interface CreateClientRequest {
+  code: string;
   name: string;
-  email: string;
-  company: string;
-  phone?: string;
-  address?: string;
-  notes?: string;
-  clientType: ClientType;
-  region?: string;
-  priority: ClientPriority;
 }
 
 export interface UpdateClientRequest {
-  name?: string;
-  email?: string;
-  company?: string;
-  phone?: string;
-  address?: string;
-  notes?: string;
-  clientType?: ClientType;
-  region?: string;
-  priority?: ClientPriority;
-  isActive?: boolean;
+  name: string;
+  active: boolean;
 }
 
 export enum ClientType {
