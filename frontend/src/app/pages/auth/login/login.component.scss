@@ -1,0 +1,229 @@
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 32px;
+
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #262626;
+      margin: 0 0 8px 0;
+    }
+
+    p {
+      color: #8c8c8c;
+      font-size: 14px;
+      margin: 0;
+    }
+  }
+
+  .login-form {
+    .login-options {
+      margin-bottom: 24px;
+
+      .login-options-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .forgot-password-link {
+          color: #1890ff;
+          font-size: 14px;
+          text-decoration: none;
+          transition: color 0.3s ease;
+
+          &:hover {
+            color: #40a9ff;
+            text-decoration: underline;
+          }
+        }
+      }
+
+      :deep(.ant-checkbox-wrapper) {
+        font-size: 14px;
+      }
+    }
+
+    .submit-button {
+      margin-bottom: 0;
+
+      button {
+        height: 48px;
+        font-size: 16px;
+        font-weight: 500;
+        border-radius: 6px;
+
+        nz-icon {
+          margin-right: 8px;
+        }
+
+        &:disabled {
+          cursor: not-allowed;
+        }
+      }
+    }
+
+    // Form field styles
+    :deep(.ant-form-item) {
+      margin-bottom: 20px;
+
+      .ant-form-item-label {
+        padding-bottom: 4px;
+
+        label {
+          font-weight: 500;
+          font-size: 14px;
+        }
+      }
+
+      .ant-input-group {
+        .ant-input {
+          height: 44px;
+          border-radius: 6px;
+          font-size: 14px;
+
+          &.error {
+            border-color: #ff4d4f;
+            box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+          }
+
+          &:focus, &:focus-within {
+            border-color: #40a9ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+          }
+        }
+
+        .ant-input-prefix {
+          color: #bfbfbf;
+        }
+      }
+
+      .ant-form-item-explain-error {
+        font-size: 12px;
+        margin-top: 4px;
+      }
+    }
+
+    .password-toggle {
+      cursor: pointer;
+      color: #bfbfbf;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: #1890ff;
+      }
+    }
+  }
+
+  .register-section {
+    text-align: center;
+    margin-top: 24px;
+
+    p {
+      color: #8c8c8c;
+      font-size: 14px;
+      margin: 0 0 12px 0;
+    }
+
+    button {
+      height: 44px;
+      font-size: 14px;
+      border-radius: 6px;
+      border-color: #d9d9d9;
+
+      nz-icon {
+        margin-right: 8px;
+      }
+
+      &:hover {
+        border-color: #40a9ff;
+        color: #40a9ff;
+      }
+    }
+  }
+
+  .help-section {
+    text-align: center;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
+
+    .help-text {
+      color: #8c8c8c;
+      font-size: 12px;
+      margin: 0;
+
+      nz-icon {
+        margin-right: 4px;
+        color: #bfbfbf;
+      }
+
+      a {
+        color: #1890ff;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  // Alert styles
+  :deep(.ant-alert) {
+    border-radius: 6px;
+    
+    &.ant-alert-error {
+      border-color: #ffccc7;
+      background-color: #fff2f0;
+    }
+  }
+
+  // Divider styles
+  :deep(.ant-divider) {
+    margin: 24px 0;
+    font-size: 14px;
+    color: #bfbfbf;
+
+    &.ant-divider-with-text-center::before,
+    &.ant-divider-with-text-center::after {
+      border-top-color: #f0f0f0;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 480px) {
+  .login-container {
+    .login-header {
+      h2 {
+        font-size: 20px;
+      }
+    }
+
+    .login-form {
+      .login-options {
+        .login-options-content {
+          flex-direction: column;
+          gap: 12px;
+          align-items: flex-start;
+        }
+      }
+    }
+  }
+}
+
+// Animation for form validation
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.login-form :deep(.ant-form-item.has-error) {
+  animation: shake 0.5s ease-in-out;
+}

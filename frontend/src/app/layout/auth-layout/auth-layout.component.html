@@ -1,0 +1,33 @@
+<nz-layout class="auth-layout">
+  <nz-content class="auth-content">
+    <div class="auth-container">
+      <!-- Header -->
+      <div class="auth-header">
+        <div class="logo">
+          <nz-icon nzType="rocket" nzTheme="outline"></nz-icon>
+          <h1>Release Manager</h1>
+        </div>
+        <p class="subtitle">Sistema de Gerenciamento de Releases</p>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="auth-card">
+        <nz-card>
+          <router-outlet></router-outlet>
+        </nz-card>
+      </div>
+
+      <!-- Footer -->
+      <div class="auth-footer">
+        <p>&copy; {{ currentYear }} Release Manager. Todos os direitos reservados.</p>
+      </div>
+    </div>
+
+    <!-- Background Elements -->
+    <div class="background-elements">
+      <div class="circle circle-1"></div>
+      <div class="circle circle-2"></div>
+      <div class="circle circle-3"></div>
+    </div>
+  </nz-content>
+</nz-layout>

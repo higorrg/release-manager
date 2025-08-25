@@ -1,0 +1,179 @@
+<div class="register-container">
+  <!-- Header -->
+  <div class="register-header">
+    <h2>Criar nova conta</h2>
+    <p>Preencha os dados para acessar o sistema</p>
+  </div>
+
+  <!-- Error Alert -->
+  <nz-alert
+    *ngIf="errorMessage()"
+    [nzMessage]="errorMessage()"
+    nzType="error"
+    nzShowIcon
+    nzCloseable
+    (nzOnClose)="closeAlert()"
+    class="mb-24">
+  </nz-alert>
+
+  <!-- Register Form -->
+  <form nz-form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+    <!-- Name Field -->
+    <nz-form-item>
+      <nz-form-label nzRequired nzFor="name">Nome Completo</nz-form-label>
+      <nz-form-control [nzErrorTip]="getFieldError('name')">
+        <nz-input-group nzPrefixIcon="user">
+          <input
+            nz-input
+            formControlName="name"
+            id="name"
+            type="text"
+            placeholder="Digite seu nome completo"
+            autocomplete="name"
+            [class.error]="isFieldInvalid('name')" />
+        </nz-input-group>
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- Username Field -->
+    <nz-form-item>
+      <nz-form-label nzRequired nzFor="username">Nome de Usuário</nz-form-label>
+      <nz-form-control [nzErrorTip]="getFieldError('username')">
+        <nz-input-group nzPrefixIcon="idcard">
+          <input
+            nz-input
+            formControlName="username"
+            id="username"
+            type="text"
+            placeholder="Digite um nome de usuário"
+            autocomplete="username"
+            [class.error]="isFieldInvalid('username')" />
+        </nz-input-group>
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- Email Field -->
+    <nz-form-item>
+      <nz-form-label nzRequired nzFor="email">Email</nz-form-label>
+      <nz-form-control [nzErrorTip]="getFieldError('email')">
+        <nz-input-group nzPrefixIcon="mail" nzSuffix="@empresa.com.br">
+          <input
+            nz-input
+            formControlName="email"
+            id="email"
+            type="email"
+            placeholder="Digite seu email corporativo"
+            autocomplete="email"
+            [class.error]="isFieldInvalid('email')" />
+        </nz-input-group>
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- Password Field -->
+    <nz-form-item>
+      <nz-form-label nzRequired nzFor="password">Senha</nz-form-label>
+      <nz-form-control [nzErrorTip]="getFieldError('password')">
+        <nz-input-group nzPrefixIcon="lock" [nzSuffix]="passwordSuffixTemplate">
+          <input
+            nz-input
+            formControlName="password"
+            id="password"
+            [type]="passwordVisible() ? 'text' : 'password'"
+            placeholder="Crie uma senha forte (mín. 16 caracteres)"
+            autocomplete="new-password"
+            [class.error]="isFieldInvalid('password')" />
+        </nz-input-group>
+        <ng-template #passwordSuffixTemplate>
+          <nz-icon
+            [nzType]="passwordVisible() ? 'eye-invisible' : 'eye'"
+            (click)="togglePasswordVisibility()"
+            class="password-toggle">
+          </nz-icon>
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- Password Strength Indicator -->
+    <div class="password-strength" *ngIf="registerForm.get('password')?.value">
+      <div class="strength-label">Força da senha: {{ getPasswordStrengthText() }}</div>
+      <nz-progress
+        [nzPercent]="passwordStrength()"
+        [nzStatus]="getPasswordStrengthColor()"
+        nzSize="small"
+        [nzShowInfo]="false">
+      </nz-progress>
+    </div>
+
+    <!-- Confirm Password Field -->
+    <nz-form-item>
+      <nz-form-label nzRequired nzFor="confirmPassword">Confirmar Senha</nz-form-label>
+      <nz-form-control [nzErrorTip]="getFieldError('confirmPassword')">
+        <nz-input-group nzPrefixIcon="lock" [nzSuffix]="confirmPasswordSuffixTemplate">
+          <input
+            nz-input
+            formControlName="confirmPassword"
+            id="confirmPassword"
+            [type]="confirmPasswordVisible() ? 'text' : 'password'"
+            placeholder="Digite a senha novamente"
+            autocomplete="new-password"
+            [class.error]="isFieldInvalid('confirmPassword')" />
+        </nz-input-group>
+        <ng-template #confirmPasswordSuffixTemplate>
+          <nz-icon
+            [nzType]="confirmPasswordVisible() ? 'eye-invisible' : 'eye'"
+            (click)="toggleConfirmPasswordVisibility()"
+            class="password-toggle">
+          </nz-icon>
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- Terms and Conditions -->
+    <nz-form-item class="terms-section">
+      <label nz-checkbox [(ngModel)]="agreeToTerms" [ngModelOptions]="{standalone: true}">
+        Concordo com os 
+        <a href="/terms" target="_blank">Termos de Uso</a> 
+        e 
+        <a href="/privacy" target="_blank">Política de Privacidade</a>
+      </label>
+    </nz-form-item>
+
+    <!-- Submit Button -->
+    <nz-form-item class="submit-button">
+      <button
+        nz-button
+        nzType="primary"
+        nzSize="large"
+        nzBlock
+        [nzLoading]="isLoading()"
+        [disabled]="!registerForm.valid || !agreeToTerms()"
+        type="submit">
+        <nz-icon nzType="user-add" nzTheme="outline"></nz-icon>
+        Criar Conta
+      </button>
+    </nz-form-item>
+  </form>
+
+  <!-- Divider -->
+  <nz-divider nzText="ou" nzOrientation="center"></nz-divider>
+
+  <!-- Login Link -->
+  <div class="login-section">
+    <p>Já tem uma conta?</p>
+    <a routerLink="/auth/login" nz-button nzType="default" nzSize="large" nzBlock>
+      <nz-icon nzType="login" nzTheme="outline"></nz-icon>
+      Fazer Login
+    </a>
+  </div>
+
+  <!-- Security Note -->
+  <div class="security-note">
+    <div class="security-content">
+      <nz-icon nzType="safety-certificate" nzTheme="outline"></nz-icon>
+      <div class="security-text">
+        <strong>Sua segurança é importante</strong>
+        <p>Seus dados são protegidos com criptografia de ponta a ponta e nunca são compartilhados com terceiros.</p>
+      </div>
+    </div>
+  </div>
+</div>

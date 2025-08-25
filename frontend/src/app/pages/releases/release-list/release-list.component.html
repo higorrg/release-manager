@@ -1,0 +1,325 @@
+<div class="release-list-container">
+  <!-- Header -->
+  <div class="page-header">
+    <nz-card>
+      <div class="header-content">
+        <div class="header-info">
+          <h2>Releases</h2>
+          <p>Gerencie todos os releases do sistema</p>
+        </div>
+        <div class="header-actions">
+          <nz-space>
+            <button 
+              *nzSpaceItem 
+              nz-button 
+              nzType="default"
+              (click)="toggleFilters()">
+              <nz-icon nzType="filter" nzTheme="outline"></nz-icon>
+              Filtros
+              <nz-tag 
+                *ngIf="getFilterCount() > 0" 
+                nzSize="small" 
+                nzColor="blue" 
+                style="margin-left: 4px;">
+                {{ getFilterCount() }}
+              </nz-tag>
+            </button>
+            
+            <button 
+              *nzSpaceItem 
+              nz-button 
+              nzType="default"
+              (click)="onRefresh()">
+              <nz-icon nzType="reload" nzTheme="outline"></nz-icon>
+              Atualizar
+            </button>
+            
+            <button 
+              *nzSpaceItem 
+              nz-button 
+              nzType="primary"
+              routerLink="/releases/new"
+              *ngIf="canManage()">
+              <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+              Novo Release
+            </button>
+          </nz-space>
+        </div>
+      </div>
+    </nz-card>
+  </div>
+
+  <!-- Filters Panel -->
+  <div class="filters-panel" *ngIf="isFilterVisible()">
+    <nz-card nzTitle="Filtros" nzSize="small">
+      <form nz-form [formGroup]="filterForm" (ngSubmit)="onSearch()">
+        <div nz-row [nzGutter]="[16, 16]">
+          <!-- Search -->
+          <div nz-col [nzXs]="24" [nzMd]="6">
+            <nz-form-item>
+              <nz-form-label>Buscar</nz-form-label>
+              <nz-form-control>
+                <nz-input-group nzPrefixIcon="search">
+                  <input 
+                    nz-input 
+                    formControlName="search"
+                    placeholder="Produto, versão..."
+                    (input)="onFilterChange()" />
+                </nz-input-group>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <!-- Status -->
+          <div nz-col [nzXs]="24" [nzMd]="6">
+            <nz-form-item>
+              <nz-form-label>Status</nz-form-label>
+              <nz-form-control>
+                <nz-select
+                  formControlName="status"
+                  nzMode="multiple"
+                  nzPlaceHolder="Selecione status"
+                  (ngModelChange)="onFilterChange()">
+                  <nz-option 
+                    *ngFor="let option of statusOptions"
+                    [nzValue]="option.value" 
+                    [nzLabel]="option.label">
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <!-- Priority -->
+          <div nz-col [nzXs]="24" [nzMd]="6">
+            <nz-form-item>
+              <nz-form-label>Prioridade</nz-form-label>
+              <nz-form-control>
+                <nz-select
+                  formControlName="priority"
+                  nzMode="multiple"
+                  nzPlaceHolder="Selecione prioridades"
+                  (ngModelChange)="onFilterChange()">
+                  <nz-option 
+                    *ngFor="let option of priorityOptions"
+                    [nzValue]="option.value" 
+                    [nzLabel]="option.label">
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <!-- Date Range -->
+          <div nz-col [nzXs]="24" [nzMd]="6">
+            <nz-form-item>
+              <nz-form-label>Período</nz-form-label>
+              <nz-form-control>
+                <nz-range-picker
+                  formControlName="dateFrom"
+                  nzFormat="dd/MM/yyyy"
+                  nzPlaceHolder="['Data início', 'Data fim']"
+                  (ngModelChange)="onFilterChange()">
+                </nz-range-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <!-- Filter Actions -->
+        <div class="filter-actions">
+          <nz-space>
+            <button 
+              *nzSpaceItem 
+              nz-button 
+              nzType="default"
+              (click)="clearFilters()">
+              <nz-icon nzType="clear" nzTheme="outline"></nz-icon>
+              Limpar Filtros
+            </button>
+          </nz-space>
+        </div>
+      </form>
+    </nz-card>
+  </div>
+
+  <!-- Releases Table -->
+  <div class="table-container">
+    <nz-card>
+      <nz-spin [nzSpinning]="isLoading()">
+        <nz-table 
+          #releasesTable
+          [nzData]="releases()"
+          nzSize="middle"
+          [nzPageSize]="10"
+          [nzShowSizeChanger]="true"
+          [nzPageSizeOptions]="['10', '20', '50', '100']">
+          
+          <thead>
+            <tr>
+              <th nzWidth="200px" nzLeft>Produto</th>
+              <th nzWidth="100px">Versão</th>
+              <th nzWidth="120px">Status</th>
+              <th nzWidth="100px">Prioridade</th>
+              <th nzWidth="120px">Criado em</th>
+              <th nzWidth="120px">Atualizado em</th>
+              <th nzWidth="120px" *ngIf="canManage()">Criado por</th>
+              <th nzWidth="200px" nzRight>Ações</th>
+            </tr>
+          </thead>
+          
+          <tbody>
+            <tr *ngFor="let release of releasesTable.data; trackBy: trackByReleaseId">
+              <!-- Product -->
+              <td nzLeft>
+                <div class="product-info">
+                  <strong>{{ release.product }}</strong>
+                  <div class="product-notes" *ngIf="release.releaseNotes">
+                    {{ release.releaseNotes | slice:0:50 }}{{ release.releaseNotes.length > 50 ? '...' : '' }}
+                  </div>
+                </div>
+              </td>
+
+              <!-- Version -->
+              <td>
+                <nz-tag nzColor="blue">v{{ release.version }}</nz-tag>
+              </td>
+
+              <!-- Status -->
+              <td>
+                <nz-tag [nzColor]="getStatusColor(release.status)">
+                  {{ getStatusText(release.status) }}
+                </nz-tag>
+              </td>
+
+              <!-- Priority -->
+              <td>
+                <nz-tag [nzColor]="getPriorityColor(release.priority)">
+                  {{ getPriorityText(release.priority) }}
+                </nz-tag>
+              </td>
+
+              <!-- Created Date -->
+              <td>{{ formatDate(release.createdAt) }}</td>
+
+              <!-- Updated Date -->
+              <td>{{ formatDate(release.updatedAt) }}</td>
+
+              <!-- Created By -->
+              <td *ngIf="canManage()">
+                <span>Usuário #{{ release.createdBy }}</span>
+              </td>
+
+              <!-- Actions -->
+              <td nzRight>
+                <nz-space nzSize="small">
+                  <!-- View -->
+                  <button
+                    *nzSpaceItem
+                    nz-button
+                    nzType="text"
+                    nzSize="small"
+                    [routerLink]="['/releases', release.id]"
+                    nz-tooltip
+                    nzTooltipTitle="Ver detalhes">
+                    <nz-icon nzType="eye" nzTheme="outline"></nz-icon>
+                  </button>
+
+                  <!-- History -->
+                  <button
+                    *nzSpaceItem
+                    nz-button
+                    nzType="text"
+                    nzSize="small"
+                    [routerLink]="['/releases', release.id, 'history']"
+                    nz-tooltip
+                    nzTooltipTitle="Ver histórico">
+                    <nz-icon nzType="history" nzTheme="outline"></nz-icon>
+                  </button>
+
+                  <!-- Edit -->
+                  <button
+                    *nzSpaceItem
+                    nz-button
+                    nzType="text"
+                    nzSize="small"
+                    [routerLink]="['/releases', release.id, 'edit']"
+                    nz-tooltip
+                    nzTooltipTitle="Editar"
+                    *ngIf="canManage()">
+                    <nz-icon nzType="edit" nzTheme="outline"></nz-icon>
+                  </button>
+
+                  <!-- Manage Clients -->
+                  <button
+                    *nzSpaceItem
+                    nz-button
+                    nzType="text"
+                    nzSize="small"
+                    [routerLink]="['/releases', release.id, 'clients']"
+                    nz-tooltip
+                    nzTooltipTitle="Gerenciar clientes"
+                    *ngIf="canManage()">
+                    <nz-icon nzType="team" nzTheme="outline"></nz-icon>
+                  </button>
+
+                  <!-- Delete -->
+                  <button
+                    *nzSpaceItem
+                    nz-button
+                    nzType="text"
+                    nzSize="small"
+                    nzDanger
+                    nz-popconfirm
+                    nzPopconfirmTitle="Tem certeza que deseja excluir este release?"
+                    nzPopconfirmPlacement="left"
+                    (nzOnConfirm)="confirmDelete(release)"
+                    nz-tooltip
+                    nzTooltipTitle="Excluir"
+                    *ngIf="canManage()">
+                    <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
+                  </button>
+                </nz-space>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+
+        <!-- Empty State -->
+        <nz-empty 
+          *ngIf="releases().length === 0 && !isLoading()"
+          [nzNotFoundContent]="emptyTemplate">
+          <ng-template #emptyTemplate>
+            <div class="empty-content">
+              <nz-icon nzType="rocket" nzTheme="twotone" style="font-size: 48px; color: #bfbfbf;"></nz-icon>
+              <h3>{{ hasActiveFilters() ? 'Nenhum release encontrado' : 'Nenhum release cadastrado' }}</h3>
+              <p *ngIf="hasActiveFilters()">
+                Tente ajustar os filtros ou limpar todos os filtros para ver mais resultados.
+              </p>
+              <p *ngIf="!hasActiveFilters()">
+                Comece criando seu primeiro release no sistema.
+              </p>
+              <div class="empty-actions">
+                <button 
+                  *ngIf="hasActiveFilters()"
+                  nz-button 
+                  nzType="default"
+                  (click)="clearFilters()">
+                  Limpar Filtros
+                </button>
+                <button 
+                  *ngIf="!hasActiveFilters() && canManage()"
+                  nz-button 
+                  nzType="primary"
+                  routerLink="/releases/new">
+                  <nz-icon nzType="plus"></nz-icon>
+                  Criar Primeiro Release
+                </button>
+              </div>
+            </div>
+          </ng-template>
+        </nz-empty>
+      </nz-spin>
+    </nz-card>
+  </div>
+</div>

@@ -12,7 +12,20 @@
       "Bash(rm:*)",
       "Bash(mv:*)",
       "Read(~/.zshrc)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(cat:*)",
+      "Bash(openssl genrsa:*)",
+      "Bash(openssl rsa:*)",
+      "Bash(./mvnw clean compile)",
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(pg_isready:*)",
+      "Bash(java:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(fuser:*)",
+      "Bash(export TESTCONTAINERS_CHECKS_DISABLE=true)"
     ],
     "deny": [],
     "ask": []

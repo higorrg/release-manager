@@ -1,0 +1,210 @@
+.auth-layout {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+
+  .auth-content {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    z-index: 2;
+
+    .auth-container {
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+
+      .auth-header {
+        margin-bottom: 40px;
+        color: white;
+
+        .logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 16px;
+
+          nz-icon {
+            font-size: 48px;
+            color: white;
+          }
+
+          h1 {
+            color: white;
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+          }
+        }
+
+        .subtitle {
+          font-size: 16px;
+          opacity: 0.9;
+          margin: 0;
+          font-weight: 300;
+        }
+      }
+
+      .auth-card {
+        margin-bottom: 32px;
+
+        :deep(.ant-card) {
+          border-radius: 16px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+          border: none;
+          backdrop-filter: blur(10px);
+          background: rgba(255, 255, 255, 0.95);
+
+          .ant-card-body {
+            padding: 40px;
+          }
+        }
+      }
+
+      .auth-footer {
+        color: white;
+        opacity: 0.8;
+        font-size: 14px;
+
+        p {
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  .background-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      animation: float 6s ease-in-out infinite;
+
+      &.circle-1 {
+        width: 200px;
+        height: 200px;
+        top: 10%;
+        left: -5%;
+        animation-delay: 0s;
+      }
+
+      &.circle-2 {
+        width: 150px;
+        height: 150px;
+        top: 60%;
+        right: -3%;
+        animation-delay: 2s;
+      }
+
+      &.circle-3 {
+        width: 120px;
+        height: 120px;
+        bottom: 20%;
+        left: 10%;
+        animation-delay: 4s;
+      }
+    }
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .auth-layout {
+    .auth-content {
+      padding: 16px;
+
+      .auth-container {
+        max-width: 100%;
+
+        .auth-header {
+          margin-bottom: 32px;
+
+          .logo {
+            h1 {
+              font-size: 28px;
+            }
+
+            nz-icon {
+              font-size: 40px;
+            }
+          }
+
+          .subtitle {
+            font-size: 14px;
+          }
+        }
+
+        .auth-card {
+          :deep(.ant-card-body) {
+            padding: 24px;
+          }
+        }
+      }
+    }
+
+    .background-elements {
+      .circle {
+        &.circle-1 {
+          width: 120px;
+          height: 120px;
+        }
+
+        &.circle-2 {
+          width: 100px;
+          height: 100px;
+        }
+
+        &.circle-3 {
+          width: 80px;
+          height: 80px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-layout {
+    .auth-content {
+      .auth-container {
+        .auth-header {
+          .logo {
+            flex-direction: column;
+            gap: 8px;
+
+            h1 {
+              font-size: 24px;
+            }
+
+            nz-icon {
+              font-size: 36px;
+            }
+          }
+        }
+      }
+    }
+  }
+}

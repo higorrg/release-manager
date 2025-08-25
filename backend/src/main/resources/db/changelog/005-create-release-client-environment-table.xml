@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="005-create-release-client-environment-table" author="system">
+        <createTable tableName="release_client_environment">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="release_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="environment" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint baseTableName="release_client_environment" baseColumnNames="release_id"
+                                constraintName="fk_release_client_env_release"
+                                referencedTableName="releases" referencedColumnNames="id"
+                                onDelete="CASCADE"/>
+        
+        <createIndex indexName="idx_rce_release_id" tableName="release_client_environment">
+            <column name="release_id"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_rce_client_code" tableName="release_client_environment">
+            <column name="client_code"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_rce_environment" tableName="release_client_environment">
+            <column name="environment"/>
+        </createIndex>
+        
+        <addUniqueConstraint tableName="release_client_environment" 
+                            columnNames="release_id, client_code, environment"
+                            constraintName="uk_rce_release_client_env"/>
+    </changeSet>
+
+</databaseChangeLog>

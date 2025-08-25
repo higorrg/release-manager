@@ -1,0 +1,277 @@
+.release-status-card {
+  .summary-stats {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .stat-item {
+      text-align: center;
+      padding: 8px;
+
+      :deep(.ant-statistic) {
+        .ant-statistic-title {
+          font-size: 12px;
+          color: #8c8c8c;
+          margin-bottom: 4px;
+        }
+
+        .ant-statistic-content {
+          font-size: 20px;
+          font-weight: 600;
+          color: #262626;
+
+          .ant-statistic-content-prefix {
+            margin-right: 6px;
+          }
+
+          .ant-statistic-content-suffix {
+            font-size: 14px;
+            color: #8c8c8c;
+          }
+        }
+      }
+    }
+  }
+
+  .status-breakdown {
+    margin-bottom: 20px;
+
+    .breakdown-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #262626;
+      margin: 0 0 16px 0;
+    }
+
+    .status-list {
+      .status-item {
+        margin-bottom: 16px;
+        padding: 8px 0;
+        transition: opacity 0.3s ease;
+
+        &.zero-count {
+          opacity: 0.5;
+        }
+
+        .status-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+
+          .status-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            nz-icon {
+              font-size: 14px;
+            }
+
+            .label-text {
+              font-size: 13px;
+              color: #595959;
+              font-weight: 500;
+            }
+          }
+
+          .status-values {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+
+            .count {
+              font-size: 16px;
+              font-weight: 600;
+              color: #262626;
+            }
+
+            .percentage {
+              font-size: 12px;
+              color: #8c8c8c;
+            }
+          }
+        }
+
+        .status-progress {
+          :deep(.ant-progress) {
+            .ant-progress-outer {
+              .ant-progress-inner {
+                background-color: #f5f5f5;
+
+                .ant-progress-bg {
+                  border-radius: 2px;
+                  transition: all 0.3s ease;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .action-buttons {
+    margin-bottom: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+
+    :deep(.ant-btn) {
+      border-radius: 4px;
+      font-size: 12px;
+      height: 28px;
+      padding: 0 12px;
+
+      nz-icon {
+        margin-right: 4px;
+      }
+
+      &.ant-btn-primary {
+        box-shadow: none;
+      }
+
+      &.ant-btn-default {
+        border-color: #d9d9d9;
+        color: #595959;
+
+        &:hover {
+          border-color: #40a9ff;
+          color: #40a9ff;
+        }
+      }
+    }
+  }
+
+  .quick-progress {
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 13px;
+
+      .progress-text {
+        color: #595959;
+        font-weight: 500;
+      }
+
+      > span:first-child {
+        color: #262626;
+        font-weight: 500;
+      }
+    }
+
+    :deep(.ant-progress) {
+      .ant-progress-bg {
+        border-radius: 4px;
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .release-status-card {
+    .summary-stats {
+      .stat-item {
+        padding: 4px;
+
+        :deep(.ant-statistic) {
+          .ant-statistic-content {
+            font-size: 18px;
+          }
+        }
+      }
+    }
+
+    .status-breakdown {
+      .status-list {
+        .status-item {
+          .status-info {
+            .status-values {
+              .count {
+                font-size: 14px;
+              }
+
+              .percentage {
+                font-size: 11px;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .action-buttons {
+      :deep(.ant-space) {
+        width: 100%;
+        
+        .ant-space-item {
+          flex: 1;
+
+          .ant-btn {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .release-status-card {
+    .summary-stats {
+      .stat-item {
+        :deep(.ant-statistic) {
+          .ant-statistic-title {
+            font-size: 11px;
+          }
+
+          .ant-statistic-content {
+            font-size: 16px;
+          }
+        }
+      }
+    }
+
+    .status-breakdown {
+      .status-list {
+        .status-item {
+          margin-bottom: 12px;
+          padding: 6px 0;
+
+          .status-info {
+            .status-label {
+              .label-text {
+                font-size: 12px;
+              }
+            }
+
+            .status-values {
+              .count {
+                font-size: 13px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Animation for progress bars
+:deep(.ant-progress-bg) {
+  transition: width 0.8s ease-in-out;
+}
+
+// Hover effects
+.status-item:hover {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
+  margin-left: -8px;
+  margin-right: -8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}

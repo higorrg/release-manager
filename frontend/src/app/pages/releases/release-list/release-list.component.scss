@@ -1,0 +1,316 @@
+.release-list-container {
+  .page-header {
+    margin-bottom: 24px;
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+
+      .header-info {
+        flex: 1;
+        min-width: 200px;
+
+        h2 {
+          font-size: 24px;
+          font-weight: 600;
+          color: #262626;
+          margin: 0 0 4px 0;
+        }
+
+        p {
+          color: #8c8c8c;
+          font-size: 14px;
+          margin: 0;
+        }
+      }
+
+      .header-actions {
+        :deep(.ant-space-item) {
+          .ant-btn {
+            border-radius: 6px;
+            
+            &.ant-btn-primary {
+              box-shadow: 0 2px 0 rgba(0, 0, 0, 0.045);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .filters-panel {
+    margin-bottom: 24px;
+
+    .filter-actions {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    :deep(.ant-form-item) {
+      margin-bottom: 16px;
+
+      .ant-form-item-label {
+        padding-bottom: 4px;
+
+        label {
+          font-weight: 500;
+          font-size: 14px;
+        }
+      }
+    }
+
+    :deep(.ant-select) {
+      width: 100%;
+    }
+
+    :deep(.ant-picker) {
+      width: 100%;
+    }
+  }
+
+  .table-container {
+    :deep(.ant-table) {
+      .ant-table-thead > tr > th {
+        background: #fafafa;
+        border-bottom: 2px solid #f0f0f0;
+        font-weight: 600;
+        color: #262626;
+        padding: 16px;
+      }
+
+      .ant-table-tbody > tr > td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: top;
+      }
+
+      .ant-table-tbody > tr:hover > td {
+        background: #f5f5f5;
+      }
+
+      // Fixed columns
+      .ant-table-cell-fix-left,
+      .ant-table-cell-fix-right {
+        background: inherit;
+      }
+
+      // Responsive table
+      .ant-table-container {
+        .ant-table-content {
+          overflow-x: auto;
+        }
+      }
+    }
+
+    .product-info {
+      .product-notes {
+        font-size: 12px;
+        color: #8c8c8c;
+        margin-top: 2px;
+        line-height: 1.3;
+      }
+    }
+
+    // Action buttons
+    :deep(.ant-btn) {
+      &.ant-btn-text {
+        padding: 4px 8px;
+        height: auto;
+        border-radius: 4px;
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.04);
+        }
+
+        &.ant-btn-dangerous:hover {
+          background: rgba(255, 77, 79, 0.1);
+          color: #ff4d4f;
+        }
+      }
+    }
+
+    // Tags
+    :deep(.ant-tag) {
+      margin: 0;
+      font-weight: 500;
+      border-radius: 4px;
+    }
+  }
+
+  // Empty state
+  .empty-content {
+    text-align: center;
+    padding: 40px 20px;
+
+    h3 {
+      color: #262626;
+      font-size: 16px;
+      margin: 16px 0 8px 0;
+    }
+
+    p {
+      color: #8c8c8c;
+      font-size: 14px;
+      margin: 0 0 24px 0;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .empty-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .release-list-container {
+    .page-header {
+      .header-content {
+        .header-info {
+          min-width: 100%;
+
+          h2 {
+            font-size: 20px;
+          }
+        }
+
+        .header-actions {
+          width: 100%;
+
+          :deep(.ant-space) {
+            width: 100%;
+            justify-content: space-between;
+
+            .ant-space-item {
+              flex: 1;
+
+              .ant-btn {
+                width: 100%;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .filters-panel {
+      :deep(.ant-col) {
+        margin-bottom: 8px;
+      }
+    }
+
+    .table-container {
+      :deep(.ant-table) {
+        .ant-table-thead > tr > th,
+        .ant-table-tbody > tr > td {
+          padding: 8px 12px;
+          font-size: 13px;
+        }
+
+        .ant-table-thead > tr > th {
+          white-space: nowrap;
+        }
+      }
+    }
+
+    .empty-content {
+      padding: 20px 16px;
+
+      h3 {
+        font-size: 14px;
+      }
+
+      p {
+        font-size: 12px;
+      }
+
+      .empty-actions {
+        flex-direction: column;
+
+        .ant-btn {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .release-list-container {
+    .table-container {
+      :deep(.ant-table) {
+        .ant-table-thead > tr > th,
+        .ant-table-tbody > tr > td {
+          padding: 6px 8px;
+          font-size: 12px;
+        }
+
+        // Hide less important columns on very small screens
+        .ant-table-tbody > tr > td:nth-child(n+5) {
+          display: none;
+        }
+
+        .ant-table-thead > tr > th:nth-child(n+5) {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+// Loading states
+:deep(.ant-spin-container) {
+  min-height: 200px;
+}
+
+// Animation for table rows
+:deep(.ant-table-tbody > tr) {
+  transition: background-color 0.3s ease;
+}
+
+// Filter badge
+:deep(.ant-tag) {
+  &.ant-tag-blue {
+    background: #e6f7ff;
+    border-color: #91d5ff;
+    color: #1890ff;
+  }
+}
+
+// Custom scrollbar for table
+:deep(.ant-table-body) {
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+}
+
+// Tooltip customizations
+:deep(.ant-tooltip) {
+  .ant-tooltip-inner {
+    background: rgba(0, 0, 0, 0.85);
+    font-size: 12px;
+  }
+}

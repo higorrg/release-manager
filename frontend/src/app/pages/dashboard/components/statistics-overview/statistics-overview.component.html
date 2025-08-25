@@ -1,0 +1,208 @@
+<div class="statistics-overview">
+  <!-- Key Metrics -->
+  <div class="key-metrics">
+    <div nz-row [nzGutter]="[8, 8]">
+      <div nz-col [nzXs]="12" [nzSm]="6" *ngFor="let metric of keyMetrics()">
+        <div class="metric-item">
+          <div class="metric-icon">
+            <nz-icon [nzType]="metric.icon" [style.color]="metric.color"></nz-icon>
+          </div>
+          <div class="metric-content">
+            <div class="metric-value">
+              {{ metric.value }}<span *ngIf="metric.suffix" class="suffix">{{ metric.suffix }}</span>
+            </div>
+            <div class="metric-label">{{ metric.label }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nz-divider></nz-divider>
+
+  <!-- Health Score -->
+  <div class="health-section">
+    <h4 class="section-title">
+      <nz-icon nzType="heart" style="color: #f5222d; margin-right: 6px;"></nz-icon>
+      Score de Saúde do Sistema
+    </h4>
+    
+    <div class="health-content">
+      <div class="health-score">
+        <nz-statistic
+          nzTitle="Score Geral"
+          [nzValue]="getHealthScore()"
+          nzSuffix="/ 100"
+          [nzValueStyle]="{ color: getHealthColor(), fontSize: '24px', fontWeight: '600' }">
+        </nz-statistic>
+        <div class="health-status" [style.color]="getHealthColor()">
+          {{ getHealthStatus() }}
+        </div>
+      </div>
+      
+      <div class="health-progress">
+        <nz-progress
+          [nzPercent]="getHealthScore()"
+          [nzStrokeColor]="getHealthColor()"
+          [nzShowInfo]="false"
+          nzSize="small">
+        </nz-progress>
+      </div>
+    </div>
+  </div>
+
+  <nz-divider></nz-divider>
+
+  <!-- Release Priority Breakdown -->
+  <div class="priority-section">
+    <h4 class="section-title">
+      <nz-icon nzType="flag" style="color: #fa8c16; margin-right: 6px;"></nz-icon>
+      Releases por Prioridade
+    </h4>
+    
+    <div class="priority-items">
+      <div *ngFor="let priority of releasePriorityStats()" class="priority-item">
+        <div class="priority-info">
+          <div class="priority-label">
+            <nz-icon [nzType]="priority.icon" [style.color]="priority.color"></nz-icon>
+            <span>{{ priority.label }}</span>
+          </div>
+          <div class="priority-value">
+            <span class="count">{{ priority.value }}</span>
+            <span class="percentage">({{ priority.percentage }}%)</span>
+          </div>
+        </div>
+        <div class="priority-bar">
+          <nz-progress
+            [nzPercent]="priority.percentage"
+            [nzStrokeColor]="priority.color"
+            [nzShowInfo]="false"
+            nzSize="small">
+          </nz-progress>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nz-divider></nz-divider>
+
+  <!-- Client Type Distribution -->
+  <div class="client-section">
+    <h4 class="section-title">
+      <nz-icon nzType="team" style="color: #722ed1; margin-right: 6px;"></nz-icon>
+      Distribuição de Clientes
+    </h4>
+    
+    <div class="client-items">
+      <div *ngFor="let type of clientTypeStats()" class="client-item">
+        <div class="client-info">
+          <div class="client-label">
+            <nz-icon [nzType]="type.icon" [style.color]="type.color"></nz-icon>
+            <span>{{ type.label }}</span>
+          </div>
+          <div class="client-value">
+            <span class="count">{{ type.value }}</span>
+            <span class="percentage">({{ type.percentage }}%)</span>
+          </div>
+        </div>
+        <div class="client-bar">
+          <nz-progress
+            [nzPercent]="type.percentage"
+            [nzStrokeColor]="type.color"
+            [nzShowInfo]="false"
+            nzSize="small">
+          </nz-progress>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Indicators -->
+  <div class="performance-section" *ngIf="performanceData()">
+    <h4 class="section-title">
+      <nz-icon nzType="dashboard" style="color: #13c2c2; margin-right: 6px;"></nz-icon>
+      Indicadores de Performance
+    </h4>
+    
+    <div class="performance-grid" nz-row [nzGutter]="[12, 12]">
+      <div nz-col [nzXs]="24" [nzSm]="8">
+        <div class="performance-item efficiency">
+          <div class="performance-label">Eficiência</div>
+          <div class="performance-value">{{ performanceData()!.efficiency }}%</div>
+          <div class="performance-bar">
+            <nz-progress
+              [nzPercent]="performanceData()!.efficiency"
+              nzStrokeColor="#52c41a"
+              [nzShowInfo]="false"
+              nzSize="small">
+            </nz-progress>
+          </div>
+        </div>
+      </div>
+      
+      <div nz-col [nzXs]="24" [nzSm]="8">
+        <div class="performance-item productivity">
+          <div class="performance-label">Produtividade</div>
+          <div class="performance-value">{{ performanceData()!.productivity }}%</div>
+          <div class="performance-bar">
+            <nz-progress
+              [nzPercent]="performanceData()!.productivity"
+              nzStrokeColor="#1890ff"
+              [nzShowInfo]="false"
+              nzSize="small">
+            </nz-progress>
+          </div>
+        </div>
+      </div>
+      
+      <div nz-col [nzXs]="24" [nzSm]="8">
+        <div class="performance-item backlog">
+          <div class="performance-label">Backlog</div>
+          <div class="performance-value">{{ performanceData()!.backlog }}%</div>
+          <div class="performance-bar">
+            <nz-progress
+              [nzPercent]="performanceData()!.backlog"
+              nzStrokeColor="#faad14"
+              [nzShowInfo]="false"
+              nzSize="small">
+            </nz-progress>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Insights -->
+  <div class="insights-section">
+    <h4 class="section-title">
+      <nz-icon nzType="bulb" style="color: #faad14; margin-right: 6px;"></nz-icon>
+      Insights Rápidos
+    </h4>
+    
+    <div class="insights-content">
+      <div *ngIf="getTopPerformingType() as topType" class="insight-item">
+        <nz-icon nzType="trophy" style="color: #faad14;"></nz-icon>
+        <span>
+          <strong>{{ topType.label }}</strong> é o tipo de cliente predominante com 
+          <strong>{{ topType.value }} clientes</strong> ({{ topType.percentage }}%)
+        </span>
+      </div>
+      
+      <div *ngIf="getHighestPriority() as highPriority" class="insight-item">
+        <nz-icon nzType="flag" style="color: #f5222d;"></nz-icon>
+        <span>
+          Maior concentração em releases de prioridade <strong>{{ highPriority.label }}</strong> com 
+          <strong>{{ highPriority.value }} releases</strong>
+        </span>
+      </div>
+      
+      <div class="insight-item">
+        <nz-icon nzType="heart" [style.color]="getHealthColor()"></nz-icon>
+        <span>
+          Sistema apresenta status <strong>{{ getHealthStatus() }}</strong> com score de 
+          <strong>{{ getHealthScore() }}/100</strong>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

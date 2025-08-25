@@ -1,0 +1,129 @@
+<div class="release-status-card">
+  <!-- Summary Stats -->
+  <div class="summary-stats" nz-row [nzGutter]="[16, 16]">
+    <div nz-col [nzXs]="12" [nzSm]="8">
+      <div class="stat-item">
+        <nz-statistic
+          nzTitle="Total"
+          [nzValue]="totalReleases()"
+          [nzPrefix]="totalIcon">
+          <ng-template #totalIcon>
+            <nz-icon nzType="rocket" style="color: #1890ff;"></nz-icon>
+          </ng-template>
+        </nz-statistic>
+      </div>
+    </div>
+    
+    <div nz-col [nzXs]="12" [nzSm]="8">
+      <div class="stat-item">
+        <nz-statistic
+          nzTitle="Ativos"
+          [nzValue]="activeReleases()"
+          [nzPrefix]="activeIcon">
+          <ng-template #activeIcon>
+            <nz-icon nzType="loading" style="color: #52c41a;"></nz-icon>
+          </ng-template>
+        </nz-statistic>
+      </div>
+    </div>
+    
+    <div nz-col [nzXs]="24" [nzSm]="8">
+      <div class="stat-item">
+        <nz-statistic
+          nzTitle="Taxa de Conclusão"
+          [nzValue]="completionRate()"
+          nzSuffix="%"
+          [nzPrefix]="completionIcon">
+          <ng-template #completionIcon>
+            <nz-icon nzType="pie-chart" style="color: #722ed1;"></nz-icon>
+          </ng-template>
+        </nz-statistic>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Breakdown -->
+  <div class="status-breakdown">
+    <h4 class="breakdown-title">Detalhamento por Status</h4>
+    
+    <div class="status-list">
+      <div 
+        *ngFor="let item of statusItems()" 
+        class="status-item"
+        [class.zero-count]="item.count === 0">
+        
+        <div class="status-info">
+          <div class="status-label">
+            <nz-icon [nzType]="item.icon" [style.color]="getProgressColor(item.status)"></nz-icon>
+            <span class="label-text">{{ item.label }}</span>
+          </div>
+          
+          <div class="status-values">
+            <span class="count">{{ item.count }}</span>
+            <span class="percentage">({{ getStatusPercentage(item.count) }}%)</span>
+          </div>
+        </div>
+        
+        <div class="status-progress">
+          <nz-progress
+            [nzPercent]="getStatusPercentage(item.count)"
+            [nzStrokeColor]="getProgressColor(item.status)"
+            [nzShowInfo]="false"
+            nzSize="small">
+          </nz-progress>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <nz-space nzSize="small">
+      <button 
+        *nzSpaceItem 
+        nz-button 
+        nzSize="small" 
+        nzType="primary"
+        routerLink="/releases">
+        <nz-icon nzType="eye"></nz-icon>
+        Ver Todos
+      </button>
+      
+      <button 
+        *nzSpaceItem 
+        nz-button 
+        nzSize="small" 
+        nzType="default"
+        [routerLink]="['/releases']"
+        [queryParams]="{ status: 'IN_PROGRESS,TESTING' }">
+        <nz-icon nzType="loading"></nz-icon>
+        Ativos
+      </button>
+      
+      <button 
+        *nzSpaceItem 
+        nz-button 
+        nzSize="small" 
+        nzType="default"
+        [routerLink]="['/releases']"
+        [queryParams]="{ status: 'PENDING' }">
+        <nz-icon nzType="clock-circle"></nz-icon>
+        Pendentes
+      </button>
+    </nz-space>
+  </div>
+
+  <!-- Quick Progress Indicator -->
+  <div class="quick-progress" *ngIf="totalReleases() > 0">
+    <div class="progress-label">
+      <span>Progresso Geral</span>
+      <span class="progress-text">{{ completionRate() }}% concluído</span>
+    </div>
+    <nz-progress
+      [nzPercent]="completionRate()"
+      nzStatus="active"
+      [nzStrokeColor]="{ '0%': '#108ee9', '100%': '#87d068' }"
+      [nzShowInfo]="false">
+    </nz-progress>
+  </div>
+</div>

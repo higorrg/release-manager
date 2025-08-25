@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="004-create-release-history-table" author="system">
+        <createTable tableName="release_history">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="release_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed_by" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="previous_status" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="new_status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="observation" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="timestamp" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint baseTableName="release_history" baseColumnNames="release_id"
+                                constraintName="fk_release_history_release"
+                                referencedTableName="releases" referencedColumnNames="id"
+                                onDelete="CASCADE"/>
+                                
+        <addForeignKeyConstraint baseTableName="release_history" baseColumnNames="changed_by"
+                                constraintName="fk_release_history_user"
+                                referencedTableName="users" referencedColumnNames="id"/>
+        
+        <createIndex indexName="idx_release_history_release_id" tableName="release_history">
+            <column name="release_id"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_release_history_timestamp" tableName="release_history">
+            <column name="timestamp"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_release_history_changed_by" tableName="release_history">
+            <column name="changed_by"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
