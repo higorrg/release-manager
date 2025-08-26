@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { ReleaseService } from '../../../shared/services/release.service';
+import { Release } from '../../../shared/models/release.model';
 
 @Component({
   selector: 'app-release-list',
@@ -21,7 +23,7 @@ import { RouterModule } from '@angular/router';
            style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div style="display: flex; justify-content: space-between; align-items: start;">
           <div>
-            <h3 style="margin: 0 0 10px 0; color: #333;">{{ release.name }}</h3>
+            <h3 style="margin: 0 0 10px 0; color: #333;">{{ release.product }} v{{ release.version }}</h3>
             <p style="margin: 0 0 5px 0; color: #666; font-size: 14px;">Versão: {{ release.version }}</p>
             <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Produto: {{ release.product }}</p>
           </div>
@@ -32,15 +34,15 @@ import { RouterModule } from '@angular/router';
           </span>
         </div>
         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0;">
-          <button [routerLink]="['/dashboard/releases', release.id]" 
+          <button [routerLink]="['/releases', release.id]" 
                   style="background: #1890ff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px; font-size: 12px;">
             👁️ Ver Detalhes
           </button>
-          <button [routerLink]="['/dashboard/releases', release.id, 'history']" 
+          <button [routerLink]="['/releases', release.id, 'history']" 
                   style="background: #722ed1; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px; font-size: 12px;">
             📈 Histórico
           </button>
-          <button [routerLink]="['/dashboard/releases', release.id, 'clients']" 
+          <button [routerLink]="['/releases', release.id, 'clients']" 
                   style="background: #52c41a; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">
             👥 Clientes
           </button>
@@ -57,59 +59,30 @@ import { RouterModule } from '@angular/router';
   </div>`
 })
 export class ReleaseListComponent implements OnInit {
-  releases = [
-    { id: 1, name: 'Release 1.2.3', version: '1.2.3', product: 'Sistema Principal', status: 'EM_TESTE_SISTEMA', createdAt: new Date() },
-    { id: 2, name: 'Release 1.2.2', version: '1.2.2', product: 'Sistema Principal', status: 'DISPONIVEL', createdAt: new Date() },
-    { id: 3, name: 'Release 1.2.1', version: '1.2.1', product: 'Sistema Principal', status: 'CONTROLADA', createdAt: new Date() }
-  ];
+  releases: Release[] = [];
 
-  constructor() {}
+  constructor(private releaseService: ReleaseService) {}
 
   ngOnInit(): void {
-    // Load releases data
+    this.loadReleases();
+  }
+
+  private loadReleases(): void {
+    this.releaseService.getReleases().subscribe({
+      next: (releases) => {
+        this.releases = releases;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar releases:', error);
+      }
+    });
   }
 
   getStatusColor(status: string): string {
-    switch(status) {
-      case 'MR_APROVADO': return '#1890ff';
-      case 'FALHA_BUILD_TESTE': return '#f5222d';
-      case 'PARA_TESTE_SISTEMA': return '#faad14';
-      case 'EM_TESTE_SISTEMA': return '#722ed1';
-      case 'REPROVADA_TESTE': return '#f5222d';
-      case 'APROVADA_TESTE': return '#52c41a';
-      case 'FALHA_BUILD_PRODUCAO': return '#f5222d';
-      case 'PARA_TESTE_REGRESSIVO': return '#faad14';
-      case 'EM_TESTE_REGRESSIVO': return '#722ed1';
-      case 'FALHA_INSTALACAO_ESTAVEL': return '#f5222d';
-      case 'INTERNO': return '#d9d9d9';
-      case 'REVOGADA': return '#f5222d';
-      case 'REPROVADA_TESTE_REGRESSIVO': return '#f5222d';
-      case 'APROVADA_TESTE_REGRESSIVO': return '#52c41a';
-      case 'CONTROLADA': return '#a0d911';
-      case 'DISPONIVEL': return '#52c41a';
-      default: return '#d9d9d9';
-    }
+    return this.releaseService.getStatusColor(status as any);
   }
 
   getStatusText(status: string): string {
-    switch(status) {
-      case 'MR_APROVADO': return 'MR Aprovado';
-      case 'FALHA_BUILD_TESTE': return 'Falha no Build para Teste';
-      case 'PARA_TESTE_SISTEMA': return 'Para Teste de Sistema';
-      case 'EM_TESTE_SISTEMA': return 'Em Teste de Sistema';
-      case 'REPROVADA_TESTE': return 'Reprovada no teste';
-      case 'APROVADA_TESTE': return 'Aprovada no teste';
-      case 'FALHA_BUILD_PRODUCAO': return 'Falha no Build para Produção';
-      case 'PARA_TESTE_REGRESSIVO': return 'Para Teste Regressivo';
-      case 'EM_TESTE_REGRESSIVO': return 'Em Teste Regressivo';
-      case 'FALHA_INSTALACAO_ESTAVEL': return 'Falha na instalação da Estável';
-      case 'INTERNO': return 'Interno';
-      case 'REVOGADA': return 'Revogada';
-      case 'REPROVADA_TESTE_REGRESSIVO': return 'Reprovada no teste regressivo';
-      case 'APROVADA_TESTE_REGRESSIVO': return 'Aprovada no teste regressivo';
-      case 'CONTROLADA': return 'Controlada';
-      case 'DISPONIVEL': return 'Disponível';
-      default: return 'Desconhecido';
-    }
+    return this.releaseService.getStatusText(status as any);
   }
 }
