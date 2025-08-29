@@ -30,7 +30,7 @@ interface DashboardStats {
     <div style="padding: 24px;">
       <!-- Header -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-        <h1 nz-typography>Dashboard - Release Manager</h1>
+        <h1 nz-typography>Dashboard</h1>
         <div>
           <button nz-button nzType="default" [nzLoading]="loading()" (click)="refreshData()" style="margin-right: 8px;">
             <span nz-icon nzType="sync"></span>
@@ -61,7 +61,7 @@ interface DashboardStats {
       } @else {
         <!-- Statistics Cards -->
         <div nz-row [nzGutter]="[16, 16]" style="margin-bottom: 24px;">
-          <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+          <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="6">
             <nz-card>
               <nz-statistic
                 [nzValue]="stats().totalReleases"
@@ -75,7 +75,7 @@ interface DashboardStats {
             </nz-card>
           </div>
 
-          <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+          <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="6">
             <nz-card>
               <nz-statistic
                 [nzValue]="stats().pendingReleases"
@@ -137,10 +137,10 @@ interface DashboardStats {
           <div nz-col [nzXs]="24">
             <nz-card nzTitle="Timeline dos Status - Releases Recentes">
               @if (recentReleases().length > 0) {
-                <div style="max-height: 500px; overflow-y: auto;">
+                <div>
                   @for (release of recentReleases().slice(0, 10); track release.id) {
                     <div 
-                      style="margin-bottom: 24px; padding: 16px; border-radius: 8px; background: #fafafa; cursor: pointer; transition: all 0.3s;"
+                      style="margin-bottom: 20px; padding: 16px; border-radius: 8px; background: #fafafa; cursor: pointer; transition: all 0.3s;"
                       (click)="viewReleaseDetails(release.id)"
                       (mouseenter)="onMouseEnter($event)"
                       (mouseleave)="onMouseLeave($event)">

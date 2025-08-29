@@ -76,7 +76,7 @@ import { ConfirmationService } from '../../shared/services/confirmation.service'
           @for (release of releases(); track release.id) {
             <div class="release-card">
               <div class="release-header">
-                <h3>{{ release.version }}</h3>
+                <h3>{{ release.product }} v{{ release.version }}</h3>
                 <span class="status-badge" [class]="getStatusClass(release.status)">
                   {{ release.statusDisplayName }}
                 </span>
