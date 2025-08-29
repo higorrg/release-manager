@@ -25,7 +25,8 @@
       "Bash(fuser:*)",
       "Bash(export TESTCONTAINERS_CHECKS_DISABLE=true)",
       "Bash(./mvnw:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(docker-compose restart:*)"
     ],
     "deny": [],
     "ask": []

@@ -223,7 +223,7 @@
       "groups": []
     }
   ],
-  "loginTheme": "keycloak",
+  "loginTheme": "release-manager",
   "accountTheme": "keycloak",
   "adminTheme": "keycloak",
   "emailTheme": "keycloak"

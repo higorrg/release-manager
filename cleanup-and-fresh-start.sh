@@ -25,7 +25,6 @@ podman network rm release-manager-network 2>/dev/null || echo "Network not found
 
 # Optional: Remove specific volumes by name if they exist
 echo "🔍 Removing specific volumes if they exist..."
-podman volume rm release-manager_postgres-data 2>/dev/null || echo "postgres-data volume not found"
-podman volume rm release-manager_keycloak-data 2>/dev/null || echo "keycloak-data volume not found"
+podman volume rm release-manager_postgres_data_v1 2>/dev/null || echo "postgres-data volume not found"
 
 echo "✅ Cleanup complete!"
