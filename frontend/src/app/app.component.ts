@@ -20,6 +20,7 @@ import { ConfirmationService } from './shared/services/confirmation.service';
           <div class="header-content">
             <h1>Release Manager</h1>
             <nav class="nav-menu">
+              <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
               <a routerLink="/releases" routerLinkActive="active">Releases</a>
               <a routerLink="/clients" routerLinkActive="active">Clientes</a>
             </nav>

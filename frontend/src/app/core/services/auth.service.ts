@@ -45,9 +45,9 @@ export class AuthService {
           sessionStorage.removeItem('redirectUrl');
           this.router.navigate([redirectUrl]);
         } else {
-          // Default redirect to releases page after login
-          console.log('No stored URL, redirecting to releases page');
-          this.router.navigate(['/releases']);
+          // Default redirect to dashboard after login
+          console.log('No stored URL, redirecting to dashboard');
+          this.router.navigate(['/dashboard']);
         }
       } else {
         console.log('User is not authenticated');
@@ -99,7 +99,7 @@ export class AuthService {
       
       console.log('Starting Keycloak login...');
       await this.keycloak.login({
-        redirectUri: window.location.origin + '/releases'
+        redirectUri: window.location.origin + '/dashboard'
       });
     } catch (error) {
       console.error('Failed to login:', error);
