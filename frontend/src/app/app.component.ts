@@ -4,37 +4,59 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from './core/services/auth.service';
 import { ConfirmationDialogComponent } from './shared/components/confirmation-dialog.component';
 import { ConfirmationService } from './shared/services/confirmation.service';
+import { NzLayoutModule } from 'ng-zorro-antd/layout';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   template: `
     @if (isLoading()) {
-      <div class="loading-container">
-        <div class="loading-spinner"></div>
-        <p>Carregando...</p>
+      <div style="height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+        <nz-spin nzSize="large"></nz-spin>
+        <p style="margin-top: 16px; color: #666;">Carregando...</p>
       </div>
     } @else if (isAuthenticated()) {
-      <div class="app-container">
-        <header class="app-header">
-          <div class="header-content">
-            <h1>Release Manager</h1>
-            <nav class="nav-menu">
-              <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-              <a routerLink="/releases" routerLinkActive="active">Releases</a>
-              <a routerLink="/clients" routerLinkActive="active">Clientes</a>
-            </nav>
-            <div class="user-menu">
-              <span class="user-name">{{ getUserName() }}</span>
-              <button (click)="logout()" class="logout-btn">Sair</button>
-            </div>
+      <nz-layout style="min-height: 100vh;">
+        <nz-header style="background: #001529; padding: 0 24px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center;">
+            <h1 style="color: white; margin: 0; font-size: 18px;">Release Manager</h1>
+            <ul nz-menu nzTheme="dark" nzMode="horizontal" style="line-height: 64px; background: transparent; margin-left: 40px;">
+              <li nz-menu-item routerLink="/dashboard" routerLinkActive="ant-menu-item-selected">
+                <span nz-icon nzType="dashboard"></span>
+                Dashboard
+              </li>
+              <li nz-menu-item routerLink="/releases" routerLinkActive="ant-menu-item-selected">
+                <span nz-icon nzType="rocket"></span>
+                Releases
+              </li>
+              <li nz-menu-item routerLink="/clients" routerLinkActive="ant-menu-item-selected">
+                <span nz-icon nzType="team"></span>
+                Clientes
+              </li>
+            </ul>
           </div>
-        </header>
+          
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <nz-avatar nzIcon="user"></nz-avatar>
+            <span style="color: white;">{{ getUserName() }}</span>
+            <button nz-button nzType="text" (click)="logout()" style="color: white;">
+              <span nz-icon nzType="logout"></span>
+              Sair
+            </button>
+          </div>
+        </nz-header>
         
-        <main class="main-content">
+        <nz-content style="padding: 24px; background: #f5f5f5;">
           <router-outlet />
-        </main>
-      </div>
+        </nz-content>
+      </nz-layout>
       
       <!-- Global confirmation dialog -->
       @if (confirmationService.config()) {
@@ -46,172 +68,34 @@ import { ConfirmationService } from './shared/services/confirmation.service';
         </app-confirmation-dialog>
       }
     } @else {
-      <div class="login-container">
-        <div class="login-card">
-          <h1>Release Manager</h1>
-          <p>Sistema de Gerenciamento de Releases</p>
-          <button (click)="login()" class="login-btn">
+      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <nz-card style="width: 400px; text-align: center;">
+          <h1 style="color: #2c3e50; margin-bottom: 10px;">Release Manager</h1>
+          <p style="color: #7f8c8d; margin-bottom: 30px;">Sistema de Gerenciamento de Releases</p>
+          <button nz-button nzType="primary" nzSize="large" nzBlock (click)="login()">
+            <span nz-icon nzType="login"></span>
             Entrar com Azure AD
           </button>
-        </div>
+        </nz-card>
       </div>
     }
   `,
-  styles: [`
-    .app-container {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .app-header {
-      background: #2c3e50;
-      color: white;
-      padding: 0 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .header-content {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      max-width: 1200px;
-      margin: 0 auto;
-      height: 60px;
-    }
-
-    .app-header h1 {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-
-    .nav-menu {
-      display: flex;
-      gap: 20px;
-    }
-
-    .nav-menu a {
-      color: white;
-      text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      transition: background-color 0.3s;
-    }
-
-    .nav-menu a:hover,
-    .nav-menu a.active {
-      background-color: rgba(255,255,255,0.1);
-    }
-
-    .user-menu {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .user-name {
-      font-size: 0.9rem;
-    }
-
-    .logout-btn {
-      background: #e74c3c;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background-color 0.3s;
-    }
-
-    .logout-btn:hover {
-      background: #c0392b;
-    }
-
-    .main-content {
-      flex: 1;
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .login-container {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .login-card {
-      background: white;
-      padding: 40px;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      text-align: center;
-      max-width: 400px;
-      width: 100%;
-    }
-
-    .login-card h1 {
-      color: #2c3e50;
-      margin-bottom: 10px;
-    }
-
-    .login-card p {
-      color: #7f8c8d;
-      margin-bottom: 30px;
-    }
-
-    .login-btn {
-      background: #3498db;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background-color 0.3s;
-      width: 100%;
-    }
-
-    .login-btn:hover {
-      background: #2980b9;
-    }
-
-    .loading-container {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #f8f9fa;
-    }
-
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e9ecef;
-      border-top: 4px solid #3498db;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 16px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .loading-container p {
-      color: #6c757d;
-      font-size: 1rem;
-      margin: 0;
-    }
-  `],
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, ConfirmationDialogComponent]
+  styles: [],
+  imports: [
+    RouterOutlet, 
+    RouterLink, 
+    RouterLinkActive, 
+    CommonModule, 
+    ConfirmationDialogComponent,
+    NzLayoutModule,
+    NzMenuModule,
+    NzButtonModule,
+    NzIconModule,
+    NzSpinModule,
+    NzCardModule,
+    NzTypographyModule,
+    NzAvatarModule
+  ]
 })
 export class AppComponent implements OnInit {
   private authService = inject(AuthService);

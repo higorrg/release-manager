@@ -24,7 +24,8 @@
       "Bash(pkill:*)",
       "Bash(fuser:*)",
       "Bash(export TESTCONTAINERS_CHECKS_DISABLE=true)",
-      "Bash(./mvnw:*)"
+      "Bash(./mvnw:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

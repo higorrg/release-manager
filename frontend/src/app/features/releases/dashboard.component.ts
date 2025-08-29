@@ -3,6 +3,17 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Release, ReleaseService, ReleaseStatus } from '../../core/services/release.service';
 import { ClientService, Client } from '../../core/services/client.service';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzStatisticModule } from 'ng-zorro-antd/statistic';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzProgressModule } from 'ng-zorro-antd/progress';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
 
 interface DashboardStats {
   totalReleases: number;
@@ -10,514 +21,198 @@ interface DashboardStats {
   approvedReleases: number;
   availableReleases: number;
   failedReleases: number;
-  statusDistribution: Array<{ status: string; count: number; percentage: number }>;
 }
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   template: `
-    <div class="dashboard-container">
-      <div class="dashboard-header">
-        <h2>Dashboard - Release Manager</h2>
-        <div class="header-actions">
-          <button (click)="refreshData()" class="btn btn-secondary" [disabled]="loading()">
-            {{ loading() ? 'Atualizando...' : 'Atualizar' }}
+    <div style="padding: 24px;">
+      <!-- Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h1 nz-typography>Dashboard - Release Manager</h1>
+        <div>
+          <button nz-button nzType="default" [nzLoading]="loading()" (click)="refreshData()" style="margin-right: 8px;">
+            <span nz-icon nzType="sync"></span>
+            Atualizar
           </button>
-          <button (click)="navigateToReleases()" class="btn btn-primary">
+          <button nz-button nzType="primary" (click)="navigateToReleases()">
+            <span nz-icon nzType="setting"></span>
             Gerenciar Releases
           </button>
         </div>
       </div>
 
       @if (loading()) {
-        <div class="loading">
-          <div class="loading-spinner"></div>
-          <p>Carregando dados do dashboard...</p>
+        <div style="text-align: center; padding: 60px;">
+          <nz-spin nzSize="large"></nz-spin>
+          <p style="margin-top: 16px; color: #999;">Carregando dados do dashboard...</p>
         </div>
       } @else if (error()) {
-        <div class="error-card">
-          <p>{{ error() }}</p>
-          <button (click)="refreshData()" class="btn btn-primary">Tentar Novamente</button>
-        </div>
+        <nz-alert
+          nzType="error"
+          [nzMessage]="error()"
+          nzShowIcon
+          nzClosable>
+          <button nz-button nzType="primary" (click)="refreshData()" *nzAlertActions>
+            Tentar Novamente
+          </button>
+        </nz-alert>
       } @else {
         <!-- Statistics Cards -->
-        <div class="stats-grid">
-          <div class="stat-card total">
-            <div class="stat-icon">📊</div>
-            <div class="stat-content">
-              <h3>{{ stats().totalReleases }}</h3>
-              <p>Total de Releases</p>
-            </div>
+        <div nz-row [nzGutter]="[16, 16]" style="margin-bottom: 24px;">
+          <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+            <nz-card>
+              <nz-statistic
+                [nzValue]="stats().totalReleases"
+                nzTitle="Total de Releases"
+                [nzPrefix]="totalIcon"
+                [nzValueStyle]="{ color: '#1890ff' }">
+                <ng-template #totalIcon>
+                  <span nz-icon nzType="bar-chart" style="color: #1890ff;"></span>
+                </ng-template>
+              </nz-statistic>
+            </nz-card>
           </div>
 
-          <div class="stat-card pending">
-            <div class="stat-icon">⏳</div>
-            <div class="stat-content">
-              <h3>{{ stats().pendingReleases }}</h3>
-              <p>Em Andamento</p>
-            </div>
+          <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+            <nz-card>
+              <nz-statistic
+                [nzValue]="stats().pendingReleases"
+                nzTitle="Em Andamento"
+                [nzPrefix]="pendingIcon"
+                [nzValueStyle]="{ color: '#faad14' }">
+                <ng-template #pendingIcon>
+                  <span nz-icon nzType="clock-circle" style="color: #faad14;"></span>
+                </ng-template>
+              </nz-statistic>
+            </nz-card>
           </div>
 
-          <div class="stat-card approved">
-            <div class="stat-icon">✅</div>
-            <div class="stat-content">
-              <h3>{{ stats().approvedReleases }}</h3>
-              <p>Aprovadas</p>
-            </div>
+          <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+            <nz-card>
+              <nz-statistic
+                [nzValue]="stats().approvedReleases"
+                nzTitle="Aprovadas"
+                [nzPrefix]="approvedIcon"
+                [nzValueStyle]="{ color: '#52c41a' }">
+                <ng-template #approvedIcon>
+                  <span nz-icon nzType="check-circle" style="color: #52c41a;"></span>
+                </ng-template>
+              </nz-statistic>
+            </nz-card>
           </div>
 
-          <div class="stat-card available">
-            <div class="stat-icon">🚀</div>
-            <div class="stat-content">
-              <h3>{{ stats().availableReleases }}</h3>
-              <p>Disponíveis</p>
-            </div>
+          <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+            <nz-card>
+              <nz-statistic
+                [nzValue]="stats().availableReleases"
+                nzTitle="Disponíveis"
+                [nzPrefix]="availableIcon"
+                [nzValueStyle]="{ color: '#13c2c2' }">
+                <ng-template #availableIcon>
+                  <span nz-icon nzType="rocket" style="color: #13c2c2;"></span>
+                </ng-template>
+              </nz-statistic>
+            </nz-card>
           </div>
 
-          <div class="stat-card failed">
-            <div class="stat-icon">❌</div>
-            <div class="stat-content">
-              <h3>{{ stats().failedReleases }}</h3>
-              <p>Com Falhas</p>
-            </div>
+          <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+            <nz-card>
+              <nz-statistic
+                [nzValue]="stats().failedReleases"
+                nzTitle="Com Falhas"
+                [nzPrefix]="failedIcon"
+                [nzValueStyle]="{ color: '#f5222d' }">
+                <ng-template #failedIcon>
+                  <span nz-icon nzType="close-circle" style="color: #f5222d;"></span>
+                </ng-template>
+              </nz-statistic>
+            </nz-card>
           </div>
         </div>
 
-        <!-- Status Distribution -->
-        <div class="dashboard-grid">
-          <div class="status-distribution-card">
-            <h3>Distribuição por Status</h3>
-            <div class="status-chart">
-              @for (item of stats().statusDistribution; track item.status) {
-                <div class="status-bar">
-                  <div class="status-info">
-                    <span class="status-name">{{ getStatusDisplayName(item.status) }}</span>
-                    <span class="status-count">{{ item.count }} ({{ item.percentage }}%)</span>
-                  </div>
-                  <div class="status-progress">
+        <!-- Timeline dos Status das Releases -->
+        <div nz-row [nzGutter]="[24, 24]">
+          <div nz-col [nzXs]="24">
+            <nz-card nzTitle="Timeline dos Status - Releases Recentes">
+              @if (recentReleases().length > 0) {
+                <div style="max-height: 500px; overflow-y: auto;">
+                  @for (release of recentReleases().slice(0, 10); track release.id) {
                     <div 
-                      class="status-fill" 
-                      [class]="getStatusClass(item.status)"
-                      [style.width.%]="item.percentage">
+                      style="margin-bottom: 24px; padding: 16px; border-radius: 8px; background: #fafafa; cursor: pointer; transition: all 0.3s;"
+                      (click)="viewReleaseDetails(release.id)"
+                      (mouseenter)="onMouseEnter($event)"
+                      (mouseleave)="onMouseLeave($event)">
+                      
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <strong style="color: #1890ff;">Plataforma Shift {{ release.version }}</strong>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <nz-tag [nzColor]="getStatusColor(release.status)">{{ getStatusDisplayName(release.status) }}</nz-tag>
+                          <span style="color: #666; font-size: 12px;">{{ formatDate(release.createdAt) }}</span>
+                        </div>
+                      </div>
+                      
+                      <!-- Timeline customizada em zigue-zague -->
+                      <div style="position: relative; padding: 20px 0;">
+                        <!-- Linha horizontal conectora -->
+                        <div style="position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: #e8e8e8; z-index: 1;"></div>
+                        
+                        <!-- Steps -->
+                        <div style="display: flex; justify-content: space-between; position: relative; z-index: 2;">
+                          @for (step of getCompleteStatusTimeline(); track step.key; let i = $index) {
+                            <div style="display: flex; flex-direction: column; align-items: center; flex: 1; position: relative;">
+                              
+                              <!-- Step content (alternando para cima/baixo) -->
+                              <div [style]="i % 2 === 0 ? 'order: 1; margin-bottom: 8px;' : 'order: 2; margin-top: 8px;'">
+                                <div style="text-align: center; font-size: 10px; font-weight: 500; line-height: 1.2; max-width: 60px; word-wrap: break-word;">
+                                  {{ step.title }}
+                                </div>
+                              </div>
+                              
+                              <!-- Círculo do step (sempre no meio) -->
+                              <div [style]="'order: ' + (i % 2 === 0 ? '2' : '1') + '; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid; font-size: 10px; background: white;' + getStepStyles(release.status, step.key)">
+                                <span nz-icon [nzType]="getStepIcon(release.status, step.key)" style="font-size: 10px;"></span>
+                              </div>
+                              
+                            </div>
+                          }
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  }
                 </div>
+              } @else {
+                <nz-empty nzNotFoundContent="Nenhuma release encontrada"></nz-empty>
               }
-            </div>
-          </div>
-
-          <!-- Recent Releases -->
-          <div class="recent-releases-card">
-            <h3>Releases Recentes</h3>
-            <div class="recent-releases-list">
-              @for (release of recentReleases(); track release.id) {
-                <div class="release-item" (click)="viewReleaseDetails(release.id)">
-                  <div class="release-info">
-                    <strong>{{ release.version }}</strong>
-                    <span class="release-date">{{ formatDate(release.createdAt) }}</span>
-                  </div>
-                  <span class="status-badge" [class]="getStatusClass(release.status)">
-                    {{ getStatusDisplayName(release.status) }}
-                  </span>
-                </div>
-              } @empty {
-                <div class="empty-state">
-                  <p>Nenhuma release encontrada</p>
-                </div>
-              }
-            </div>
+            </nz-card>
           </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="quick-actions-card">
-          <h3>Ações Rápidas</h3>
-          <div class="actions-grid">
-            <button (click)="navigateToCreateRelease()" class="action-btn create">
-              <div class="action-icon">➕</div>
-              <span>Nova Release</span>
-            </button>
-            <button (click)="navigateToReleases()" class="action-btn manage">
-              <div class="action-icon">📝</div>
-              <span>Gerenciar Releases</span>
-            </button>
-            <button (click)="navigateToClients()" class="action-btn clients">
-              <div class="action-icon">👥</div>
-              <span>Gerenciar Clientes</span>
-            </button>
-            <button (click)="navigateToVersions()" class="action-btn versions">
-              <div class="action-icon">📋</div>
-              <span>Versões Disponíveis</span>
-            </button>
-          </div>
-        </div>
       }
     </div>
   `,
   styles: [`
-    .dashboard-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    .dashboard-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-
-    .dashboard-header h2 {
-      margin: 0;
-      color: #2c3e50;
-      font-size: 1.8rem;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 12px;
-    }
-
-    .btn {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.3s;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .btn-primary {
-      background: #3498db;
-      color: white;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background: #2980b9;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: #95a5a6;
-      color: white;
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      background: #7f8c8d;
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px;
-      color: #7f8c8d;
-    }
-
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e9ecef;
-      border-top: 4px solid #3498db;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 16px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .error-card {
-      background: #fff5f5;
-      border: 1px solid #fed7d7;
-      color: #e53e3e;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    /* Statistics Cards */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .stat-card {
-      background: white;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    }
-
-    .stat-icon {
-      font-size: 2rem;
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-    }
-
-    .stat-card.total .stat-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .stat-card.pending .stat-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    .stat-card.approved .stat-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-    .stat-card.available .stat-icon { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-    .stat-card.failed .stat-icon { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-
-    .stat-content h3 {
-      margin: 0 0 4px 0;
-      font-size: 2rem;
-      font-weight: 700;
-      color: #2c3e50;
-    }
-
-    .stat-content p {
-      margin: 0;
-      color: #7f8c8d;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    /* Dashboard Grid */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 30px;
-      margin-bottom: 30px;
-    }
-
-    @media (max-width: 768px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Status Distribution */
-    .status-distribution-card {
-      background: white;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .status-distribution-card h3 {
-      margin: 0 0 20px 0;
-      color: #2c3e50;
-      font-size: 1.2rem;
-    }
-
-    .status-chart {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .status-bar {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .status-info {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.9rem;
-    }
-
-    .status-name {
-      color: #2c3e50;
-      font-weight: 500;
-    }
-
-    .status-count {
-      color: #7f8c8d;
-    }
-
-    .status-progress {
-      height: 8px;
-      background: #ecf0f1;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .status-fill {
-      height: 100%;
-      transition: width 0.3s ease;
-    }
-
-    /* Status Colors */
-    .status-mr-aprovado, .status-mr-aprovado .status-fill { background: #3498db; }
-    .status-para-teste, .status-para-teste .status-fill { background: #f39c12; }
-    .status-aprovada, .status-aprovada .status-fill { background: #27ae60; }
-    .status-reprovada, .status-reprovada .status-fill { background: #e74c3c; }
-    .status-falha, .status-falha .status-fill { background: #e74c3c; }
-    .status-controlada, .status-controlada .status-fill { background: #95a5a6; }
-    .status-disponivel, .status-disponivel .status-fill { background: #27ae60; }
-    .status-revogada, .status-revogada .status-fill { background: #e74c3c; }
-
-    /* Recent Releases */
-    .recent-releases-card {
-      background: white;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .recent-releases-card h3 {
-      margin: 0 0 20px 0;
-      color: #2c3e50;
-      font-size: 1.2rem;
-    }
-
-    .recent-releases-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .release-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .release-item:hover {
-      background: #e9ecef;
-      transform: translateX(4px);
-    }
-
-    .release-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .release-info strong {
-      color: #2c3e50;
-      font-size: 0.95rem;
-    }
-
-    .release-date {
-      color: #7f8c8d;
-      font-size: 0.8rem;
-    }
-
-    .status-badge {
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      color: white;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px;
-      color: #7f8c8d;
-    }
-
-    .empty-state p {
-      margin: 0;
-    }
-
-    /* Quick Actions */
-    .quick-actions-card {
-      background: white;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .quick-actions-card h3 {
-      margin: 0 0 20px 0;
-      color: #2c3e50;
-      font-size: 1.2rem;
-    }
-
-    .actions-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 16px;
-    }
-
-    .action-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 20px;
-      background: white;
-      border: 2px solid #ecf0f1;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-decoration: none;
-      color: #2c3e50;
-    }
-
-    .action-btn:hover {
-      border-color: #3498db;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
-    }
-
-    .action-icon {
-      font-size: 1.5rem;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .action-btn.create .action-icon { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-    .action-btn.manage .action-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-    .action-btn.clients .action-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    .action-btn.versions .action-icon { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
-
-    .action-btn span {
-      font-size: 0.9rem;
-      font-weight: 500;
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
     }
   `],
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    NzCardModule,
+    NzStatisticModule,
+    NzButtonModule,
+    NzIconModule,
+    NzSpinModule,
+    NzGridModule,
+    NzProgressModule,
+    NzTagModule,
+    NzAlertModule,
+    NzTypographyModule,
+    NzEmptyModule
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent implements OnInit {
@@ -533,11 +228,6 @@ export class DashboardComponent implements OnInit {
   stats = computed<DashboardStats>(() => {
     const allReleases = this.releases();
     const totalReleases = allReleases.length;
-    
-    const statusCounts = allReleases.reduce((acc, release) => {
-      acc[release.status] = (acc[release.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
 
     const pendingStatuses = ['MR_APROVADO', 'PARA_TESTE_SISTEMA', 'PARA_TESTE_REGRESSIVO'];
     const approvedStatuses = ['APROVADA_TESTE', 'APROVADA_TESTE_REGRESSIVO', 'CONTROLADA'];
@@ -549,19 +239,12 @@ export class DashboardComponent implements OnInit {
     const availableReleases = allReleases.filter(r => availableStatuses.includes(r.status)).length;
     const failedReleases = allReleases.filter(r => failedStatuses.includes(r.status)).length;
 
-    const statusDistribution = Object.entries(statusCounts).map(([status, count]) => ({
-      status,
-      count,
-      percentage: totalReleases > 0 ? Math.round((count / totalReleases) * 100) : 0
-    })).sort((a, b) => b.count - a.count);
-
     return {
       totalReleases,
       pendingReleases,
       approvedReleases,
       availableReleases,
-      failedReleases,
-      statusDistribution
+      failedReleases
     };
   });
 
@@ -601,18 +284,6 @@ export class DashboardComponent implements OnInit {
   // Navigation methods
   navigateToReleases() {
     this.router.navigate(['/releases']);
-  }
-
-  navigateToCreateRelease() {
-    this.router.navigate(['/releases']);
-  }
-
-  navigateToClients() {
-    this.router.navigate(['/clients']);
-  }
-
-  navigateToVersions() {
-    this.router.navigate(['/available-versions']);
   }
 
   viewReleaseDetails(releaseId: string) {
@@ -659,6 +330,46 @@ export class DashboardComponent implements OnInit {
     return statusMap[status] || 'status-mr-aprovado';
   }
 
+  getStatusColor(status: string): string {
+    const colorMap: Record<string, string> = {
+      'MR_APROVADO': '#1890ff',
+      'PARA_TESTE_SISTEMA': '#faad14',
+      'PARA_TESTE_REGRESSIVO': '#faad14',
+      'APROVADA_TESTE': '#52c41a',
+      'APROVADA_TESTE_REGRESSIVO': '#52c41a',
+      'REPROVADA_TESTE': '#f5222d',
+      'REPROVADA_TESTE_REGRESSIVO': '#f5222d',
+      'FALHA_BUILD_TESTE': '#f5222d',
+      'FALHA_BUILD_PRODUCAO': '#f5222d',
+      'FALHA_INSTALACAO_ESTAVEL': '#f5222d',
+      'CONTROLADA': '#722ed1',
+      'DISPONIVEL': '#52c41a',
+      'REVOGADA': '#f5222d'
+    };
+    return colorMap[status] || '#1890ff';
+  }
+
+  onMouseEnter(event: Event) {
+    const target = event.currentTarget as HTMLElement;
+    if (target) {
+      target.style.backgroundColor = '#e6f7ff';
+      target.style.borderColor = '#1890ff';
+      target.style.border = '1px solid #1890ff';
+      target.style.transform = 'translateY(-2px)';
+      target.style.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.15)';
+    }
+  }
+
+  onMouseLeave(event: Event) {
+    const target = event.currentTarget as HTMLElement;
+    if (target) {
+      target.style.backgroundColor = '#fafafa';
+      target.style.border = 'none';
+      target.style.transform = 'translateY(0)';
+      target.style.boxShadow = 'none';
+    }
+  }
+
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleString('pt-BR', {
       day: '2-digit',
@@ -667,5 +378,128 @@ export class DashboardComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  getStatusTimeline(): Array<{key: string, title: string}> {
+    return [
+      { key: 'MR_APROVADO', title: 'MR Aprovado' },
+      { key: 'PARA_TESTE_SISTEMA', title: 'Teste Sistema' },
+      { key: 'APROVADA_TESTE', title: 'Aprovada' },
+      { key: 'PARA_TESTE_REGRESSIVO', title: 'Teste Regressivo' },
+      { key: 'APROVADA_TESTE_REGRESSIVO', title: 'Aprovada Regr.' },
+      { key: 'CONTROLADA', title: 'Controlada' },
+      { key: 'DISPONIVEL', title: 'Disponível' }
+    ];
+  }
+
+  getCompleteStatusTimeline(): Array<{key: string, title: string}> {
+    return [
+      { key: 'MR_APROVADO', title: 'MR Aprovado' },
+      { key: 'FALHA_BUILD_TESTE', title: 'Falha Build Teste' },
+      { key: 'PARA_TESTE_SISTEMA', title: 'Teste Sistema' },
+      { key: 'REPROVADA_TESTE', title: 'Reprovada Teste' },
+      { key: 'APROVADA_TESTE', title: 'Aprovada Teste' },
+      { key: 'FALHA_BUILD_PRODUCAO', title: 'Falha Build Prod.' },
+      { key: 'PARA_TESTE_REGRESSIVO', title: 'Teste Regressivo' },
+      { key: 'FALHA_INSTALACAO_ESTAVEL', title: 'Falha Instalação' },
+      { key: 'INTERNO', title: 'Interno' },
+      { key: 'REVOGADA', title: 'Revogada' },
+      { key: 'REPROVADA_TESTE_REGRESSIVO', title: 'Reprovada Regr.' },
+      { key: 'APROVADA_TESTE_REGRESSIVO', title: 'Aprovada Regr.' },
+      { key: 'CONTROLADA', title: 'Controlada' },
+      { key: 'DISPONIVEL', title: 'Disponível' }
+    ];
+  }
+
+  getCurrentStepIndex(currentStatus: string): number {
+    const statusOrder = [
+      'MR_APROVADO',
+      'FALHA_BUILD_TESTE',
+      'PARA_TESTE_SISTEMA',
+      'REPROVADA_TESTE',
+      'APROVADA_TESTE',
+      'FALHA_BUILD_PRODUCAO',
+      'PARA_TESTE_REGRESSIVO',
+      'FALHA_INSTALACAO_ESTAVEL',
+      'INTERNO',
+      'REVOGADA',
+      'REPROVADA_TESTE_REGRESSIVO',
+      'APROVADA_TESTE_REGRESSIVO',
+      'CONTROLADA',
+      'DISPONIVEL'
+    ];
+    
+    const index = statusOrder.indexOf(currentStatus);
+    return index >= 0 ? index : 0;
+  }
+
+  getStepStatus(releaseStatus: string, stepStatus: string): 'wait' | 'process' | 'finish' | 'error' {
+    // Status de falha que interrompem o fluxo
+    const failedStatuses = [
+      'FALHA_BUILD_TESTE', 'FALHA_BUILD_PRODUCAO', 'FALHA_INSTALACAO_ESTAVEL', 
+      'REPROVADA_TESTE', 'REPROVADA_TESTE_REGRESSIVO', 'REVOGADA'
+    ];
+
+    // Status de sucesso no fluxo normal
+    const successfulStatuses = [
+      'MR_APROVADO', 'PARA_TESTE_SISTEMA', 'APROVADA_TESTE', 
+      'PARA_TESTE_REGRESSIVO', 'APROVADA_TESTE_REGRESSIVO', 'CONTROLADA', 'DISPONIVEL'
+    ];
+    
+    // Se o status atual da release é igual ao step atual
+    if (releaseStatus === stepStatus) {
+      if (failedStatuses.includes(stepStatus)) {
+        return 'error';
+      } else {
+        return 'process';
+      }
+    }
+    
+    // Se é um status de falha e não é o atual, fica esmaecido
+    if (failedStatuses.includes(stepStatus)) {
+      return 'wait';
+    }
+    
+    // Para status de sucesso, verificar se já passou por ele
+    if (successfulStatuses.includes(stepStatus)) {
+      const currentIndex = this.getCurrentStepIndex(releaseStatus);
+      const stepIndex = this.getCompleteStatusTimeline().findIndex(s => s.key === stepStatus);
+      
+      if (stepIndex < currentIndex && successfulStatuses.includes(releaseStatus)) {
+        return 'finish';
+      } else if (stepIndex === currentIndex) {
+        return 'process';
+      }
+    }
+    
+    return 'wait';
+  }
+
+  getStepIcon(releaseStatus: string, stepStatus: string): string {
+    const status = this.getStepStatus(releaseStatus, stepStatus);
+    switch (status) {
+      case 'finish':
+        return 'check';
+      case 'process':
+        return 'loading';
+      case 'error':
+        return 'close';
+      default:
+        return 'clock-circle';
+    }
+  }
+
+  getStepStyles(releaseStatus: string, stepStatus: string): string {
+    const status = this.getStepStatus(releaseStatus, stepStatus);
+    switch (status) {
+      case 'finish':
+        return ' border-color: #52c41a; color: #52c41a; background: #f6ffed !important;';
+      case 'process':
+        return ' border-color: #1890ff; color: #1890ff; background: #e6f7ff !important; animation: pulse 2s infinite;';
+      case 'error':
+        return ' border-color: #f5222d; color: #f5222d; background: #fff2f0 !important;';
+      default:
+        return ' border-color: #d9d9d9; color: #d9d9d9; background: #fafafa !important;';
+    }
   }
 }

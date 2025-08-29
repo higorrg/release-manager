@@ -1,3 +1,6 @@
+/* NG-ZORRO Styles */
+@import '~ng-zorro-antd/ng-zorro-antd.min.css';
+
 /* Global Styles */
 * {
   margin: 0;
