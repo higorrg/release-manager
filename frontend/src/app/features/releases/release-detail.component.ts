@@ -21,7 +21,10 @@ import { ConfirmationService } from '../../shared/services/confirmation.service'
       } @else if (release()) {
         <div class="release-header">
           <h1>{{ release()?.product }} - v{{ release()?.version }}</h1>
-          <button class="btn-back" (click)="navigateBack()">Voltar</button>
+          <div class="header-buttons">
+            <button class="btn-history" (click)="viewHistory()">Ver Histórico</button>
+            <button class="btn-back" (click)="navigateBack()">Voltar</button>
+          </div>
         </div>
 
         <div class="release-content">
@@ -263,6 +266,26 @@ import { ConfirmationService } from '../../shared/services/confirmation.service'
       color: #333;
     }
 
+    .header-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-history {
+      padding: 8px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+
+    .btn-history:hover {
+      background: #0056b3;
+    }
+
     .btn-back {
       padding: 8px 16px;
       background: #6c757d;
@@ -270,6 +293,8 @@ import { ConfirmationService } from '../../shared/services/confirmation.service'
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
     }
 
     .btn-back:hover {
@@ -795,6 +820,13 @@ export class ReleaseDetailComponent implements OnInit {
         this.updating.set(false);
       }
     });
+  }
+
+  viewHistory(): void {
+    const releaseId = this.release()?.id;
+    if (releaseId) {
+      this.router.navigate(['/releases', releaseId, 'history']);
+    }
   }
 
   navigateBack(): void {
