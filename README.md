@@ -341,16 +341,107 @@ az storage container set-permission \
 
 ## 🧪 Testes
 
-### Backend
+### Testes Unitários Backend
 ```bash
 cd backend
 ./mvnw test
 ```
 
-### Frontend
+### Testes de Integração Backend
+Os testes de integração utilizam **TestContainers** para criar um ambiente isolado com PostgreSQL real:
+
+```bash
+cd backend
+
+# Executar apenas testes de integração
+./mvnw verify -P integration-test
+
+# Executar todos os testes (unitários + integração)
+./mvnw verify -DskipITs=false
+
+# Executar testes de integração com logs detalhados
+./mvnw verify -P integration-test -X
+```
+
+**Estrutura dos Testes de Integração:**
+- **Localização**: `src/it/java/` (padrão Maven para testes de integração)
+- **TestContainers**: Utiliza PostgreSQL 15-alpine em container isolado
+- **Configuração**: Desabilita OIDC e usa autenticação basic para testes
+- **Coverage**: Testa endpoints REST com banco de dados real
+
+**Funcionalidades Testadas:**
+- ✅ **ReleaseController**: CRUD completo de releases, gestão de status, histórico
+- ✅ **ClientController**: Gerenciamento de clientes e ambientes
+- ✅ **FileUploadController**: Upload de arquivos (Azure Blob Storage mocado)
+- ✅ **Autenticação**: Controle de acesso e roles (admin/user)
+- ✅ **Banco de Dados**: Migrations Flyway e operações CRUD
+
+**Exemplo de Execução:**
+```bash
+cd backend
+
+# Configurar ambiente para Podman (Linux)
+mkdir -p /run/user/$(id -u)/podman
+podman system service --time=0 unix:///run/user/$(id -u)/podman/podman.sock &
+export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
+export TESTCONTAINERS_CHECKS_DISABLE=true
+
+# Executar testes de integração
+./mvnw package -DskipTests -P integration-test
+./mvnw failsafe:integration-test -DskipITs=false
+
+# Saída esperada:
+# [INFO] Tests run: 25, Failures: 0, Errors: 0, Skipped: 0
+# [INFO] Container postgres:17-alpine started successfully
+# [INFO] Integration tests completed successfully
+```
+
+**Configuração Automática via Script:**
+```bash
+# Criar script para facilitar execução
+cat > run-integration-tests.sh << 'EOF'
+#!/bin/bash
+set -e
+
+# Configurar Podman para TestContainers
+echo "Configurando Podman para TestContainers..."
+mkdir -p /run/user/$(id -u)/podman
+if ! pgrep -f "podman system service" > /dev/null; then
+    podman system service --time=0 unix:///run/user/$(id -u)/podman/podman.sock &
+    sleep 2
+fi
+
+# Exportar variáveis
+export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
+export TESTCONTAINERS_CHECKS_DISABLE=true
+
+echo "Executando testes de integração..."
+./mvnw package -DskipTests -P integration-test
+./mvnw failsafe:integration-test -DskipITs=false
+
+echo "Testes de integração concluídos!"
+EOF
+
+chmod +x run-integration-tests.sh
+./run-integration-tests.sh
+```
+
+### Testes Frontend
 ```bash
 cd frontend
 npm test
+```
+
+### CI/CD - Testes Automatizados
+```bash
+# Pipeline completa com testes
+cd backend
+./mvnw clean compile test verify -P integration-test
+
+cd frontend  
+npm ci
+npm run test:ci
+npm run build
 ```
 
 ## 🔄 Integração com Pipelines CI/CD

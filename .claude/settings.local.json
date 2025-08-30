@@ -26,7 +26,10 @@
       "Bash(export TESTCONTAINERS_CHECKS_DISABLE=true)",
       "Bash(./mvnw:*)",
       "Bash(find:*)",
-      "Bash(docker-compose restart:*)"
+      "Bash(docker-compose restart:*)",
+      "Bash(timeout 120 ./mvnw test-compile:*)",
+      "Bash(timeout 180 ./mvnw test:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
