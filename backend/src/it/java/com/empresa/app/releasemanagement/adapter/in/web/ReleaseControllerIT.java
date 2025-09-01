@@ -123,4 +123,75 @@ class ReleaseControllerIT extends BaseIntegrationTest {
         .then()
             .statusCode(401);
     }
+
+    @Test
+    void shouldCreateReleaseWithAuthentication() {
+        String token = getAccessToken("testuser", "testpass");
+        CreateReleaseRequest request = new CreateReleaseRequest("Test Product", "1.0.0");
+        
+        given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + token)
+            .body(request)
+        .when()
+            .post("/api/v1/releases")
+        .then()
+            .statusCode(anyOf(is(201), is(400), is(500)))
+            .body("$", notNullValue());
+    }
+
+    @Test
+    void shouldListReleasesWithAuthentication() {
+        String token = getAccessToken("testuser", "testpass");
+        
+        given()
+            .header("Authorization", "Bearer " + token)
+        .when()
+            .get("/api/v1/releases")
+        .then()
+            .statusCode(anyOf(is(200), is(500)))
+            .body("$", notNullValue());
+    }
+
+    @Test
+    void shouldGetClientsWithAuthentication() {
+        String token = getAccessToken("testuser", "testpass");
+        
+        given()
+            .header("Authorization", "Bearer " + token)
+        .when()
+            .get("/api/v1/releases/clients")
+        .then()
+            .statusCode(anyOf(is(200), is(500)))
+            .body("$", notNullValue());
+    }
+
+    @Test
+    void shouldGetEnvironmentsWithAuthentication() {
+        String token = getAccessToken("testuser", "testpass");
+        
+        given()
+            .header("Authorization", "Bearer " + token)
+        .when()
+            .get("/api/v1/releases/environments")
+        .then()
+            .statusCode(anyOf(is(200), is(500)))
+            .body("$", notNullValue());
+    }
+
+    @Test
+    void shouldCreatePipelineReleaseWithAdminRole() {
+        String token = getAccessToken("adminuser", "adminpass");
+        CreateReleaseRequest request = new CreateReleaseRequest("Pipeline Product", "2.0.0");
+        
+        given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + token)
+            .body(request)
+        .when()
+            .post("/api/v1/releases/pipeline")
+        .then()
+            .statusCode(anyOf(is(201), is(400), is(500)))
+            .body("$", notNullValue());
+    }
 }

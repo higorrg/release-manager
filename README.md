@@ -341,89 +341,64 @@ az storage container set-permission \
 
 ## 🧪 Testes
 
-### Testes Unitários Backend
+### Backend - Execução Simplificada
+
+O projeto está configurado para separação automática entre testes unitários e de integração:
+
+**Executar apenas testes unitários:**
 ```bash
 cd backend
 ./mvnw test
 ```
 
-### Testes de Integração Backend
-Os testes de integração utilizam **TestContainers** para criar um ambiente isolado com PostgreSQL real:
-
+**Executar apenas testes de integração:**
 ```bash
 cd backend
-
-# Executar apenas testes de integração
-./mvnw verify -P integration-test
-
-# Executar todos os testes (unitários + integração)
-./mvnw verify -DskipITs=false
-
-# Executar testes de integração com logs detalhados
-./mvnw verify -P integration-test -X
+./mvnw failsafe:integration-test
+# ou
+./mvnw integration-test
 ```
 
-**Estrutura dos Testes de Integração:**
-- **Localização**: `src/it/java/` (padrão Maven para testes de integração)
-- **TestContainers**: Utiliza PostgreSQL 15-alpine em container isolado
+**Executar todos os testes (unitários + integração):**
+```bash
+cd backend
+./mvnw verify
+```
+
+**Estrutura dos Testes:**
+- **Testes Unitários**: `src/test/java/` (padrão `*Test.java`, `Test*.java`)
+- **Testes de Integração**: `src/it/java/` (padrão `*IT.java`, `IT*.java`)
+- **TestContainers**: PostgreSQL 17-alpine em container isolado
 - **Configuração**: Desabilita OIDC e usa autenticação basic para testes
-- **Coverage**: Testa endpoints REST com banco de dados real
 
-**Funcionalidades Testadas:**
-- ✅ **ReleaseController**: CRUD completo de releases, gestão de status, histórico
-- ✅ **ClientController**: Gerenciamento de clientes e ambientes
-- ✅ **FileUploadController**: Upload de arquivos (Azure Blob Storage mocado)
-- ✅ **Autenticação**: Controle de acesso e roles (admin/user)
-- ✅ **Banco de Dados**: Migrations Flyway e operações CRUD
+### Relatórios de Cobertura JaCoCo
 
-**Exemplo de Execução:**
+**Gerar relatórios de cobertura:**
 ```bash
 cd backend
 
-# Configurar ambiente para Podman (Linux)
-mkdir -p /run/user/$(id -u)/podman
-podman system service --time=0 unix:///run/user/$(id -u)/podman/podman.sock &
-export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
-export TESTCONTAINERS_CHECKS_DISABLE=true
+# Cobertura apenas dos testes unitários
+./mvnw test jacoco:report
 
-# Executar testes de integração
-./mvnw package -DskipTests -P integration-test
-./mvnw failsafe:integration-test -DskipITs=false
+# Cobertura apenas dos testes de integração
+./mvnw integration-test jacoco:report-integration
 
-# Saída esperada:
-# [INFO] Tests run: 25, Failures: 0, Errors: 0, Skipped: 0
-# [INFO] Container postgres:17-alpine started successfully
-# [INFO] Integration tests completed successfully
+# Cobertura completa (unitários + integração)
+./mvnw verify
 ```
 
-**Configuração Automática via Script:**
+**Localização dos Relatórios:**
+- **Testes Unitários**: `target/site/jacoco/index.html`
+- **Testes de Integração**: `target/site/jacoco-it/index.html`
+- **Relatório Consolidado**: `target/site/jacoco-merged/index.html`
+
+**Abrir relatório no navegador:**
 ```bash
-# Criar script para facilitar execução
-cat > run-integration-tests.sh << 'EOF'
-#!/bin/bash
-set -e
+# Linux/macOS
+open target/site/jacoco-merged/index.html
 
-# Configurar Podman para TestContainers
-echo "Configurando Podman para TestContainers..."
-mkdir -p /run/user/$(id -u)/podman
-if ! pgrep -f "podman system service" > /dev/null; then
-    podman system service --time=0 unix:///run/user/$(id -u)/podman/podman.sock &
-    sleep 2
-fi
-
-# Exportar variáveis
-export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
-export TESTCONTAINERS_CHECKS_DISABLE=true
-
-echo "Executando testes de integração..."
-./mvnw package -DskipTests -P integration-test
-./mvnw failsafe:integration-test -DskipITs=false
-
-echo "Testes de integração concluídos!"
-EOF
-
-chmod +x run-integration-tests.sh
-./run-integration-tests.sh
+# Windows
+start target/site/jacoco-merged/index.html
 ```
 
 ### Testes Frontend
@@ -434,9 +409,9 @@ npm test
 
 ### CI/CD - Testes Automatizados
 ```bash
-# Pipeline completa com testes
+# Pipeline completa com testes e cobertura
 cd backend
-./mvnw clean compile test verify -P integration-test
+./mvnw clean verify
 
 cd frontend  
 npm ci

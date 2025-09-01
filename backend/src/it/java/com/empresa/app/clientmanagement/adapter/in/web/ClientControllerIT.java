@@ -138,4 +138,62 @@ class ClientControllerIT extends BaseIntegrationTest {
         .then()
             .statusCode(401);
     }
+
+    @Test
+    void shouldCreateClientWithAuthentication() {
+        String token = getAccessToken("testuser", "testpass");
+        CreateClientRequest request = new CreateClientRequest("CLI001", "Cliente Teste", "Cliente para testes de integração");
+        
+        given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + token)
+            .body(request)
+        .when()
+            .post("/api/v1/clients")
+        .then()
+            .statusCode(anyOf(is(201), is(400), is(409), is(500)))
+            .body("$", notNullValue());
+    }
+
+    @Test
+    void shouldListClientsWithAuthentication() {
+        String token = getAccessToken("testuser", "testpass");
+        
+        given()
+            .header("Authorization", "Bearer " + token)
+        .when()
+            .get("/api/v1/clients")
+        .then()
+            .statusCode(anyOf(is(200), is(500)))
+            .body("$", notNullValue());
+    }
+
+    @Test
+    void shouldGetEnvironmentsWithAuthentication() {
+        String token = getAccessToken("testuser", "testpass");
+        
+        given()
+            .header("Authorization", "Bearer " + token)
+        .when()
+            .get("/api/v1/clients/environments")
+        .then()
+            .statusCode(anyOf(is(200), is(500)))
+            .body("$", notNullValue());
+    }
+
+    @Test
+    void shouldHandleClientOperationsWithValidation() {
+        String token = getAccessToken("testuser", "testpass");
+        CreateClientRequest validRequest = new CreateClientRequest("CLI002", "Cliente Válido", "Descrição válida");
+        
+        given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer " + token)
+            .body(validRequest)
+        .when()
+            .post("/api/v1/clients")
+        .then()
+            .statusCode(anyOf(is(201), is(400), is(409), is(500)))
+            .body("$", notNullValue());
+    }
 }

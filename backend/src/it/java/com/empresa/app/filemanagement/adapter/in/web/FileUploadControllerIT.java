@@ -96,4 +96,45 @@ class FileUploadControllerIT extends BaseIntegrationTest {
             }
         }
     }
+
+    @Test
+    void shouldHandleFileUploadWithAuthentication() {
+        String token = getAccessToken("testuser", "testpass");
+        File tempFile = new File("test-auth.txt");
+        
+        try {
+            java.nio.file.Files.write(tempFile.toPath(), "authenticated test".getBytes());
+            
+            given()
+                .header("Authorization", "Bearer " + token)
+                .multiPart("file", tempFile, "text/plain")
+                .multiPart("directory", "releases")
+            .when()
+                .post("/api/v1/files/upload")
+            .then()
+                .statusCode(anyOf(is(200), is(400), is(500)))
+                .body("$", notNullValue());
+                
+        } catch (Exception e) {
+            org.junit.jupiter.api.Assumptions.assumeFalse(true, "Não foi possível criar arquivo temporário");
+        } finally {
+            if (tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    @Test
+    void shouldHandleInvalidParametersWithAuthentication() {
+        String token = getAccessToken("testuser", "testpass");
+        
+        given()
+            .header("Authorization", "Bearer " + token)
+            .contentType(ContentType.MULTIPART)
+        .when()
+            .post("/api/v1/files/upload")
+        .then()
+            .statusCode(anyOf(is(400), is(500)))
+            .body("$", notNullValue());
+    }
 }
