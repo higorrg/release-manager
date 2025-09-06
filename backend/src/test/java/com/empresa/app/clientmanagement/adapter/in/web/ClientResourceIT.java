@@ -3,16 +3,12 @@ package com.empresa.app.clientmanagement.adapter.in.web;
 import com.empresa.app.BaseIntegrationTest;
 import com.empresa.app.TokenHelper;
 import io.restassured.http.ContentType;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.MethodOrderer;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class ClientResourceIT extends BaseIntegrationTest{
+public class ClientResourceIT extends BaseIntegrationTest {
 
     TokenHelper tokenHelper = new TokenHelper();
 
@@ -26,30 +22,30 @@ public class ClientResourceIT extends BaseIntegrationTest{
 //                .statusCode(401);
 //    }
 
-//    @Test
-//    void testInvalidToken_shouldReturn401() {
-//        given()
-//                .contentType(ContentType.JSON)
-//                .header("Authorization", "Bearer invalid-token")
-//                .when()
-//                .get("/api/v1/clients")
-//                .then()
-//                .statusCode(401);
-//    }
-//
     @Test
-    void testValidUserToken_shouldAccessUserEndpoints() {
-        String userToken = tokenHelper.getUserToken();
-
+    void testInvalidToken_shouldReturn401() {
         given()
                 .contentType(ContentType.JSON)
-                .header("Authorization", "Bearer " + userToken)
+                .header("Authorization", "Bearer invalid-token")
                 .when()
                 .get("/api/v1/clients")
                 .then()
-                .statusCode(200)
-                .body("size()", greaterThanOrEqualTo(0));
+                .statusCode(401);
     }
+//
+//    @Test
+//    void testValidUserToken_shouldAccessUserEndpoints() {
+//        String userToken = tokenHelper.getUserToken();
+//
+//        given()
+//                .contentType(ContentType.JSON)
+//                .header("Authorization", "Bearer " + userToken)
+//                .when()
+//                .get("/api/v1/clients")
+//                .then()
+//                .statusCode(200)
+//                .body("size()", greaterThanOrEqualTo(0));
+//    }
 //
 //    @Test
 //    void testUserToken_accessingAdminEndpoint_shouldReturn403() {
