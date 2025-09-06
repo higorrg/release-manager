@@ -2,17 +2,17 @@ package com.empresa.app;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@ApplicationScoped
 public class TokenHelper {
 
-    @ConfigProperty(name = "test.keycloak.url", defaultValue = "http://localhost:8080")
     String keycloakBaseUrl;
+    
+    public TokenHelper() {
+        this.keycloakBaseUrl = System.getProperty("test.keycloak.url", "http://localhost:8080");
+    }
 
     public String getAdminToken() {
         return getToken("admin-user", "admin-password", "admin");
